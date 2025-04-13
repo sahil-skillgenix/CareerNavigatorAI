@@ -15,7 +15,8 @@ import {
   PathwayCards,
   RecommendedCourses,
   CareerProgressTracker,
-  DashboardHeader
+  DashboardHeader,
+  Navigation
 } from "@/components/dashboard";
 
 export default function DashboardPage() {
@@ -43,6 +44,8 @@ export default function DashboardPage() {
       <DashboardHeader />
       
       <main className="container mx-auto px-4 py-8">
+        <Navigation />
+        
         <div className="flex flex-col items-center mb-8">
           <h1 className="text-2xl font-bold mb-6">Career Dashboard</h1>
           
