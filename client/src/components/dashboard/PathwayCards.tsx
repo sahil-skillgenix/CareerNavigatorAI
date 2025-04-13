@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Award, BookOpen, Globe, Building, FileText, BriefcaseBusiness, ChevronRight } from "lucide-react";
+import { Link } from "wouter";
 
 export function PathwayCards() {
   return (
@@ -32,10 +33,12 @@ export function PathwayCards() {
           </ul>
         </CardContent>
         <CardFooter>
-          <Button className="w-full">
-            Explore Career Pathway
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
+          <Link href="/career-analysis" className="w-full">
+            <Button className="w-full">
+              Explore Career Pathway
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
       
@@ -66,10 +69,12 @@ export function PathwayCards() {
           </ul>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" variant="secondary">
-            Explore Organization Pathway
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
+          <Link href="/career-pathway" className="w-full">
+            <Button className="w-full" variant="secondary">
+              Explore Organization Pathway
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
     </div>

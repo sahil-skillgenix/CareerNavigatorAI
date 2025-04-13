@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import DashboardPage from "@/pages/dashboard-page";
 import CareerPathwayPage from "@/pages/career-pathway-page";
+import CareerAnalysisPage from "@/pages/career-analysis-page";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <ProtectedRoute path="/dashboard" component={DashboardPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
+      <ProtectedRoute path="/career-analysis" component={CareerAnalysisPage} />
       <Route component={NotFound} />
     </Switch>
   );
