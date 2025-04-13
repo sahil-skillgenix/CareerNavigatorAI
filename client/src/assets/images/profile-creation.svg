@@ -1,0 +1,30 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" rx="12" fill="#F8FAFC" />
+  
+  <!-- Profile Form -->
+  <rect x="50" y="40" width="300" height="220" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+  
+  <!-- Header -->
+  <rect x="80" y="65" width="180" height="8" rx="4" fill="#1A56DB" />
+  <rect x="80" y="85" width="240" height="6" rx="3" fill="#E5E7EB" />
+  
+  <!-- Form Fields -->
+  <rect x="80" y="120" width="80" height="6" rx="3" fill="#64748B" />
+  <rect x="80" y="135" width="240" height="12" rx="6" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1" />
+  
+  <rect x="80" y="165" width="80" height="6" rx="3" fill="#64748B" />
+  <rect x="80" y="180" width="240" height="12" rx="6" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1" />
+  
+  <!-- Button -->
+  <rect x="80" y="215" width="100" height="14" rx="7" fill="#1A56DB" />
+  <rect x="110" y="219" width="40" height="6" rx="3" fill="white" />
+  
+  <!-- Profile Photo Circle -->
+  <circle cx="320" cy="110" r="30" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1" />
+  <path d="M320 102C316.686 102 314 104.686 314 108C314 111.314 316.686 114 320 114C323.314 114 326 111.314 326 108C326 104.686 323.314 102 320 102ZM320 119C314.667 119 306 121.667 306 127V129C306 130.104 306.896 131 308 131H332C333.104 131 334 130.104 334 129V127C334 121.667 325.333 119 320 119Z" fill="#94A3B8"/>
+  
+  <!-- LinkedIn Icon -->
+  <rect x="280" y="170" width="80" height="12" rx="6" fill="#0A66C2" />
+  <rect x="290" y="173" width="60" height="6" rx="3" fill="white" />
+</svg>

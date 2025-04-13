@@ -1,0 +1,35 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" rx="12" fill="#F8FAFC" />
+  
+  <!-- Path Card -->
+  <rect x="50" y="40" width="300" height="220" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+  
+  <!-- Header -->
+  <rect x="80" y="65" width="180" height="8" rx="4" fill="#1A56DB" />
+  <rect x="80" y="85" width="220" height="6" rx="3" fill="#E5E7EB" />
+  
+  <!-- Career Path Visualization -->
+  <rect x="80" y="110" width="240" height="120" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+  
+  <!-- Path Points -->
+  <circle cx="100" cy="190" r="8" fill="#1A56DB" />
+  <circle cx="160" cy="160" r="8" fill="#1A56DB" />
+  <circle cx="220" cy="130" r="8" fill="#1A56DB" />
+  <circle cx="280" cy="150" r="8" fill="#7E22CE" />
+  <circle cx="330" cy="120" r="8" fill="#7E22CE" opacity="0.5" />
+  
+  <!-- Path Line -->
+  <path d="M 100 190 C 120 190, 140 160, 160 160 C 180 160, 200 130, 220 130 C 240 130, 260 150, 280 150 C 300 150, 310 120, 330 120" stroke="#1A56DB" stroke-width="2" fill="none" />
+  
+  <!-- Milestone Labels -->
+  <rect x="90" y="205" width="20" height="6" rx="3" fill="#64748B" />
+  <rect x="150" y="175" width="20" height="6" rx="3" fill="#64748B" />
+  <rect x="210" y="145" width="20" height="6" rx="3" fill="#64748B" />
+  <rect x="270" y="165" width="20" height="6" rx="3" fill="#64748B" />
+  <rect x="320" y="135" width="20" height="6" rx="3" fill="#64748B" />
+  
+  <!-- Explore Button -->
+  <rect x="150" y="245" width="100" height="14" rx="7" fill="#1A56DB" />
+  <rect x="180" y="249" width="40" height="6" rx="3" fill="white" />
+</svg>
