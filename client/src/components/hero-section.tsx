@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { ButtonHighlighted } from './ui/button-highlighted';
 import { Play } from 'lucide-react';
+import { Link } from 'wouter';
 import careerGrowthAiSvg from '@/assets/images/career-growth-ai.svg';
 
 export default function HeroSection() {
@@ -25,9 +26,11 @@ export default function HeroSection() {
               Leverage the power of OpenAI technology to map your professional journey, identify skills gaps, and achieve your career aspirations with personalized AI guidance.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <ButtonHighlighted variant="default" size="lg" className="px-8 py-6 text-lg">
-                Start Your Journey
-              </ButtonHighlighted>
+              <Link href="/auth">
+                <ButtonHighlighted variant="default" size="lg" className="px-8 py-6 text-lg">
+                  Start Your Journey
+                </ButtonHighlighted>
+              </Link>
               <ButtonHighlighted variant="outline" size="lg" className="px-8 py-6 text-lg">
                 <Play className="mr-2 h-5 w-5" /> Watch Demo
               </ButtonHighlighted>

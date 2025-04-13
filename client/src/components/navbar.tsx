@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ButtonHighlighted } from './ui/button-highlighted';
-import { Menu } from 'lucide-react';
+import { Menu, User, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from './ui/button';
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -15,6 +17,8 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [location] = useLocation();
+  const { user, logoutMutation } = useAuth();
+  const isHomePage = location === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,32 +50,65 @@ export default function Navbar() {
             <Link href="/" className="flex items-center flex-shrink-0">
               <span className="font-bold text-xl text-primary-dark">Career<span className="text-secondary-dark">Path</span>AI</span>
             </Link>
-            <nav className="hidden md:flex space-x-8 ml-10">
-              {navLinks.map((link) => (
-                <a 
-                  key={link.href} 
-                  href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(link.href.substring(1));
-                  }}
-                  className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
+            {isHomePage && (
+              <nav className="hidden md:flex space-x-8 ml-10">
+                {navLinks.map((link) => (
+                  <a 
+                    key={link.href} 
+                    href={link.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(link.href.substring(1));
+                    }}
+                    className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+            )}
           </motion.div>
           
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex items-center"
+            className="flex items-center gap-3"
           >
-            <ButtonHighlighted variant="default" size="default">
-              Get Started
-            </ButtonHighlighted>
+            {user ? (
+              <>
+                <div className="hidden md:block text-sm text-muted-foreground">
+                  Welcome, <span className="font-medium">{user.fullName}</span>
+                </div>
+                <Link href="/dashboard">
+                  <Button variant="outline" size="sm" className="hidden md:inline-flex">
+                    <User className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                  className="hidden md:inline-flex"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth" className="hidden md:block">
+                  <Button variant="ghost" size="sm">Sign In</Button>
+                </Link>
+                <Link href="/auth">
+                  <ButtonHighlighted variant="default" size="default">
+                    Get Started
+                  </ButtonHighlighted>
+                </Link>
+              </>
+            )}
             
             <Sheet>
               <SheetTrigger asChild>
@@ -85,7 +122,7 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-6 mt-6">
-                  {navLinks.map((link) => (
+                  {isHomePage && navLinks.map((link) => (
                     <a 
                       key={link.href} 
                       href={link.href}
@@ -98,9 +135,40 @@ export default function Navbar() {
                       {link.label}
                     </a>
                   ))}
-                  <ButtonHighlighted variant="default" size="lg" className="mt-4 w-full">
-                    Get Started
-                  </ButtonHighlighted>
+                  
+                  {user ? (
+                    <>
+                      <div className="text-sm text-muted-foreground">
+                        Welcome, <span className="font-medium">{user.fullName}</span>
+                      </div>
+                      <Link href="/dashboard" className="w-full">
+                        <Button className="w-full justify-start" variant="outline">
+                          <User className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="destructive" 
+                        className="w-full justify-start" 
+                        onClick={() => logoutMutation.mutate()}
+                        disabled={logoutMutation.isPending}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/auth" className="w-full">
+                        <Button variant="outline" className="w-full">Sign In</Button>
+                      </Link>
+                      <Link href="/auth" className="w-full">
+                        <ButtonHighlighted variant="default" size="lg" className="w-full">
+                          Get Started
+                        </ButtonHighlighted>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
