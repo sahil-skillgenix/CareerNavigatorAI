@@ -20,7 +20,8 @@ interface PathwayOption {
   description: string;
   icon: React.ReactNode;
   benefits: string[];
-  color: "primary" | "secondary" | "destructive" | "outline" | "ghost" | "link" | "default";
+  color: string; // Just for CSS class names
+  buttonVariant: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link";
 }
 
 export function PathwaySelector() {
@@ -39,7 +40,8 @@ export function PathwaySelector() {
         "Flexible career progression",
         "Focus on personal development goals"
       ],
-      color: "primary"
+      color: "primary",
+      buttonVariant: "default"
     },
     {
       id: "organization",
@@ -52,7 +54,8 @@ export function PathwaySelector() {
         "Internal networking opportunities",
         "Alignment with company growth plans"
       ],
-      color: "secondary"
+      color: "secondary",
+      buttonVariant: "secondary"
     }
   ];
   
@@ -125,7 +128,7 @@ export function PathwaySelector() {
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      variant={selectedPathway === option.id ? option.color : "outline"} 
+                      variant={selectedPathway === option.id ? option.buttonVariant : "outline"}
                       className="w-full"
                       onClick={() => handleSelect(option.id)}
                     >
