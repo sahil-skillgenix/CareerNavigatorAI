@@ -85,27 +85,26 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <motion.div 
-          className="mt-12"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          <h2 className="text-xl font-semibold mb-6 text-center">Career Development Pathways</h2>
+        {/* Career Development Pathways Section */}
+        <section className="mt-12 mb-16">
+          <h2 className="text-2xl font-semibold mb-8 text-center">Career Development Pathways</h2>
           <div className="flex justify-center mb-12">
             <PathwayCards />
           </div>
-          
-          <h2 className="text-xl font-semibold mb-6 text-center">Career Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-            <div className="md:col-span-2">
+        </section>
+
+        {/* Career Insights Section */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-semibold mb-8 text-center">Career Insights</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="lg:col-span-2">
               <RecommendedCourses />
             </div>
-            <div className="md:col-span-1">
+            <div>
               <CareerProgressTracker />
             </div>
           </div>
-        </motion.div>
+        </section>
       </main>
     </div>
   );
