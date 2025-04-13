@@ -9,7 +9,8 @@ import { Link } from "wouter";
 import { 
   LogOut, User, Search, Calendar, Clock, Building, MapPin, Upload, 
   History, FileText, Briefcase, BookOpen, Award, ChevronRight, 
-  Globe, Phone, Mail, AtSign, GraduationCap, BriefcaseBusiness
+  Globe, Phone, Mail, AtSign, GraduationCap, BriefcaseBusiness,
+  LineChart
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -18,7 +19,12 @@ import { useState } from "react";
 
 export default function DashboardPage() {
   const { user, logoutMutation } = useAuth();
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("");
+  
+  // Function to handle saving changes and closing the active tab
+  const handleSaveChanges = () => {
+    setActiveTab("");
+  };
   
   const { data: dashboardData } = useQuery({
     queryKey: ["/api/dashboard"],
@@ -149,7 +155,7 @@ export default function DashboardPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end">
-                    <Button>Save Changes</Button>
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
@@ -400,6 +406,133 @@ export default function DashboardPage() {
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
               </CardFooter>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Recommended Courses and Career Tracking */}
+        <div className="mt-12 mb-16">
+          <h2 className="text-xl font-semibold mb-6 text-center">Recommended Resources & Progress Tracking</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Recommended Courses */}
+            <Card className="col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2 text-primary" />
+                  Recommended Courses
+                </CardTitle>
+                <CardDescription>Based on your career goals and skill gaps</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="bg-primary/10 rounded-md p-3">
+                      <GraduationCap className="h-8 w-8 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">Leadership Fundamentals</h3>
+                      <p className="text-sm text-muted-foreground mb-2">Learn essential leadership skills for career growth</p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" /> 8 weeks • 
+                        <User className="h-3 w-3 mx-1" /> 2,405 enrolled •
+                        <Award className="h-3 w-3 mx-1" /> Certificate
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">Enroll</Button>
+                  </div>
+                  
+                  <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="bg-secondary/10 rounded-md p-3">
+                      <BriefcaseBusiness className="h-8 w-8 text-secondary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">Strategic Decision Making</h3>
+                      <p className="text-sm text-muted-foreground mb-2">Master the art of making strategic decisions in business</p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" /> 6 weeks • 
+                        <User className="h-3 w-3 mx-1" /> 1,850 enrolled •
+                        <Award className="h-3 w-3 mx-1" /> Certificate
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">Enroll</Button>
+                  </div>
+                  
+                  <div className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="bg-primary/10 rounded-md p-3">
+                      <FileText className="h-8 w-8 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">Data-Driven Management</h3>
+                      <p className="text-sm text-muted-foreground mb-2">Learn to leverage data for better management decisions</p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" /> 10 weeks • 
+                        <User className="h-3 w-3 mx-1" /> 3,120 enrolled •
+                        <Award className="h-3 w-3 mx-1" /> Certificate
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">Enroll</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Career Progress Tracking */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <LineChart className="h-5 w-5 mr-2 text-primary" />
+                  Career Progress
+                </CardTitle>
+                <CardDescription>Track your growth over time</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Leadership Skills</span>
+                    <span className="text-sm text-muted-foreground">65%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div className="h-2 bg-primary rounded-full" style={{ width: "65%" }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Technical Expertise</span>
+                    <span className="text-sm text-muted-foreground">82%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div className="h-2 bg-secondary rounded-full" style={{ width: "82%" }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Strategic Thinking</span>
+                    <span className="text-sm text-muted-foreground">48%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div className="h-2 bg-primary rounded-full" style={{ width: "48%" }}></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Communication</span>
+                    <span className="text-sm text-muted-foreground">73%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div className="h-2 bg-secondary rounded-full" style={{ width: "73%" }}></div>
+                  </div>
+                </div>
+                
+                <div className="pt-4">
+                  <Button variant="outline" className="w-full">
+                    View Full Assessment Report
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </div>
         </div>
