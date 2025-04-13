@@ -4,7 +4,7 @@ import { BookOpen, GraduationCap, BriefcaseBusiness, FileText, Clock, User, Awar
 
 export function RecommendedCourses() {
   return (
-    <Card className="col-span-2">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
           <BookOpen className="h-5 w-5 mr-2 text-primary" />

@@ -98,8 +98,12 @@ export default function DashboardPage() {
           
           <h2 className="text-xl font-semibold mb-6 text-center">Career Insights</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-            <RecommendedCourses />
-            <CareerProgressTracker />
+            <div className="md:col-span-2">
+              <RecommendedCourses />
+            </div>
+            <div className="md:col-span-1">
+              <CareerProgressTracker />
+            </div>
           </div>
         </motion.div>
       </main>
