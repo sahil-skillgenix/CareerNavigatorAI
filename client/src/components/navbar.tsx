@@ -33,7 +33,7 @@ export default function Navbar() {
 
   return (
     <header 
-      className={`fixed w-full bg-white ${isScrolled ? 'bg-opacity-95 backdrop-blur-sm shadow-sm' : 'bg-opacity-90'} z-50 transition-all duration-300`}
+      className={`fixed w-full ${isScrolled ? 'bg-white bg-opacity-95 backdrop-blur-sm shadow-sm' : 'bg-transparent'} z-50 transition-all duration-300`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
@@ -55,7 +55,7 @@ export default function Navbar() {
                     e.preventDefault();
                     scrollToSection(link.href.substring(1));
                   }}
-                  className="text-neutral-darkest hover:text-primary-dark transition-colors font-medium"
+                  className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
                 >
                   {link.label}
                 </a>
@@ -77,7 +77,7 @@ export default function Navbar() {
               <SheetTrigger asChild>
                 <button 
                   type="button" 
-                  className="md:hidden inline-flex items-center justify-center ml-3 text-neutral-dark hover:text-neutral-darkest focus:outline-none"
+                  className="md:hidden inline-flex items-center justify-center ml-3 text-neutral-600 hover:text-neutral-800 focus:outline-none"
                   aria-label="Open main menu"
                 >
                   <Menu className="h-6 w-6" />
@@ -93,7 +93,7 @@ export default function Navbar() {
                         e.preventDefault();
                         scrollToSection(link.href.substring(1));
                       }}
-                      className="text-neutral-darkest hover:text-primary-dark transition-colors font-medium text-lg"
+                      className="text-neutral-700 hover:text-primary-dark transition-colors font-medium text-lg"
                     >
                       {link.label}
                     </a>
