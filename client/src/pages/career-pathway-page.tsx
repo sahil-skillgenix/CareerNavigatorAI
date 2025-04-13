@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { PathwaySelector } from "@/components/onboarding/PathwaySelector";
 import { OnboardingTutorial } from "@/components/onboarding/OnboardingTutorial";
 import { motion } from "framer-motion";
+import { Navigation } from "@/components/dashboard";
 
 export default function CareerPathwayPage() {
   const { user } = useAuth();
@@ -46,10 +47,13 @@ export default function CareerPathwayPage() {
       </header>
       
       <main className="container mx-auto px-4 py-10">
+        <Navigation />
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="mt-6"
         >
           <PathwaySelector />
         </motion.div>
