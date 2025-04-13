@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ButtonHighlighted } from './ui/button-highlighted';
 import { Play } from 'lucide-react';
-import careerDashboardSvg from '@/assets/images/career-dashboard.svg';
+import careerGrowthAiSvg from '@/assets/images/career-growth-ai.svg';
 
 export default function HeroSection() {
   return (
@@ -22,14 +22,14 @@ export default function HeroSection() {
               <br />With AI
             </h1>
             <p className="text-lg md:text-xl text-neutral-600 mb-8 max-w-xl">
-              Leverage the power of OpenAI technology to map your professional journey, identify skills gaps, and achieve your career aspirations with personalized guidance.
+              Leverage the power of OpenAI technology to map your professional journey, identify skills gaps, and achieve your career aspirations with personalized AI guidance.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <ButtonHighlighted variant="default" size="lg">
+              <ButtonHighlighted variant="default" size="lg" className="px-8 py-6 text-lg">
                 Start Your Journey
               </ButtonHighlighted>
-              <ButtonHighlighted variant="outline" size="lg">
-                <Play className="mr-2 h-4 w-4" /> Watch Demo
+              <ButtonHighlighted variant="outline" size="lg" className="px-8 py-6 text-lg">
+                <Play className="mr-2 h-5 w-5" /> Watch Demo
               </ButtonHighlighted>
             </div>
             <div className="mt-10 flex items-center gap-4">
@@ -56,12 +56,15 @@ export default function HeroSection() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <div className="bg-white p-4 rounded-2xl shadow-xl">
-              <img 
-                src={careerDashboardSvg} 
-                alt="CareerPathAI Dashboard" 
-                className="w-full h-auto rounded-xl"
-              />
+            <div className="relative">
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary-light/20 to-secondary-light/20 transform rotate-3 scale-105 blur-sm"></div>
+              <div className="relative bg-white p-4 rounded-2xl shadow-xl overflow-hidden">
+                <img 
+                  src={careerGrowthAiSvg} 
+                  alt="AI-Powered Career Growth Paths" 
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
             </div>
             <div className="absolute -top-12 -right-12 z-[-1] bg-primary-light/30 rounded-full w-40 h-40 blur-3xl"></div>
             <div className="absolute -bottom-12 -left-12 z-[-1] bg-secondary-light/30 rounded-full w-40 h-40 blur-3xl"></div>
