@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { User, Calendar, Clock, MapPin } from "lucide-react";
+import { useState } from "react";
 
 interface ProfileSectionProps {
   userData: {
@@ -14,6 +15,9 @@ interface ProfileSectionProps {
 }
 
 export function ProfileSection({ userData, onSave }: ProfileSectionProps) {
+  const [fullName, setFullName] = useState(userData?.fullName || "");
+  const [email, setEmail] = useState(userData?.email || "");
+  
   return (
     <Card>
       <CardHeader>
@@ -27,12 +31,21 @@ export function ProfileSection({ userData, onSave }: ProfileSectionProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" defaultValue={userData?.fullName || "Demo User"} />
+            <Input 
+              id="fullName" 
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
           </div>
           
           <div className="space-y-3">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" defaultValue={userData?.email || "demo@careerpathAI.com"} />
+            <Input 
+              id="email" 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           
           <div className="space-y-3">

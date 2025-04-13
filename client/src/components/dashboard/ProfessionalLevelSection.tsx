@@ -2,12 +2,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import { useState } from "react";
 
 interface ProfessionalLevelSectionProps {
   onSave: () => void;
 }
 
 export function ProfessionalLevelSection({ onSave }: ProfessionalLevelSectionProps) {
+  const [level, setLevel] = useState<string>("");
+  
   return (
     <Card>
       <CardHeader>
@@ -23,6 +26,8 @@ export function ProfessionalLevelSection({ onSave }: ProfessionalLevelSectionPro
           <select 
             id="professionalLevel"
             className="w-full p-2 border rounded-md bg-background"
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
           >
             <option value="">-- Select your professional level --</option>
             <option value="student">Student</option>
