@@ -9,7 +9,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
-  sessionStore: session.SessionStore;
+  sessionStore: ReturnType<typeof createMemoryStore>;
 }
 
 const MemoryStore = createMemoryStore(session);
@@ -17,7 +17,7 @@ const MemoryStore = createMemoryStore(session);
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   currentId: number;
-  sessionStore: session.SessionStore;
+  sessionStore: ReturnType<typeof createMemoryStore>;
 
   constructor() {
     this.users = new Map();
