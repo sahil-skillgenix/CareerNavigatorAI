@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import Select from 'react-select';
 
 export default function DashboardPage() {
   const { user, logoutMutation } = useAuth();
@@ -245,6 +246,118 @@ export default function DashboardPage() {
                       <Button variant="outline">+ Add Experience</Button>
                     </div>
                   </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <User className="h-5 w-5 mr-2 text-primary" />
+                      Professional Level
+                    </CardTitle>
+                    <CardDescription>Your current professional status</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="professionalLevel">Current Professional Level</Label>
+                      <select 
+                        id="professionalLevel"
+                        className="w-full p-2 border rounded-md bg-background"
+                      >
+                        <option value="">-- Select your professional level --</option>
+                        <option value="student">Student</option>
+                        <option value="graduate">Graduate</option>
+                        <option value="intern">Intern</option>
+                        <option value="working-professional">Working Professional</option>
+                        <option value="returner">Returner</option>
+                        <option value="career-switcher">Career Switcher</option>
+                      </select>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-end">
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Award className="h-5 w-5 mr-2 text-primary" />
+                      Skills & Tools
+                    </CardTitle>
+                    <CardDescription>Your expertise and toolset</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <Label htmlFor="skills">Skills (select up to 50)</Label>
+                      <Select
+                        isMulti
+                        name="skills"
+                        placeholder="Search and select your skills..."
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                        options={[
+                          { value: 'leadership', label: 'Leadership' },
+                          { value: 'communication', label: 'Communication' },
+                          { value: 'problem-solving', label: 'Problem Solving' },
+                          { value: 'teamwork', label: 'Teamwork' },
+                          { value: 'javascript', label: 'JavaScript' },
+                          { value: 'react', label: 'React' },
+                          { value: 'typescript', label: 'TypeScript' },
+                          { value: 'nodejs', label: 'Node.js' },
+                          { value: 'python', label: 'Python' },
+                          { value: 'java', label: 'Java' },
+                          { value: 'data-analysis', label: 'Data Analysis' },
+                          { value: 'machine-learning', label: 'Machine Learning' },
+                          { value: 'ux-design', label: 'UX Design' },
+                          { value: 'project-management', label: 'Project Management' },
+                          { value: 'agile', label: 'Agile' },
+                          { value: 'critical-thinking', label: 'Critical Thinking' },
+                          { value: 'negotiation', label: 'Negotiation' },
+                          { value: 'conflict-resolution', label: 'Conflict Resolution' },
+                          { value: 'marketing', label: 'Marketing' },
+                          { value: 'sales', label: 'Sales' },
+                        ]}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Select the skills you possess (maximum 50)</p>
+                    </div>
+                    
+                    <div className="space-y-4 mt-6">
+                      <Label htmlFor="tools">Tools & Software (select up to 50)</Label>
+                      <Select
+                        isMulti
+                        name="tools"
+                        placeholder="Search and select tools you use..."
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                        options={[
+                          { value: 'microsoft-office', label: 'Microsoft Office' },
+                          { value: 'google-workspace', label: 'Google Workspace' },
+                          { value: 'adobe-creative-suite', label: 'Adobe Creative Suite' },
+                          { value: 'photoshop', label: 'Adobe Photoshop' },
+                          { value: 'illustrator', label: 'Adobe Illustrator' },
+                          { value: 'figma', label: 'Figma' },
+                          { value: 'sketch', label: 'Sketch' },
+                          { value: 'vscode', label: 'Visual Studio Code' },
+                          { value: 'intellij', label: 'IntelliJ IDEA' },
+                          { value: 'github', label: 'GitHub' },
+                          { value: 'gitlab', label: 'GitLab' },
+                          { value: 'jira', label: 'Jira' },
+                          { value: 'slack', label: 'Slack' },
+                          { value: 'teams', label: 'Microsoft Teams' },
+                          { value: 'zoom', label: 'Zoom' },
+                          { value: 'tableau', label: 'Tableau' },
+                          { value: 'power-bi', label: 'Power BI' },
+                          { value: 'sql', label: 'SQL Databases' },
+                          { value: 'excel-advanced', label: 'Advanced Excel' },
+                          { value: 'powerpoint', label: 'PowerPoint' },
+                        ]}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Select the tools and software you're proficient with (maximum 50)</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-end">
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  </CardFooter>
                 </Card>
               </TabsContent>
               
