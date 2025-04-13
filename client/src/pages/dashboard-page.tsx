@@ -1,15 +1,24 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
-import { LogOut, User, Settings, ChevronRight, BarChart4, Briefcase, Award, BookOpen, LineChart } from "lucide-react";
+import { 
+  LogOut, User, Search, Calendar, Clock, Building, MapPin, Upload, 
+  History, FileText, Briefcase, BookOpen, Award, ChevronRight, 
+  Globe, Phone, Mail, AtSign, GraduationCap, BriefcaseBusiness
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 export default function DashboardPage() {
   const { user, logoutMutation } = useAuth();
+  const [activeTab, setActiveTab] = useState("profile");
   
   const { data: dashboardData } = useQuery({
     queryKey: ["/api/dashboard"],
@@ -54,138 +63,346 @@ export default function DashboardPage() {
       </header>
       
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold">Your Career Dashboard</h1>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
+        <div className="flex flex-col items-center mb-8">
+          <h1 className="text-2xl font-bold mb-6">Career Dashboard</h1>
+          
+          <div className="w-full max-w-3xl">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="flex justify-center mb-6">
+                <TabsList className="grid grid-cols-4 w-full max-w-xl">
+                  <TabsTrigger value="profile">Profile</TabsTrigger>
+                  <TabsTrigger value="info">Info</TabsTrigger>
+                  <TabsTrigger value="organization">My Organization</TabsTrigger>
+                  <TabsTrigger value="history">Search History</TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="profile" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <User className="h-5 w-5 mr-2 text-primary" />
+                      Basic Details
+                    </CardTitle>
+                    <CardDescription>Your personal information</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input id="fullName" defaultValue={user?.fullName || "Demo User"} />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input id="email" type="email" defaultValue={user?.email || "demo@careerpathAI.com"} />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" type="tel" placeholder="Enter your phone number" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="dob">Date of Birth</Label>
+                        <div className="flex gap-2">
+                          <Input id="dob" type="date" placeholder="DD/MM/YYYY" />
+                          <Button variant="outline" size="icon">
+                            <Calendar className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="timezone">Time Zone</Label>
+                        <div className="flex gap-2">
+                          <Input id="timezone" defaultValue="UTC+0" />
+                          <Button variant="outline" size="icon">
+                            <Clock className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="country">Country</Label>
+                        <Input id="country" placeholder="Enter your country" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="state">State/Province</Label>
+                        <Input id="state" placeholder="Enter your state or province" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="city">City</Label>
+                        <div className="flex gap-2">
+                          <Input id="city" placeholder="Enter your city" />
+                          <Button variant="outline" size="icon">
+                            <MapPin className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-end">
+                    <Button>Save Changes</Button>
+                  </CardFooter>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="info" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <GraduationCap className="h-5 w-5 mr-2 text-primary" />
+                      Education Details
+                    </CardTitle>
+                    <CardDescription>Your academic background</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="degree">Highest Degree</Label>
+                        <Input id="degree" placeholder="e.g. Bachelor of Science" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="field">Field of Study</Label>
+                        <Input id="field" placeholder="e.g. Computer Science" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="institution">Institution</Label>
+                        <Input id="institution" placeholder="Enter your institution name" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="gradYear">Graduation Year</Label>
+                        <Input id="gradYear" type="number" placeholder="e.g. 2020" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <Button variant="outline">+ Add Education</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <BriefcaseBusiness className="h-5 w-5 mr-2 text-primary" />
+                      Experience Details
+                    </CardTitle>
+                    <CardDescription>Your work history</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="jobTitle">Current Job Title</Label>
+                        <Input id="jobTitle" placeholder="e.g. Software Engineer" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="company">Company</Label>
+                        <Input id="company" placeholder="Enter your company name" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="startDate">Start Date</Label>
+                        <Input id="startDate" type="date" />
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Label htmlFor="currentJob">Current Job</Label>
+                        <div className="flex items-center pt-2">
+                          <input type="checkbox" id="currentJob" className="mr-2" />
+                          <label htmlFor="currentJob">I currently work here</label>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3 col-span-2">
+                        <Label htmlFor="description">Description</Label>
+                        <textarea 
+                          id="description" 
+                          className="w-full min-h-[100px] p-2 border rounded-md"
+                          placeholder="Describe your responsibilities and achievements"
+                        ></textarea>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <Button variant="outline">+ Add Experience</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="organization" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Building className="h-5 w-5 mr-2 text-primary" />
+                      My Organization
+                    </CardTitle>
+                    <CardDescription>Connect with your organization or upload org structure</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex w-full max-w-xl mx-auto">
+                      <Input placeholder="Search for your organization" className="rounded-r-none" />
+                      <Button className="rounded-l-none">
+                        <Search className="h-4 w-4 mr-2" />
+                        Search
+                      </Button>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="text-center p-6 border border-dashed rounded-md bg-gray-50">
+                      <Building className="h-10 w-10 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Upload Organization Structure</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload your organization's structure as an Excel file to create customized career pathways
+                      </p>
+                      <div className="flex justify-center gap-4">
+                        <Button variant="outline">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Browse Files
+                        </Button>
+                        <Button variant="outline" className="bg-white">
+                          Download Template
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="history" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <History className="h-5 w-5 mr-2 text-primary" />
+                      Career Pathway Search History
+                    </CardTitle>
+                    <CardDescription>Results from your previous career pathway searches</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-md bg-gray-50">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">Software Developer to CTO Pathway</h3>
+                            <p className="text-sm text-muted-foreground">Searched on April 10, 2025</p>
+                          </div>
+                          <Button variant="outline" size="sm">View</Button>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 border rounded-md bg-gray-50">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">Marketing Associate to CMO Pathway</h3>
+                            <p className="text-sm text-muted-foreground">Searched on April 5, 2025</p>
+                          </div>
+                          <Button variant="outline" size="sm">View</Button>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 border rounded-md bg-gray-50">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">Data Analyst to Data Science Manager</h3>
+                            <p className="text-sm text-muted-foreground">Searched on March 28, 2025</p>
+                          </div>
+                          <Button variant="outline" size="sm">View</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
         
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="w-full max-w-md grid grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="skills">Skills</TabsTrigger>
-            <TabsTrigger value="growth">Growth Plan</TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col items-center mt-12">
+          <h2 className="text-xl font-semibold mb-6">Choose Your Pathway</h2>
           
-          <TabsContent value="overview" className="mt-6">
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-            >
-              {dashboardData?.careerPaths.map((path: any, index: number) => (
-                <motion.div key={path.id} variants={staggerItem}>
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center justify-between">
-                        {path.title}
-                        <span className="text-sm font-normal text-muted-foreground">
-                          {path.progress}% complete
-                        </span>
-                      </CardTitle>
-                      <CardDescription>AI-recommended career path</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-2 bg-gray-100 rounded-full mb-4">
-                        <div 
-                          className="h-2 bg-primary rounded-full" 
-                          style={{ width: `${path.progress}%` }}
-                        ></div>
-                      </div>
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Details
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+            <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+                <CardTitle>My Career Pathway</CardTitle>
+                <CardDescription>Personal growth journey based on your skills and goals</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-muted-foreground mb-4">
+                  Create a personalized career development plan tailored to your skills, 
+                  experience, and aspirations. Get AI-powered recommendations for skills to 
+                  develop and milestones to achieve.
+                </p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center">
+                    <Award className="h-4 w-4 text-primary mr-2" />
+                    <span className="text-sm">Skill gap analysis</span>
+                  </li>
+                  <li className="flex items-center">
+                    <BookOpen className="h-4 w-4 text-primary mr-2" />
+                    <span className="text-sm">Learning recommendations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Globe className="h-4 w-4 text-primary mr-2" />
+                    <span className="text-sm">Industry-based career paths</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full">
+                  Explore Career Pathway
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </CardFooter>
+            </Card>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Award className="h-5 w-5 mr-2 text-primary" />
-                      Suggested Skills
-                    </CardTitle>
-                    <CardDescription>Skills to develop based on your goals</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {dashboardData?.suggestedSkills.map((skill: any) => (
-                        <li key={skill.id} className="flex items-center justify-between p-2 rounded bg-gray-50">
-                          <div>
-                            <p className="font-medium">{skill.name}</p>
-                            <p className="text-xs text-muted-foreground">{skill.category}</p>
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            <BookOpen className="h-4 w-4" />
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <LineChart className="h-5 w-5 mr-2 text-primary" />
-                      Upcoming Milestones
-                    </CardTitle>
-                    <CardDescription>Your career progression timeline</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {dashboardData?.upcomingMilestones.map((milestone: any) => (
-                        <li key={milestone.id} className="flex items-center justify-between p-2 rounded bg-gray-50">
-                          <div>
-                            <p className="font-medium">{milestone.title}</p>
-                            <p className="text-xs text-muted-foreground">Due: {new Date(milestone.dueDate).toLocaleDateString()}</p>
-                          </div>
-                          <Button variant="ghost" size="sm">
-                            <BarChart4 className="h-4 w-4" />
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="skills">
-            <div className="rounded-lg border bg-card p-8 text-center">
-              <h3 className="text-xl font-semibold mb-2">Skills Assessment</h3>
-              <p className="text-muted-foreground mb-4">Assess your skills to get personalized recommendations</p>
-              <Button>Start Skills Assessment</Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="growth">
-            <div className="rounded-lg border bg-card p-8 text-center">
-              <h3 className="text-xl font-semibold mb-2">Your Growth Plan</h3>
-              <p className="text-muted-foreground mb-4">Create or view your personalized career growth plan</p>
-              <Button>Create Growth Plan</Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+            <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-r from-secondary/10 to-secondary/5">
+                <CardTitle>My Organization Growth Pathway</CardTitle>
+                <CardDescription>Career development within your organization</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-muted-foreground mb-4">
+                  Discover career advancement opportunities within your current organization's 
+                  structure. See potential promotion paths, lateral moves, and the skills needed 
+                  to progress in your company.
+                </p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-center">
+                    <Building className="h-4 w-4 text-secondary mr-2" />
+                    <span className="text-sm">Organization-specific roles</span>
+                  </li>
+                  <li className="flex items-center">
+                    <FileText className="h-4 w-4 text-secondary mr-2" />
+                    <span className="text-sm">Internal promotion requirements</span>
+                  </li>
+                  <li className="flex items-center">
+                    <BriefcaseBusiness className="h-4 w-4 text-secondary mr-2" />
+                    <span className="text-sm">Cross-departmental opportunities</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" variant="secondary">
+                  Explore Organization Pathway
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
       </main>
     </div>
   );

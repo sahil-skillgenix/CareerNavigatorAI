@@ -30,10 +30,8 @@ export default function AuthPage() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // Redirect if already logged in
-  if (user) {
-    return <Redirect to="/" />;
-  }
+  // We'll handle redirect after all hooks
+  const shouldRedirect = !!user;
 
   // Login form setup
   const loginForm = useForm<z.infer<typeof loginUserSchema>>({
@@ -77,6 +75,11 @@ export default function AuthPage() {
     registerForm.setValue("confirmPassword", "demo123456");
   };
 
+  // Now safe to redirect after all hook calls
+  if (shouldRedirect) {
+    return <Redirect to="/dashboard" />;
+  }
+  
   return (
     <div className="min-h-screen flex flex-col">
       <header className="py-4 px-6 flex items-center justify-between">
