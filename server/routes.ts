@@ -3,6 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service";
+import { 
+  getResourceRecommendations, 
+  generateLearningPath, 
+  SkillToLearn,
+  LearningResource,
+  LearningPathRecommendation
+} from "./learning-resources-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
@@ -85,12 +92,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const analysisResult = await analyzeCareerPathway(input);
+      
+      // Verify that the response has all required sections
+      const requiredSections = [
+        'executiveSummary', 
+        'skillMapping', 
+        'skillGapAnalysis', 
+        'careerPathway', 
+        'developmentPlan', 
+        'reviewNotes'
+      ];
+      
+      // Cast to any to avoid TypeScript errors with dynamic property access
+      const missingFields = requiredSections.filter(section => !(analysisResult as any)[section]);
+      
+      if (missingFields.length > 0) {
+        console.error('Career analysis missing required fields:', missingFields);
+        return res.status(500).json({
+          error: 'Incomplete career analysis',
+          message: 'The career analysis is missing required data. Please try again.',
+          missingFields
+        });
+      }
+      
       res.json(analysisResult);
     } catch (error) {
       console.error('Error in career analysis:', error);
       res.status(500).json({ 
         error: 'Failed to analyze career pathway', 
         message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
+  // Learning Resources Recommendation Endpoint
+  app.post('/api/learning-resources', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const { skills, preferredTypes, maxResults } = req.body;
+      
+      // Validate request
+      if (!skills || !Array.isArray(skills) || skills.length === 0) {
+        return res.status(400).json({
+          error: 'Invalid request',
+          message: 'Please provide at least one skill to learn'
+        });
+      }
+      
+      // Validate each skill object has required properties
+      const invalidSkills = skills.filter((skill: any) => 
+        !skill.skill || !skill.currentLevel || !skill.targetLevel || !skill.context
+      );
+      
+      if (invalidSkills.length > 0) {
+        return res.status(400).json({
+          error: 'Invalid skills data',
+          message: 'Each skill must include: skill name, current level, target level, and context'
+        });
+      }
+      
+      const recommendations = await getResourceRecommendations(
+        skills, 
+        preferredTypes, 
+        maxResults || 5
+      );
+      
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error getting learning resources:', error);
+      res.status(500).json({
+        error: 'Failed to get learning resources',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Learning Path Generation Endpoint
+  app.post('/api/learning-path', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const { skill, currentLevel, targetLevel, context, learningStyle } = req.body;
+      
+      // Validate request
+      if (!skill || !currentLevel || !targetLevel || !context) {
+        return res.status(400).json({
+          error: 'Invalid request',
+          message: 'Please provide skill name, current level, target level, and context'
+        });
+      }
+      
+      const learningPath = await generateLearningPath(
+        skill,
+        currentLevel,
+        targetLevel,
+        context,
+        learningStyle
+      );
+      
+      res.json(learningPath);
+    } catch (error) {
+      console.error('Error generating learning path:', error);
+      res.status(500).json({
+        error: 'Failed to generate learning path',
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

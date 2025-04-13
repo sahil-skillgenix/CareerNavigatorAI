@@ -45,7 +45,8 @@ export interface CareerAnalysisOutput {
 export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<CareerAnalysisOutput> {
   try {
     const prompt = `
-    Please analyze this career information and provide a comprehensive career pathway using SFIA 9 and DigComp 2.2 frameworks:
+    You are an expert career analyst with deep knowledge of SFIA 9 and DigComp 2.2 frameworks. 
+    Analyze this career information and provide a comprehensive career pathway:
     
     Current Professional Level: ${input.professionalLevel}
     Current Skills: ${input.currentSkills}
@@ -53,21 +54,61 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     Career History: ${input.careerHistory}
     Desired Role or Career Goal: ${input.desiredRole}
     
-    Please follow this process:
-    1. Analyze the input using both SFIA 9 and DigComp 2.2 frameworks.
-    2. Map the existing skills to both frameworks, identifying competencies and levels already met.
-    3. Perform a Skill Gap Analysis comparing current skills and experience against the desired role requirements.
-    4. Generate a Career Pathway showing logical progression toward the goal.
-    5. Create a Personalized Development Plan with skills to acquire, recommended learning resources, and projects.
-    6. Conduct two review stages: first validating input data and interpretations, then re-checking the generated pathway for completeness and framework alignment.
+    STRICTLY follow this 6-step process in order:
     
-    Return the result as a JSON object with these sections:
+    1. ANALYZE INPUT USING FRAMEWORKS:
+    - Use both SFIA 9 and DigComp 2.2 frameworks to analyze the user's current skills and experience
+    - Identify competency areas and levels from both frameworks that apply to the user
+    
+    2. MAP EXISTING SKILLS:
+    - For SFIA 9: Map each skill to the appropriate category and assign a level (1-7)
+    - For DigComp 2.2: Map skills to the appropriate competence area and proficiency level
+    - Be specific about which competencies and levels are already met
+    
+    3. PERFORM SKILL GAP ANALYSIS:
+    - Compare current skills against requirements for desired role
+    - Identify specific skill gaps with importance ratings
+    - Highlight existing strengths with relevance to desired role
+    
+    4. GENERATE CAREER PATHWAY:
+    - Create a logical progression of roles or steps toward goal
+    - Include timeframe estimates for each step
+    - List key skills needed for each step
+    - Provide detailed descriptions of each role/step
+    
+    5. CREATE PERSONALIZED DEVELOPMENT PLAN:
+    - List specific skills to acquire or improve with priority levels
+    - Recommend concrete learning resources or certifications
+    - Suggest specific experiences or projects to pursue
+    - Outline a clear learning path with milestones
+    
+    6. QUALITY ASSURANCE (Two Review Stages):
+    - First Review: Validate input data and interpretations for accuracy and consistency
+    - Second Review: Re-check the pathway, gap analysis, and development plan for completeness, coherence, and alignment with the frameworks
+    
+    Return the result as a JSON object with these EXACT sections:
     - executiveSummary: A concise overview of the analysis
-    - skillMapping: How current skills map to SFIA 9 and DigComp 2.2
-    - skillGapAnalysis: Gaps and strengths identified
-    - careerPathway: Step-by-step progression to reach the goal
-    - developmentPlan: Skills to acquire, resources, certifications, projects
-    - reviewNotes: Validation notes from both review stages
+    - skillMapping: {
+        sfia9: [{skill, level, description}],
+        digcomp22: [{competency, level, description}]
+      }
+    - skillGapAnalysis: {
+        gaps: [{skill, importance, description}],
+        strengths: [{skill, level, relevance, description}]
+      }
+    - careerPathway: [{step, role, timeframe, keySkillsNeeded, description}]
+    - developmentPlan: {
+        skillsToAcquire: [{skill, priority, resources}],
+        recommendedCertifications: [],
+        suggestedProjects: [],
+        learningPath
+      }
+    - reviewNotes: {
+        firstReview,
+        secondReview
+      }
+    
+    IMPORTANT: Only return the final output AFTER both review stages are passed. The output must follow the exact format specified above.
     `;
 
     const response = await openai.chat.completions.create({
@@ -75,7 +116,21 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       messages: [
         { 
           role: "system", 
-          content: "You are an expert career analyst with deep knowledge of SFIA 9 and DigComp 2.2 frameworks. Provide thorough career analyses using structured JSON format." 
+          content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks.
+          
+          SFIA 9 (Skills Framework for the Information Age) defines IT skills across 7 levels of responsibility and numerous skill categories.
+          
+          DigComp 2.2 (European Digital Competence Framework) covers 5 competence areas: Information and data literacy, Communication and collaboration, Digital content creation, Safety, and Problem solving.
+          
+          Your task is to analyze career information using both frameworks and provide comprehensive, structured career guidance following the exact 6-step process:
+          1. Analyze the input using both frameworks 
+          2. Map existing skills to both frameworks
+          3. Perform skill gap analysis
+          4. Generate career pathway
+          5. Create personalized development plan 
+          6. Conduct quality assurance through two review stages
+          
+          Only return output that follows the specified JSON format after both review stages are passed.` 
         },
         { role: "user", content: prompt }
       ],
