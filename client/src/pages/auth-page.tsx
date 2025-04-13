@@ -68,6 +68,14 @@ export default function AuthPage() {
     loginForm.setValue("email", "demo@careerpathAI.com");
     loginForm.setValue("password", "demo123456");
   };
+  
+  // Demo signup credentials
+  const fillDemoSignupCredentials = () => {
+    registerForm.setValue("fullName", "Demo User");
+    registerForm.setValue("email", "demo.user@careerpathAI.com");
+    registerForm.setValue("password", "demo123456");
+    registerForm.setValue("confirmPassword", "demo123456");
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -295,6 +303,27 @@ export default function AuthPage() {
                     </Button>
                   </form>
                 </Form>
+                
+                <div className="mt-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-4"
+                    onClick={fillDemoSignupCredentials}
+                  >
+                    Use Demo Credentials
+                  </Button>
+                </div>
               </TabsContent>
             </Tabs>
           </div>
