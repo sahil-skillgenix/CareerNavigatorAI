@@ -17,8 +17,7 @@ export function DashboardHeader({ onLogout }: DashboardHeaderProps) {
   return (
     <header className="bg-white border-b sticky top-0 z-10">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-        <div className="flex items-center gap-2">
-          <Briefcase className="h-5 w-5 text-primary" />
+        <div className="flex items-center">
           <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
         </div>
         

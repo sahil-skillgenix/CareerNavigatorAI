@@ -90,7 +90,6 @@ export default function AuthPage() {
           </WouterLink>
         </Button>
         <WouterLink href="/" className="flex items-center">
-            <Briefcase className="h-5 w-5 mr-2 text-primary" />
             <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
         </WouterLink>
       </header>
