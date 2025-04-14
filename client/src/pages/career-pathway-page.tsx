@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { PathwaySelector } from "@/components/onboarding/PathwaySelector";
-import { OnboardingTutorial } from "@/components/onboarding/OnboardingTutorial";
 import { motion } from "framer-motion";
 import { Navigation } from "@/components/dashboard";
 
@@ -58,9 +57,6 @@ export default function CareerPathwayPage() {
           <PathwaySelector />
         </motion.div>
       </main>
-      
-      {/* Add the onboarding tutorial component */}
-      <OnboardingTutorial />
     </div>
   );
 }
