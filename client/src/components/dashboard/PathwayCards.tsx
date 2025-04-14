@@ -8,7 +8,7 @@ export function PathwayCards() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
       <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
-          <CardTitle>My Career Pathway</CardTitle>
+          <CardTitle>Personal Career Pathway</CardTitle>
           <CardDescription>Personal growth journey based on your skills and goals</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -33,9 +33,9 @@ export function PathwayCards() {
           </ul>
         </CardContent>
         <CardFooter>
-          <Link href="/career-analysis" className="w-full">
+          <Link href="/career-pathway" className="w-full">
             <Button className="w-full">
-              Explore Career Pathway
+              Explore Personal Pathway
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           </Link>
@@ -44,7 +44,7 @@ export function PathwayCards() {
       
       <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader className="bg-gradient-to-r from-secondary/10 to-secondary/5">
-          <CardTitle>My Organization Growth Pathway</CardTitle>
+          <CardTitle>Organization Career Pathway</CardTitle>
           <CardDescription>Career development within your organization</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
@@ -69,7 +69,7 @@ export function PathwayCards() {
           </ul>
         </CardContent>
         <CardFooter>
-          <Link href="/career-pathway" className="w-full">
+          <Link href="/organization-pathway" className="w-full">
             <Button className="w-full" variant="secondary">
               Explore Organization Pathway
               <ChevronRight className="h-4 w-4 ml-2" />
