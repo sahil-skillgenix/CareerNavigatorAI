@@ -13,6 +13,7 @@ import {
   CheckCircle2 
 } from "lucide-react";
 import { PathwayProgress } from "./PathwayProgress";
+import { useLocation } from "wouter";
 
 interface PathwayOption {
   id: string;
@@ -27,6 +28,7 @@ interface PathwayOption {
 export function PathwaySelector() {
   const [selectedPathway, setSelectedPathway] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [_, setLocation] = useLocation();
   
   const pathwayOptions: PathwayOption[] = [
     {
@@ -65,6 +67,11 @@ export function PathwaySelector() {
   
   const handleConfirm = () => {
     setShowConfirmation(true);
+    
+    // Auto-navigate to career analysis page after 3 seconds
+    setTimeout(() => {
+      setLocation('/career-analysis');
+    }, 3000);
   };
   
   return (
@@ -198,7 +205,7 @@ export function PathwaySelector() {
               Back to Selection
             </Button>
             
-            <Button className="px-6">
+            <Button className="px-6" onClick={() => setLocation('/career-analysis')}>
               <LineChart className="mr-2 h-4 w-4" />
               View Full Career Plan
             </Button>

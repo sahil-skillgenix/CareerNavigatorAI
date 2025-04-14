@@ -30,9 +30,9 @@ export class MongoDBStorage implements IStorage {
     await connectToDatabase();
     
     // Now that MongoDB is connected, update the session store
-    // We use clientPromise to avoid connection issues
+    // Using the mongoose client directly
     this.sessionStore = MongoStore.create({
-      mongoUrl: mongoose.connection.getClient().s.url,
+      client: mongoose.connection.getClient(),
       ttl: 14 * 24 * 60 * 60, // 14 days
       crypto: {
         secret: process.env.SESSION_SECRET || 'my-secret-key'
