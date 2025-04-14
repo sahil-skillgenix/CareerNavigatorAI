@@ -562,6 +562,94 @@ function CareerAnalysisResults({
             Choose the path that best aligns with your preferences and circumstances.
           </p>
           
+          {/* Career Transition Visualization */}
+          <div className="bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-200 mb-8">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 14V4M17 14H9" />
+                <path d="M13 18 9 14 13 10" />
+                <path d="M7 14H3" />
+                <path d="M14 6 17 3 20 6" />
+              </svg>
+              Career Transition Visualization
+            </h3>
+            
+            <div className="relative h-[200px] mb-6">
+              <div className="absolute left-0 bottom-0 w-full h-1 bg-slate-200"></div>
+              
+              <div className="absolute left-[5%] bottom-0 flex flex-col items-center">
+                <div className="w-4 h-4 bg-blue-500 rounded-full mb-3">
+                  <div className="absolute top-[-70px] transform -translate-x-1/2 w-28 text-center">
+                    <div className="text-xs font-semibold text-blue-600">Current Position</div>
+                    <div className="mt-1 text-xs px-1 py-0.5 bg-blue-100 text-blue-600 rounded-full">Starting Point</div>
+                  </div>
+                </div>
+                <div className="h-[10px] w-[2px] bg-blue-500"></div>
+              </div>
+              
+              <div className="absolute left-[50%] bottom-0 flex flex-col items-center">
+                <div className="w-4 h-4 bg-purple-500 rounded-full mb-3">
+                  <div className="absolute top-[-100px] transform -translate-x-1/2 w-36 text-center">
+                    <div className="text-xs font-semibold text-purple-600">Transition Period</div>
+                    <div className="mt-1 text-2xs px-1 py-0.5 bg-purple-100 text-purple-600 rounded-full">Skills Development</div>
+                    <div className="mt-1 text-2xs px-1 py-0.5 bg-purple-100 text-purple-600 rounded-full">Networking</div>
+                    <div className="mt-1 text-2xs px-1 py-0.5 bg-purple-100 text-purple-600 rounded-full">Experience Building</div>
+                  </div>
+                </div>
+                <div className="h-[10px] w-[2px] bg-purple-500"></div>
+              </div>
+              
+              <div className="absolute left-[85%] bottom-0 flex flex-col items-center">
+                <div className="w-4 h-4 bg-green-500 rounded-full mb-3">
+                  <div className="absolute top-[-70px] transform -translate-x-1/2 w-28 text-center">
+                    <div className="text-xs font-semibold text-green-600">Target Role</div>
+                    <div className="mt-1 text-xs px-1 py-0.5 bg-green-100 text-green-600 rounded-full">Career Goal</div>
+                  </div>
+                </div>
+                <div className="h-[10px] w-[2px] bg-green-500"></div>
+              </div>
+              
+              {/* Connecting arrow */}
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '80%' }}
+                transition={{ duration: 1.5, delay: 0.5 }}
+                className="absolute left-[5%] bottom-[7px] h-[2px] bg-gradient-to-r from-blue-500 via-purple-500 to-green-500"
+              ></motion.div>
+              
+              {/* Milestones */}
+              <div className="absolute left-[20%] bottom-0 flex flex-col items-center">
+                <div className="w-2 h-2 bg-slate-400 rounded-full mb-2"></div>
+                <div className="h-[5px] w-[1px] bg-slate-400"></div>
+              </div>
+              
+              <div className="absolute left-[35%] bottom-0 flex flex-col items-center">
+                <div className="w-2 h-2 bg-slate-400 rounded-full mb-2"></div>
+                <div className="h-[5px] w-[1px] bg-slate-400"></div>
+              </div>
+              
+              <div className="absolute left-[65%] bottom-0 flex flex-col items-center">
+                <div className="w-2 h-2 bg-slate-400 rounded-full mb-2"></div>
+                <div className="h-[5px] w-[1px] bg-slate-400"></div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4 text-center text-sm">
+              <div className="text-blue-600">
+                <div className="font-medium">Initial Phase</div>
+                <div className="text-xs text-muted-foreground">Skills assessment & gap identification</div>
+              </div>
+              <div className="text-purple-600">
+                <div className="font-medium">Development Phase</div>
+                <div className="text-xs text-muted-foreground">Education, training & practical experience</div>
+              </div>
+              <div className="text-green-600">
+                <div className="font-medium">Establishment Phase</div>
+                <div className="text-xs text-muted-foreground">Career goal achievement & ongoing growth</div>
+              </div>
+            </div>
+          </div>
+          
           <div className="grid md:grid-cols-2 gap-8">
             {/* Pathway With Degree */}
             <motion.div 
@@ -964,6 +1052,52 @@ function CareerAnalysisResults({
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
+                        {/* Top TAFE institutions in Australia with links */}
+                        <li className="text-sm flex items-start gap-2 mb-4 pb-3 border-b border-emerald-100">
+                          <div className="min-w-4 mt-1">🏫</div>
+                          <div className="w-full">
+                            <span className="font-medium block mb-1">Major TAFE Institutions</span>
+                            <div className="grid grid-cols-1 gap-2 mt-2">
+                              <a 
+                                href="https://www.tafensw.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                TAFE NSW
+                              </a>
+                              <a 
+                                href="https://www.tafe.qld.gov.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                TAFE Queensland
+                              </a>
+                              <a 
+                                href="https://www.swtafe.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                South West TAFE
+                              </a>
+                              <a 
+                                href="https://www.boxhill.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                Box Hill Institute
+                              </a>
+                            </div>
+                          </div>
+                        </li>
+                        
                         {results.developmentPlan.recommendedCertifications.tafe.map((cert: string, index: number) => (
                           <li key={index} className="text-sm flex items-start gap-2">
                             <div className="min-w-4 mt-1">•</div>
@@ -1029,9 +1163,69 @@ function CareerAnalysisResults({
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <h3 className="text-xl font-semibold mb-3">Similar Roles To Consider</h3>
+              <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl border border-indigo-100 p-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* These would be dynamically generated from API, but hardcoded for demo */}
+                  {[
+                    {
+                      title: "UI/UX Designer",
+                      similarity: "High",
+                      description: "Creates user-centered designs by understanding business requirements, and user feedback. Similar skill requirements in design thinking and user research.",
+                      salaryRange: "$85,000 - $130,000",
+                      growthOutlook: "Strong",
+                    },
+                    {
+                      title: "Product Manager",
+                      similarity: "Medium",
+                      description: "Guides the success of a product and leads the cross-functional team that is responsible for improving it. Requires similar strategic thinking skills.",
+                      salaryRange: "$95,000 - $150,000",
+                      growthOutlook: "Excellent",
+                    },
+                    {
+                      title: "Digital Content Strategist",
+                      similarity: "Medium",
+                      description: "Plans content development based on a company's or client's needs and overarching goals. Utilizes similar analysis and content creation skills.",
+                      salaryRange: "$75,000 - $115,000",
+                      growthOutlook: "Good",
+                    }
+                  ].map((role, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                      className="bg-white rounded-lg border border-indigo-100 p-4 shadow-sm"
+                    >
+                      <div className="font-medium text-indigo-700 mb-2">{role.title}</div>
+                      <div className="inline-block px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700 mb-2">
+                        Similarity: {role.similarity}
+                      </div>
+                      <p className="text-sm mb-3">{role.description}</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Salary Range</span>
+                          <span className="font-medium">{role.salaryRange}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Growth Outlook</span>
+                          <span className="font-medium">{role.growthOutlook}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <h3 className="text-xl font-semibold mb-3">Learning Path Roadmap</h3>
+              <h3 className="text-xl font-semibold mb-3 mt-8">Learning Path Roadmap</h3>
               <Card className="bg-gradient-to-br from-slate-50 to-gray-50 border-slate-100">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-slate-700 flex items-center gap-2 text-lg">
@@ -1122,7 +1316,7 @@ function CareerAnalysisResults({
                   toast({
                     title: "Analysis Saved",
                     description: "Your career pathway analysis has been saved to your dashboard.",
-                    variant: "success",
+                    variant: "default",
                   });
                 }}
                 size="lg" 
