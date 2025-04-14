@@ -17,7 +17,7 @@ type AuthContextType = {
   registerMutation: UseMutationResult<Omit<User, "password">, Error, InsertUser>;
 };
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], userData);
       toast({
         title: "Registration successful",
-        description: `Welcome to CareerPathAI, ${userData.fullName}!`,
+        description: `Welcome to Skillgenix, ${userData.fullName}!`,
       });
     },
     onError: (error: Error) => {
