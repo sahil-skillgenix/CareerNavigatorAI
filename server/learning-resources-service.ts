@@ -102,20 +102,46 @@ export async function getResourceRecommendations(
     
     // Validate and ensure each resource has required fields
     Object.keys(recommendations).forEach(skill => {
-      recommendations[skill] = recommendations[skill].map(resource => ({
-        id: resource.id || `resource-${Math.random().toString(36).substring(2, 11)}`,
-        title: resource.title,
-        type: resource.type,
-        provider: resource.provider,
-        url: resource.url || "N/A",
-        description: resource.description,
-        estimatedHours: resource.estimatedHours || 10,
-        difficulty: resource.difficulty,
-        costType: resource.costType,
-        tags: resource.tags || [],
-        relevanceScore: resource.relevanceScore || 7,
-        matchReason: resource.matchReason || `Recommended for learning ${skill}`
-      }));
+      // Handle case where the skill key exists but the resources array is undefined
+      if (!recommendations[skill]) {
+        recommendations[skill] = [];
+        return;
+      }
+      
+      recommendations[skill] = recommendations[skill].map(resource => {
+        if (!resource) {
+          // Provide default values if resource is undefined
+          return {
+            id: `resource-${Math.random().toString(36).substring(2, 11)}`,
+            title: "Resource unavailable",
+            type: "article",
+            provider: "Unknown",
+            url: "N/A",
+            description: "No description available",
+            estimatedHours: 1,
+            difficulty: "beginner",
+            costType: "free",
+            tags: [],
+            relevanceScore: 5,
+            matchReason: `Default resource for ${skill}`
+          };
+        }
+        
+        return {
+          id: resource.id || `resource-${Math.random().toString(36).substring(2, 11)}`,
+          title: resource.title || "Untitled Resource",
+          type: resource.type || "article",
+          provider: resource.provider || "Unknown",
+          url: resource.url || "N/A",
+          description: resource.description || "No description available",
+          estimatedHours: resource.estimatedHours || 10,
+          difficulty: resource.difficulty || "beginner",
+          costType: resource.costType || "free",
+          tags: resource.tags || [],
+          relevanceScore: resource.relevanceScore || 7,
+          matchReason: resource.matchReason || `Recommended for learning ${skill}`
+        };
+      });
     });
 
     return recommendations;
@@ -188,14 +214,49 @@ export async function generateLearningPath(
 
     let learningPath = JSON.parse(content) as LearningPathRecommendation;
     
+    // Ensure the learning path has the required structure
+    if (!learningPath.recommendedSequence) {
+      learningPath.recommendedSequence = [];
+    }
+    
     // Ensure ID for each resource
     learningPath.recommendedSequence = learningPath.recommendedSequence.map(step => {
-      step.resources = step.resources.map(resource => ({
-        ...resource,
-        id: resource.id || `resource-${Math.random().toString(36).substring(2, 11)}`
-      }));
+      if (!step.resources) {
+        step.resources = [];
+        return step;
+      }
+      
+      step.resources = step.resources.map(resource => {
+        if (!resource) return {
+          id: `resource-${Math.random().toString(36).substring(2, 11)}`,
+          title: "Resource unavailable",
+          type: "article",
+          provider: "Unknown",
+          description: "No description available",
+          estimatedHours: 1,
+          difficulty: "beginner",
+          costType: "free",
+          tags: [],
+          relevanceScore: 5,
+          matchReason: "Added as fallback"
+        };
+        
+        return {
+          ...resource,
+          id: resource.id || `resource-${Math.random().toString(36).substring(2, 11)}`
+        };
+      });
       return step;
     });
+
+    // Ensure all required fields are present
+    if (!learningPath.skill) {
+      learningPath.skill = skill;
+    }
+    
+    if (!learningPath.description) {
+      learningPath.description = `Learning path for ${skill}`;
+    }
 
     return learningPath;
   } catch (error: unknown) {
