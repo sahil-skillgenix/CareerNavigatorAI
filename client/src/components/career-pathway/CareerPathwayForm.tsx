@@ -24,6 +24,25 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { 
+  ResponsiveContainer, 
+  RadarChart, 
+  PolarGrid, 
+  PolarAngleAxis, 
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  Tooltip as RechartsTooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar
+} from 'recharts';
+import ReactApexChart from 'react-apexcharts';
+import { ApexOptions } from 'apexcharts';
 
 interface FormData {
   professionalLevel: string;
@@ -336,6 +355,7 @@ function CareerAnalysisResults({
   results: CareerAnalysisResult;
   onRestart: () => void;
 }) {
+  const { toast } = useToast();
   // Create a reference to scroll to specific sections
   const executeRef = useRef<HTMLDivElement>(null);
   const skillMappingRef = useRef<HTMLDivElement>(null);
@@ -732,26 +752,130 @@ function CareerAnalysisResults({
           <h2 className="text-2xl font-bold mb-4">Development Plan</h2>
           
           <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Skills To Acquire</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                {results.developmentPlan.skillsToAcquire.map((skill: any, index: number) => (
-                  <div key={index} className="bg-white rounded-lg border p-4">
-                    <div className="font-medium text-primary mb-1">{skill.skill}</div>
-                    <div className="text-sm text-muted-foreground mb-2">Priority: {skill.priority}</div>
-                    
-                    <div className="text-sm">
-                      <div className="font-medium mb-1">Recommended Resources:</div>
-                      <ul className="list-disc list-inside space-y-1">
-                        {skill.resources.map((resource: string, resourceIndex: number) => (
-                          <li key={resourceIndex}>{resource}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="relative"
+            >
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl opacity-50 overflow-hidden -z-10">
+                <div className="absolute top-0 -right-4 w-3/4 h-full">
+                  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full opacity-10">
+                    <path fill="#4F46E5" d="M45.3,-47.7C59.9,-35.8,73.3,-21.7,76.2,-5.4C79.1,10.9,71.5,29.4,58.7,41.1C45.8,52.8,27.7,57.9,9.8,59.7C-8.1,61.6,-25.9,60.3,-39.8,51.5C-53.6,42.8,-63.5,26.6,-66.4,8.8C-69.3,-9,-65.3,-28.4,-53.6,-41C-41.9,-53.5,-22.4,-59.2,-4.1,-55.8C14.2,-52.4,30.7,-59.7,45.3,-47.7Z" transform="translate(100 100)" />
+                  </svg>
+                </div>
+                <motion.div 
+                  className="absolute bottom-0 left-0 w-1/2 h-full"
+                  animate={{ 
+                    x: [0, 10, 0],
+                    y: [0, -15, 0],
+                    rotate: [0, 5, 0]
+                  }}
+                  transition={{ 
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full opacity-10">
+                    <path fill="#6366F1" d="M48.2,-46.1C60.5,-34.3,66.9,-14.8,65.1,3.2C63.3,21.1,53.2,37.5,39.1,47.7C24.9,57.9,6.5,61.9,-11.9,59.7C-30.4,57.4,-48.9,48.9,-58.6,34.2C-68.3,19.4,-69.3,-1.6,-61.8,-18.2C-54.3,-34.8,-38.4,-47,-22.2,-57.3C-5.9,-67.5,10.7,-75.7,24.4,-71.3C38,-66.9,48.7,-49.9,48.2,-46.1Z" transform="translate(100 100)" />
+                  </svg>
+                </motion.div>
               </div>
-            </div>
+              
+              <div className="relative p-6 mb-8">
+                <h3 className="text-xl font-semibold mb-5 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                  Skills To Acquire
+                </h3>
+                
+                {/* Skill chart visualization */}
+                <div className="bg-white rounded-xl border shadow-sm p-5 mb-8">
+                  <h4 className="text-lg font-medium mb-4 text-blue-800">Skill Priority Distribution</h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {results.developmentPlan.skillsToAcquire.map((skill: any, idx: number) => {
+                      const priorityValue = skill.priority === "High" ? 90 : 
+                                skill.priority === "Medium" ? 65 : 40;
+                      const priorityColor = skill.priority === "High" ? "#ef4444" : 
+                                skill.priority === "Medium" ? "#f59e0b" : "#3b82f6";
+                      
+                      return (
+                        <motion.div 
+                          key={idx}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${priorityValue}%` }}
+                          transition={{ duration: 1, delay: idx * 0.1 }}
+                          className="flex items-center"
+                        >
+                          <div className="w-1/3 text-sm font-medium truncate pr-2">{skill.skill}</div>
+                          <div className="w-2/3 flex items-center">
+                            <div 
+                              style={{ 
+                                width: `${priorityValue}%`, 
+                                backgroundColor: priorityColor,
+                                transition: 'width 1s ease-in-out'
+                              }} 
+                              className="h-5 rounded-r-full rounded-l-full"
+                            />
+                            <span className="ml-2 text-xs">{skill.priority}</span>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  {results.developmentPlan.skillsToAcquire.map((skill: any, index: number) => (
+                    <motion.div 
+                      key={index} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                      className="bg-white rounded-lg border shadow-sm p-4"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium text-primary text-lg">{skill.skill}</div>
+                        <div className={`text-sm px-2 py-1 rounded-full ${
+                          skill.priority === 'High' ? 'bg-red-100 text-red-700' :
+                          skill.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {skill.priority}
+                        </div>
+                      </div>
+                      
+                      {skill.licenseRequired && (
+                        <div className="bg-indigo-50 p-2 rounded-md mb-3 text-sm">
+                          <div className="flex items-center gap-1 text-indigo-700 font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            License Required: {skill.licenseRequired}
+                          </div>
+                          {skill.licenseInfo && <div className="text-indigo-600 mt-1">{skill.licenseInfo}</div>}
+                        </div>
+                      )}
+                      
+                      <div className="text-sm">
+                        <div className="font-medium mb-1">Recommended Resources:</div>
+                        <ul className="list-disc list-inside space-y-1">
+                          {skill.resources.map((resource: string, resourceIndex: number) => (
+                            <li key={resourceIndex} className="text-gray-700">{resource}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
             
             <Separator />
             
@@ -774,6 +898,52 @@ function CareerAnalysisResults({
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
+                        {/* Sample Australian Universities with links */}
+                        <li className="text-sm flex items-start gap-2 mb-4 pb-3 border-b border-blue-100">
+                          <div className="min-w-4 mt-1">🏫</div>
+                          <div className="w-full">
+                            <span className="font-medium block mb-1">Top Australian Universities</span>
+                            <div className="grid grid-cols-1 gap-2 mt-2">
+                              <a 
+                                href="https://www.sydney.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                University of Sydney
+                              </a>
+                              <a 
+                                href="https://www.unimelb.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                University of Melbourne
+                              </a>
+                              <a 
+                                href="https://www.anu.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                Australian National University
+                              </a>
+                              <a 
+                                href="https://www.unsw.edu.au/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                UNSW Sydney
+                              </a>
+                            </div>
+                          </div>
+                        </li>
+                        
                         {results.developmentPlan.recommendedCertifications.university.map((cert: string, index: number) => (
                           <li key={index} className="text-sm flex items-start gap-2">
                             <div className="min-w-4 mt-1">•</div>
