@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { IStorage, storage } from "./storage";
 import { setupAuth } from "./auth";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service";
+import { analyzeOrganizationPathway, OrganizationPathwayInput } from "./organization-service";
 import { 
   getResourceRecommendations, 
   generateLearningPath, 
@@ -204,6 +205,55 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       res.status(500).json({
         error: 'Failed to generate learning path',
         message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Organization Pathway Analysis Endpoint
+  app.post('/api/organization-pathway', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const { 
+        organizationId,
+        organizationName,
+        currentRole,
+        skills,
+        desiredRole
+      } = req.body;
+      
+      // Validate required fields
+      if (!currentRole || !skills || !desiredRole) {
+        return res.status(400).json({ 
+          error: 'Missing required fields. Please provide current role, skills, and desired role.' 
+        });
+      }
+      
+      // Validate that at least one organization identifier is provided
+      if (!organizationId && !organizationName) {
+        return res.status(400).json({
+          error: 'Either organization ID or organization name must be provided.'
+        });
+      }
+      
+      const input: OrganizationPathwayInput = {
+        organizationId,
+        organizationName,
+        currentRole,
+        skills,
+        desiredRole
+      };
+      
+      const analysisResult = await analyzeOrganizationPathway(input);
+      
+      res.json(analysisResult);
+    } catch (error) {
+      console.error('Error in organization pathway analysis:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze organization pathway', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
   });

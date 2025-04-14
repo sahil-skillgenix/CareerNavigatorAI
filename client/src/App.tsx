@@ -13,6 +13,7 @@ import NewDashboardPage from "@/pages/new-dashboard-page";
 import CareerPathwayPage from "@/pages/career-pathway-page";
 import CareerAnalysisPage from "@/pages/career-analysis-page";
 import LearningResourcesPage from "@/pages/learning-resources-page";
+import OrganizationPathwayPage from "@/pages/organization-pathway-page";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
       <ProtectedRoute path="/career-analysis" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
+      <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
       <Route component={NotFound} />
     </Switch>
   );
