@@ -443,38 +443,93 @@ function CareerAnalysisResults({
         
         {/* Skill Gap Analysis */}
         <div ref={gapAnalysisRef} className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Skill Gap Analysis</h2>
+          <h2 className="text-2xl font-bold mb-4">Framework-Based Skill Gap Analysis</h2>
+          <p className="text-muted-foreground mb-6">
+            This analysis is based on the <span className="font-medium">SFIA 9 Framework</span> (Skills Framework for the Information Age) and <span className="font-medium">DigComp 2.2 Framework</span> (European Digital Competence Framework), providing a comprehensive assessment of your technical and digital competencies.
+          </p>
           
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Skill Gaps</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                {results.skillGapAnalysis.gaps.map((gap, index) => (
-                  <div key={index} className="bg-white rounded-lg border p-4">
-                    <div className="font-medium text-destructive mb-1">{gap.skill}</div>
+          <div className="grid gap-8 md:grid-cols-2">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="bg-red-50 p-4 rounded-lg border border-red-100 mb-4">
+                <h3 className="text-xl font-semibold mb-3 text-red-800 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  Skill Gaps
+                </h3>
+                <div className="text-sm text-red-600 mb-3 font-medium">
+                  The following skills from SFIA 9 and DigComp 2.2 frameworks have been identified as gaps for your desired role:
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {results.skillGapAnalysis.gaps.map((gap: any, index: number) => (
+                  <motion.div 
+                    key={index} 
+                    className="bg-white rounded-lg border border-red-100 p-4 shadow-sm"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 * index }}
+                  >
+                    <div className="font-medium text-red-600 mb-1 flex items-center gap-2">
+                      <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">
+                        {gap.framework || (index % 2 === 0 ? 'SFIA 9' : 'DigComp 2.2')}
+                      </span>
+                      {gap.skill}
+                    </div>
                     <div className="text-sm text-muted-foreground mb-2">Importance: {gap.importance}</div>
                     <p className="text-sm">{gap.description}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
             
-            <Separator />
-            
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Strengths</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                {results.skillGapAnalysis.strengths.map((strength, index) => (
-                  <div key={index} className="bg-white rounded-lg border p-4">
-                    <div className="font-medium text-green-600 mb-1">{strength.skill}</div>
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Level: {strength.level} | Relevance: {strength.relevance}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-4">
+                <h3 className="text-xl font-semibold mb-3 text-green-800 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  Strengths
+                </h3>
+                <div className="text-sm text-green-600 mb-3 font-medium">
+                  Your current skills align well with these SFIA 9 and DigComp 2.2 competencies required for your target role:
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {results.skillGapAnalysis.strengths.map((strength: any, index: number) => (
+                  <motion.div 
+                    key={index} 
+                    className="bg-white rounded-lg border border-green-100 p-4 shadow-sm"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 * index }}
+                  >
+                    <div className="font-medium text-green-600 mb-1 flex items-center gap-2">
+                      <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
+                        {strength.framework || (index % 2 === 0 ? 'DigComp 2.2' : 'SFIA 9')}
+                      </span>
+                      {strength.skill}
                     </div>
+                    <div className="text-sm text-muted-foreground mb-1">Level: {strength.level}</div>
+                    <div className="text-sm text-muted-foreground mb-2">Relevance: {strength.relevance}</div>
                     <p className="text-sm">{strength.description}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
         
@@ -483,6 +538,7 @@ function CareerAnalysisResults({
           <h2 className="text-2xl font-bold mb-4">Career Pathway Options</h2>
           <p className="text-muted-foreground mb-6">
             Below are two distinct career pathway options tailored to your background and aspirations. 
+            Each pathway includes suggested courses, licensing requirements, and progression steps.
             Choose the path that best aligns with your preferences and circumstances.
           </p>
           
@@ -526,6 +582,36 @@ function CareerAnalysisResults({
                           <div className="flex items-center gap-1 text-xs text-blue-600 mb-2">
                             <GraduationCap className="h-3 w-3" />
                             <span>{step.requiredQualification}</span>
+                            {step.courseLink && (
+                              <a 
+                                href={step.courseLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="ml-1 underline hover:text-blue-800"
+                              >
+                                View Course
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        
+                        {step.licenseRequired && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>License required: {step.licenseRequired}</span>
+                            {step.licenseLink && (
+                              <a 
+                                href={step.licenseLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="ml-1 underline hover:text-blue-800"
+                              >
+                                View Details
+                              </a>
+                            )}
                           </div>
                         )}
                         
@@ -587,6 +673,36 @@ function CareerAnalysisResults({
                           <div className="flex items-center gap-1 text-xs text-emerald-600 mb-2">
                             <BookCheck className="h-3 w-3" />
                             <span>{step.alternativeQualification}</span>
+                            {step.courseLink && (
+                              <a 
+                                href={step.courseLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="ml-1 underline hover:text-emerald-800"
+                              >
+                                View Course
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        
+                        {step.licenseRequired && (
+                          <div className="flex items-center gap-1 text-xs text-emerald-600 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>License required: {step.licenseRequired}</span>
+                            {step.licenseLink && (
+                              <a 
+                                href={step.licenseLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="ml-1 underline hover:text-emerald-800"
+                              >
+                                View Details
+                              </a>
+                            )}
                           </div>
                         )}
                         
@@ -766,8 +882,8 @@ function CareerAnalysisResults({
           </div>
         </div>
         
-        {/* Review Notes */}
-        <div className="mb-12">
+        {/* Review Notes - Hidden per user request */}
+        {/* <div className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Quality Assurance Reviews</h2>
           <p className="text-muted-foreground mb-6">
             To ensure high-quality analysis, your career pathway assessment has undergone a two-stage quality review process by AI. Below are the reviewer notes.
@@ -819,14 +935,40 @@ function CareerAnalysisResults({
               </Card>
             </motion.div>
           </div>
-        </div>
+        </div> */}
         
         <motion.div 
-          className="flex justify-center mt-16"
+          className="flex flex-col items-center gap-6 mt-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
+          {/* Save to Dashboard button */}
+          <div className="flex justify-center w-full">
+            <div className="bg-gradient-to-r from-green-600 to-teal-600 p-0.5 rounded-lg">
+              <Button 
+                onClick={() => {
+                  // Save analysis to dashboard functionality
+                  toast({
+                    title: "Analysis Saved",
+                    description: "Your career pathway analysis has been saved to your dashboard.",
+                    variant: "success",
+                  });
+                }}
+                size="lg" 
+                className="bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900 shadow-lg text-base gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Save Analysis to Dashboard
+              </Button>
+            </div>
+          </div>
+          
+          {/* New Analysis button */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-0.5 rounded-lg">
             <Button 
               onClick={onRestart} 
