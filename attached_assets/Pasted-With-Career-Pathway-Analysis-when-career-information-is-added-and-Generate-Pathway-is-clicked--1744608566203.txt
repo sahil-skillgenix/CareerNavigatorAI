@@ -1,0 +1,31 @@
+With Career Pathway Analysis - when career information is added - and Generate Pathway is clicked - Ask Open AI to
+
+Analyze the user's input using both SFIA 9 and DigComp 2.2 frameworks.
+
+Map the existing skills to both frameworks, identifying which competencies and levels are already met.
+
+Perform a Skill Gap Analysis by comparing the current skills and experience against the requirements of the desired role. With detailed information to both frameworks, identifying which competencies and levels are already missing.
+
+Generate a Career Pathway showing a logical progression of roles or steps the user can take toward their goal.
+
+Create a Personalized Development Plan that includes:
+o Skills to acquire or improve with details listed and information.
+o Recommended learning resources or certifications from Australian Universities, Tafe and online Courses
+o Suggested experiences or projects to pursue
+o Suggest two pathways – with Degree + Skills + Experience and without Degree, Skills + Tafe courses (if availbale) + experience
+
+Quality Assurance Step:
+o First Review: Internally validate the input data and interpretations for accuracy and consistency.
+o Second Review: Re-check the generated pathway, skill gap analysis, and development plan for completeness, coherence, and alignment with the frameworks.
+
+Only after both review stages are passed, present the final output to the user.
+
+Output Format:
+
+• Executive Summary
+• Skill Mapping (to SFIA 9 and DigComp 2.2)
+• Skill Gap Analysis (With detailed information to both frameworks, identifying which competencies and levels are already missing.)
+• Career Pathway (step-by-step design specifically for two pathways – with Degree + Skills + Experience and without Degree, Skills + Tafe courses (if available) + experience
+• Development Plan (Include multiple ways to reach goal)
+
+Design for Output format should be with bakground animations, modern & futuristic charts, Data showing how AI & Modern courses can help,
