@@ -8,6 +8,7 @@ import {
   Route, 
   Book, 
   Bookmark,
+  Building,
   User
 } from "lucide-react";
 
@@ -29,6 +30,11 @@ export function Navigation() {
       name: "Career Pathway",
       path: "/career-pathway",
       icon: <GraduationCap className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "Organization Pathway",
+      path: "/organization-pathway",
+      icon: <Building className="h-5 w-5 mr-2" />,
     },
     {
       name: "Learning Resources",
