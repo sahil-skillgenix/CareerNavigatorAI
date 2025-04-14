@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,10 @@ import { Loader2, BookOpen, Video, GraduationCap, File, Clock, DollarSign, Tag, 
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AnimatedBackground } from "./AnimatedBackground";
+import { ResourceCarousel } from "./ResourceCarousel";
+import { SkillDiagrams } from "./SkillDiagrams";
+import { LearningPathVisualizer } from "./LearningPathVisualizer";
 
 // Define interfaces
 interface SkillToLearn {
@@ -216,11 +221,28 @@ export function LearningResourcesForm() {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Learning Resource Recommender</h1>
-      <p className="text-gray-500 mb-8">
-        Get personalized learning resources to help you acquire new skills or improve existing ones.
-      </p>
+    <div className="container mx-auto py-10 relative">
+      <div className="relative">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <motion.h1 
+            className="text-3xl font-bold mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Learning Resource Recommender
+          </motion.h1>
+          <motion.p 
+            className="text-gray-500 mb-8"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            Get personalized learning resources to help you acquire new skills or improve existing ones.
+          </motion.p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div>
