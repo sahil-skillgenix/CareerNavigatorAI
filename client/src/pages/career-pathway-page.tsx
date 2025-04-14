@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { PathwaySelector } from "@/components/onboarding/PathwaySelector";
 import { motion } from "framer-motion";
-import { Navigation } from "@/components/dashboard";
+import { Navigation, DashboardHeader } from "@/components/dashboard";
 
 export default function CareerPathwayPage() {
   const { user } = useAuth();
@@ -20,30 +20,7 @@ export default function CareerPathwayPage() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <h1 className="font-bold text-xl text-primary">Career Pathway Selection</h1>
-          <nav>
-            <ul className="flex space-x-6">
-              <li>
-                <a href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                  Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm font-medium text-primary">
-                  Pathway Selection
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                  Resources
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <DashboardHeader />
       
       <main className="container mx-auto px-4 py-10">
         <Navigation />

@@ -2,6 +2,7 @@ import React from "react";
 import { LearningResourcesForm } from "@/components/learning-resources/LearningResourcesForm";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
+import { DashboardHeader, Navigation } from "@/components/dashboard";
 
 export default function LearningResourcesPage() {
   const { user, isLoading } = useAuth();
