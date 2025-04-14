@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 export default function Home() {
   useEffect(() => {
     // Set page title
-    document.title = 'CareerPathAI - AI-Powered Career Development Platform';
+    document.title = 'Skillgenix - AI-Powered Career Development Platform';
   }, []);
 
   return (

@@ -42,7 +42,7 @@ export class MemStorage implements IStorage {
   private async seedDemoUser() {
     const demoUser = {
       fullName: "Demo User",
-      email: "demo@careerpathAI.com",
+      email: "demo@skillgenix.com",
       password: await hashPassword("demo123456")
     };
     

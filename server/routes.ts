@@ -20,7 +20,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
 
   // API routes
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'CareerPathAI server is running' });
+    res.json({ status: 'ok', message: 'Skillgenix server is running' });
   });
   
   // Protected routes - require authentication

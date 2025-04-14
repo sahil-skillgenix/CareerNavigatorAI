@@ -59,7 +59,7 @@ export default function DashboardPage() {
                 <ProfileSection 
                   userData={{ 
                     fullName: user?.fullName || "Demo User", 
-                    email: user?.email || "demo@careerpathAI.com" 
+                    email: user?.email || "demo@skillgenix.com" 
                   }} 
                   onSave={handleSaveChanges} 
                 />

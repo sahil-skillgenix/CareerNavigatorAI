@@ -48,18 +48,18 @@ export class MongoDBStorage implements IStorage {
   private async seedDemoUser() {
     try {
       // Check if demo user exists
-      const existingUser = await UserModel.findOne({ email: "demo@careerpathAI.com" });
+      const existingUser = await UserModel.findOne({ email: "demo@skillgenix.com" });
       
       if (!existingUser) {
         // Create demo user
         const demoUser = new UserModel({
           fullName: "Demo User",
-          email: "demo@careerpathAI.com",
+          email: "demo@skillgenix.com",
           password: await hashPassword("demo123456"),
         });
         
         await demoUser.save();
-        log("Demo user created: demo@careerpathAI.com", "mongodb");
+        log("Demo user created: demo@skillgenix.com", "mongodb");
       }
     } catch (error) {
       log(`Error creating demo user: ${error}`, "mongodb");

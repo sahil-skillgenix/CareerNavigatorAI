@@ -70,7 +70,7 @@ export default function AuthPage() {
   // Demo signup credentials
   const fillDemoSignupCredentials = () => {
     registerForm.setValue("fullName", "Demo User");
-    registerForm.setValue("email", "demo.user@careerpathAI.com");
+    registerForm.setValue("email", "demo.user@skillgenix.com");
     registerForm.setValue("password", "demo123456");
     registerForm.setValue("confirmPassword", "demo123456");
   };
