@@ -163,6 +163,8 @@ export function LearningResourcesForm() {
 
   // Helper function to render resource type icon
   const getResourceIcon = (type: string) => {
+    if (!type) return <File className="w-4 h-4" />;
+    
     switch (type.toLowerCase()) {
       case "book":
         return <BookOpen className="w-4 h-4" />;
@@ -179,6 +181,8 @@ export function LearningResourcesForm() {
 
   // Get difficulty color
   const getDifficultyColor = (difficulty: string) => {
+    if (!difficulty) return "bg-gray-100 text-gray-800";
+    
     switch (difficulty.toLowerCase()) {
       case "beginner":
         return "bg-green-100 text-green-800";
@@ -195,6 +199,8 @@ export function LearningResourcesForm() {
 
   // Get cost type color
   const getCostTypeColor = (costType: string) => {
+    if (!costType) return "bg-gray-100 text-gray-800";
+    
     switch (costType.toLowerCase()) {
       case "free":
         return "bg-green-100 text-green-800";
