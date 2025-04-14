@@ -63,7 +63,7 @@ export default function AuthPage() {
 
   // Demo login credentials
   const fillDemoCredentials = () => {
-    loginForm.setValue("email", "demo@careerpathAI.com");
+    loginForm.setValue("email", "demo@skillgenix.com");
     loginForm.setValue("password", "demo123456");
   };
   
@@ -92,7 +92,7 @@ export default function AuthPage() {
         <Button variant="ghost" size="sm" className="flex items-center" asChild>
           <WouterLink href="/">
             <Briefcase className="h-4 w-4 mr-2" />
-            CareerPathAI
+            Skillgenix
           </WouterLink>
         </Button>
       </header>
@@ -106,7 +106,7 @@ export default function AuthPage() {
         >
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold">Welcome to CareerPathAI</h1>
+              <h1 className="text-3xl font-bold">Welcome to Skillgenix</h1>
               <p className="text-muted-foreground mt-2">Your AI-powered career development platform</p>
             </div>
             
@@ -343,7 +343,7 @@ export default function AuthPage() {
               <div className="mb-8">
                 <h2 className="text-3xl font-bold mb-4">Plan Your Career Growth With AI</h2>
                 <p className="text-muted-foreground text-lg">
-                  CareerPathAI uses advanced AI to help you visualize and navigate your professional journey, 
+                  Skillgenix uses advanced AI to help you visualize and navigate your professional journey, 
                   identify skill gaps, and achieve your career aspirations.
                 </p>
               </div>
