@@ -1,8 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { User } from '@shared/schema';
 
-// Define User document interface
-export interface UserDocument extends Document, Omit<User, 'id'> {
+// Define User document interface that extends Document
+export interface UserDocument extends Document {
+  fullName: string;
+  email: string;
   password: string;
   createdAt: Date;
   updatedAt: Date;

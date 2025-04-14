@@ -1,46 +1,44 @@
 import mongoose from 'mongoose';
 import { log } from '../vite';
 
-// Default to MongoDB's default connection string if not provided
+// MongoDB connection URI
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerpathAI';
 
-// Connection options
-const options: mongoose.ConnectOptions = {
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s default
-};
-
-// Initialize MongoDB connection
+// Connect to MongoDB
 export async function connectToDatabase() {
-  if (mongoose.connection.readyState >= 1) {
-    log('MongoDB connection already established', 'mongodb');
-    return;
-  }
-
   try {
-    log(`Connecting to MongoDB at ${MONGODB_URI.split('@').pop()}`, 'mongodb');
-    await mongoose.connect(MONGODB_URI, options);
-    log('MongoDB connection established successfully', 'mongodb');
+    if (mongoose.connection.readyState === 1) {
+      log('MongoDB is already connected', 'mongodb');
+      return;
+    }
+
+    await mongoose.connect(MONGODB_URI);
+    log('Connected to MongoDB', 'mongodb');
     
-    // Handle connection events
+    // Handle connection errors after initial connection
     mongoose.connection.on('error', (err) => {
       log(`MongoDB connection error: ${err}`, 'mongodb');
     });
     
+    // Handle disconnection
     mongoose.connection.on('disconnected', () => {
       log('MongoDB disconnected', 'mongodb');
     });
     
-    // Handle application termination
+    // Handle reconnection
+    mongoose.connection.on('reconnected', () => {
+      log('MongoDB reconnected', 'mongodb');
+    });
+    
+    // Gracefully close the connection when the process is terminated
     process.on('SIGINT', async () => {
       await mongoose.connection.close();
-      log('MongoDB connection closed due to application termination', 'mongodb');
+      log('MongoDB connection closed through app termination', 'mongodb');
       process.exit(0);
     });
     
   } catch (error) {
-    log(`MongoDB connection error: ${error}`, 'mongodb');
+    log(`Error connecting to MongoDB: ${error}`, 'mongodb');
     throw error;
   }
 }
-
-export default mongoose;

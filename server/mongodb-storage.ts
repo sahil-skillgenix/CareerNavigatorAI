@@ -1,12 +1,15 @@
 import { User, InsertUser } from "@shared/schema";
 import session from "express-session";
 import { connectToDatabase } from "./db/mongodb";
-import UserModel from "./db/models/user";
+import UserModel, { UserDocument } from "./db/models/user";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
 import { IStorage } from "./storage";
-import { MongoStore } from "connect-mongo";
+import * as ConnectMongo from "connect-mongo";
 import { log } from "./vite";
+import createMemoryStore from "memorystore";
+
+const MongoStore = ConnectMongo.default || ConnectMongo;
 
 const scryptAsync = promisify(scrypt);
 
