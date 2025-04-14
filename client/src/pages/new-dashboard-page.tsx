@@ -6,8 +6,7 @@ import {
   RecommendedCourses,
   CareerProgressTracker,
   DashboardHeader,
-  Navigation,
-  PathwayCards
+  Navigation
 } from "@/components/dashboard";
 
 export default function NewDashboardPage() {
@@ -35,14 +34,6 @@ export default function NewDashboardPage() {
           <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
         </div>
         
-        {/* Career Development Pathways Section */}
-        <section className="mt-12 mb-16">
-          <h2 className="text-2xl font-semibold mb-8 text-center">Career Development Pathways</h2>
-          <div className="flex justify-center mb-12">
-            <PathwayCards />
-          </div>
-        </section>
-
         {/* Career Insights Section */}
         <section className="mb-16">
           <h2 className="text-2xl font-semibold mb-8 text-center">Career Insights</h2>
