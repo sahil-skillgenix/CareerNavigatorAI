@@ -11,8 +11,6 @@ import {
   ProfessionalLevelSection,
   SkillsToolsSection,
   OrganizationSection,
-  SearchHistorySection,
-  PathwayCards,
   RecommendedCourses,
   CareerProgressTracker,
   DashboardHeader,
@@ -82,14 +80,6 @@ export default function DashboardPage() {
             </Tabs>
           </div>
         </div>
-        
-        {/* Career Development Pathways Section */}
-        <section className="mt-12 mb-16">
-          <h2 className="text-2xl font-semibold mb-8 text-center">Career Development Pathways</h2>
-          <div className="flex justify-center mb-12">
-            <PathwayCards />
-          </div>
-        </section>
 
         {/* Career Insights Section */}
         <section className="mb-16">
