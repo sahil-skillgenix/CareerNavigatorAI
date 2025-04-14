@@ -20,11 +20,6 @@ export function Navigation() {
       icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
     },
     {
-      name: "Career Analysis",
-      path: "/career-analysis",
-      icon: <Route className="h-5 w-5 mr-2" />,
-    },
-    {
       name: "Career Pathway",
       path: "/career-pathway",
       icon: <GraduationCap className="h-5 w-5 mr-2" />,

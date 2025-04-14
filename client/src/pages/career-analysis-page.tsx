@@ -34,7 +34,7 @@ export default function CareerAnalysisPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Explore Career Pathway
+            Personal Career Analysis
           </motion.h1>
           <nav>
             <ul className="flex space-x-6">
@@ -49,8 +49,13 @@ export default function CareerAnalysisPage() {
                 </a>
               </li>
               <li>
+                <a href="/career-pathway" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Career Pathway
+                </a>
+              </li>
+              <li>
                 <a href="#" className="text-sm font-medium text-primary">
-                  Career Analysis
+                  Pathway Analysis
                 </a>
               </li>
             </ul>
@@ -59,7 +64,6 @@ export default function CareerAnalysisPage() {
       </header>
       
       <main className="container mx-auto px-4 py-8">
-        <Navigation />
         <CareerPathwayForm />
       </main>
     </div>
