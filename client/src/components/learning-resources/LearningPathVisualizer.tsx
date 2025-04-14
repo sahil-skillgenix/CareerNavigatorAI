@@ -59,8 +59,17 @@ export function LearningPathVisualizer({ skill, description, recommendedSequence
     hours: parseInt(step.estimatedTimeToComplete.split(' ')[0]) || step.step * 10, // Fallback to step-based estimation
   }));
 
-  const resourceTypesData = [];
-  const typeCounts = {};
+  interface ResourceTypeCount {
+    type: string;
+    count: number;
+  }
+  
+  interface TypeCounts {
+    [key: string]: number;
+  }
+  
+  const resourceTypesData: ResourceTypeCount[] = [];
+  const typeCounts: TypeCounts = {};
 
   recommendedSequence.forEach(step => {
     step.resources.forEach(resource => {

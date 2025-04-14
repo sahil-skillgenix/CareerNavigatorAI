@@ -565,149 +565,83 @@ export function LearningResourcesForm() {
         <div>
           {/* Results section */}
           {recommendedResources && activeTab === "singleSkill" && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold mb-4">Recommended Learning Resources</h2>
-              
-              {Object.keys(recommendedResources).map((skillName) => (
-                <div key={skillName} className="mb-6">
-                  <h3 className="text-xl font-semibold mb-2">For: {skillName}</h3>
-                  <Separator className="mb-4" />
-                  
-                  <div className="space-y-4">
-                    {recommendedResources[skillName].map((resource) => (
-                      <Card key={resource.id} className="p-4 hover:shadow-lg transition-shadow">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="text-lg font-semibold">{resource.title}</h4>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <span className="flex items-center mr-4">
-                                {getResourceIcon(resource.type)}
-                                <span className="ml-1">{resource.type}</span>
-                              </span>
-                              <span className="mr-4">by {resource.provider}</span>
-                              <span className="flex items-center">
-                                <Clock className="w-4 h-4 mr-1" />
-                                {resource.estimatedHours} hours
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            <div className="text-sm font-medium flex items-center">
-                              <ThumbsUp className="w-3 h-3 mr-1" />
-                              {resource.relevanceScore}/10
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <p className="text-gray-600 my-3 text-sm">{resource.description}</p>
-                        
-                        <div className="flex flex-wrap items-center gap-2 mt-3">
-                          <Badge className={getDifficultyColor(resource.difficulty)}>
-                            {resource.difficulty}
-                          </Badge>
-                          <Badge className={getCostTypeColor(resource.costType)}>
-                            <DollarSign className="w-3 h-3 mr-1" /> {resource.costType}
-                          </Badge>
-                          {resource.tags.slice(0, 3).map((tag, i) => (
-                            <Badge key={i} variant="outline" className="flex items-center">
-                              <Tag className="w-3 h-3 mr-1" /> {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <div className="mt-4 flex justify-between items-center">
-                          <div className="text-xs text-gray-500">
-                            <strong>Why this resource:</strong> {resource.matchReason}
-                          </div>
-                          
-                          {resource.url && resource.url !== "N/A" && (
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                                Visit Resource
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <Card className="p-6 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-5">
+                  <AnimatedBackground />
                 </div>
-              ))}
-            </div>
+                <div className="relative z-10">
+                  <motion.h2 
+                    className="text-2xl font-bold mb-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    Recommended Learning Resources
+                  </motion.h2>
+                  <motion.p
+                    className="text-gray-600 mb-6"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    Tailored resources based on your learning preferences and skill level
+                  </motion.p>
+                  
+                  {Object.keys(recommendedResources).map((skillName) => (
+                    <motion.div 
+                      key={skillName} 
+                      className="mb-10"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                      {/* Skill diagrams showing progress visualization */}
+                      <SkillDiagrams 
+                        skillName={skillName}
+                        currentLevel={form.getValues("currentLevel")}
+                        targetLevel={form.getValues("targetLevel")}
+                        learningStyle={form.getValues("learningStyle")}
+                      />
+                      
+                      {/* Gamified resource recommendation carousel */}
+                      <ResourceCarousel 
+                        resources={recommendedResources[skillName]} 
+                        skillName={skillName} 
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
           )}
           
           {learningPath && activeTab === "learningPath" && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold mb-2">Learning Path: {learningPath.skill}</h2>
-              <p className="text-gray-600 mb-6">{learningPath.description}</p>
-              
-              <Accordion type="single" collapsible className="w-full">
-                {learningPath.recommendedSequence.map((step) => (
-                  <AccordionItem key={step.step} value={`step-${step.step}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center">
-                        <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                          {step.step}
-                        </div>
-                        <div className="text-left">
-                          <div className="font-semibold">{step.milestone}</div>
-                          <div className="text-sm text-gray-500">{step.estimatedTimeToComplete}</div>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="pl-11 space-y-4 mt-2">
-                        {step.resources.map((resource) => (
-                          <Card key={resource.id} className="p-4 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h4 className="text-md font-semibold">{resource.title}</h4>
-                                <div className="flex items-center text-xs text-gray-500 mt-1">
-                                  <span className="flex items-center mr-4">
-                                    {getResourceIcon(resource.type)}
-                                    <span className="ml-1">{resource.type}</span>
-                                  </span>
-                                  <span className="mr-4">by {resource.provider}</span>
-                                  <span className="flex items-center">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    {resource.estimatedHours} hours
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <p className="text-gray-600 my-2 text-xs">{resource.description}</p>
-                            
-                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                              <Badge className={getDifficultyColor(resource.difficulty)} variant="outline">
-                                {resource.difficulty}
-                              </Badge>
-                              <Badge className={getCostTypeColor(resource.costType)} variant="outline">
-                                <DollarSign className="w-3 h-3 mr-1" /> {resource.costType}
-                              </Badge>
-                            </div>
-                            
-                            <div className="mt-3 flex justify-between items-center">
-                              <div className="text-xs text-gray-500">
-                                <strong>Match reason:</strong> {resource.matchReason}
-                              </div>
-                              
-                              {resource.url && resource.url !== "N/A" && (
-                                <Button variant="outline" size="sm" asChild>
-                                  <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                                    Visit
-                                  </a>
-                                </Button>
-                              )}
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <Card className="p-6 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-5">
+                  <AnimatedBackground />
+                </div>
+                <div className="relative z-10">
+                  {/* Learning path visualizer component */}
+                  <LearningPathVisualizer 
+                    skill={learningPath.skill}
+                    description={learningPath.description}
+                    recommendedSequence={learningPath.recommendedSequence}
+                  />
+                </div>
+              </Card>
+            </motion.div>
           )}
           
           {!recommendedResources && !learningPath && (

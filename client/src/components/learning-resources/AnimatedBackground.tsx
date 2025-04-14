@@ -111,6 +111,8 @@ export function AnimatedBackground({ className = "" }: AnimatedBackgroundProps) 
 
     // Animation loop
     function animate() {
+      if (!ctx || !canvas) return;
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Update and draw particles
