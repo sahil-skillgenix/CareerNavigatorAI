@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { CareerPathwayForm } from "@/components/career-pathway/CareerPathwayForm";
 import { motion } from "framer-motion";
-import { Navigation } from "@/components/dashboard";
+import { Navigation, DashboardHeader } from "@/components/dashboard";
 
 export default function CareerAnalysisPage() {
   const { user } = useAuth();
@@ -26,45 +26,14 @@ export default function CareerAnalysisPage() {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <motion.h1 
-            className="font-bold text-xl text-primary"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            Personal Career Analysis
-          </motion.h1>
-          <nav>
-            <ul className="flex space-x-6">
-              <li>
-                <a href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a href="/dashboard" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                  Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="/career-pathway" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                  Career Pathway
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm font-medium text-primary">
-                  Pathway Analysis
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <DashboardHeader />
       
       <main className="container mx-auto px-4 py-8">
-        <CareerPathwayForm />
+        <Navigation />
+        
+        <div className="mt-6">
+          <CareerPathwayForm />
+        </div>
       </main>
     </div>
   );

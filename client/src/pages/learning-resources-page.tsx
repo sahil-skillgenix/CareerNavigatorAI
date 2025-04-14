@@ -14,16 +14,20 @@ export default function LearningResourcesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <DashboardHeader />
+      
+      <main className="container mx-auto px-4 py-8">
+        <Navigation />
+        
         <div className="mb-8">
-          <h1 className="text-4xl font-bold">Learning Resources</h1>
-          <p className="text-xl text-gray-500 mt-2">
+          <h1 className="text-2xl font-bold mb-4">Learning Resources</h1>
+          <p className="text-lg text-gray-500">
             Discover personalized learning resources to help you achieve your career goals.
           </p>
         </div>
 
         <LearningResourcesForm />
-      </div>
+      </main>
     </div>
   );
 }
