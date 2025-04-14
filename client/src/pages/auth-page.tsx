@@ -89,12 +89,10 @@ export default function AuthPage() {
             Back
           </WouterLink>
         </Button>
-        <Button variant="ghost" size="sm" className="flex items-center" asChild>
-          <WouterLink href="/">
-            <Briefcase className="h-4 w-4 mr-2" />
-            Skillgenix
-          </WouterLink>
-        </Button>
+        <WouterLink href="/" className="flex items-center">
+            <Briefcase className="h-5 w-5 mr-2 text-primary" />
+            <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
+        </WouterLink>
       </header>
       
       <div className="flex-grow flex flex-col md:flex-row">
