@@ -47,16 +47,15 @@ export default function DashboardPage() {
         <Navigation />
         
         <div className="flex flex-col items-center mb-8">
-          <h1 className="text-2xl font-bold mb-6">Career Dashboard</h1>
+          <h1 className="text-2xl font-bold mb-6">My Details</h1>
           
           <div className="w-full max-w-3xl">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="flex justify-center mb-6">
-                <TabsList className="grid grid-cols-4 w-full max-w-xl">
+                <TabsList className="grid grid-cols-3 w-full max-w-xl">
                   <TabsTrigger value="profile">Profile</TabsTrigger>
                   <TabsTrigger value="info">Info</TabsTrigger>
                   <TabsTrigger value="organization">My Organization</TabsTrigger>
-                  <TabsTrigger value="history">Search History</TabsTrigger>
                 </TabsList>
               </div>
               
@@ -79,10 +78,6 @@ export default function DashboardPage() {
               
               <TabsContent value="organization" className="space-y-6">
                 <OrganizationSection />
-              </TabsContent>
-              
-              <TabsContent value="history" className="space-y-6">
-                <SearchHistorySection />
               </TabsContent>
             </Tabs>
           </div>

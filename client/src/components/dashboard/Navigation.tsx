@@ -15,7 +15,7 @@ export function Navigation() {
 
   const navigationItems = [
     {
-      name: "Dashboard",
+      name: "My Details",
       path: "/dashboard",
       icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
     },
