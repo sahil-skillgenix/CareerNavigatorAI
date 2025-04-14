@@ -692,7 +692,7 @@ function CareerAnalysisResults({
                   <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-amber-700 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="10" />
                           <line x1="2" x2="22" y1="12" y2="12" />
                           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -726,7 +726,7 @@ function CareerAnalysisResults({
                       {results.developmentPlan.suggestedProjects.map((project: string, index: number) => (
                         <li key={index} className="flex items-start gap-2">
                           <div className="bg-purple-100 text-purple-800 p-1 rounded-full flex items-center justify-center mt-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-code">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="16 18 22 12 16 6" />
                               <polyline points="8 6 2 12 8 18" />
                             </svg>
@@ -740,47 +740,107 @@ function CareerAnalysisResults({
               </motion.div>
             </div>
             
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Learning Path</h3>
-              <Card>
-                <CardContent className="pt-6">
-                  <p className="whitespace-pre-line">{results.developmentPlan.learningPath}</p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <h3 className="text-xl font-semibold mb-3">Learning Path Roadmap</h3>
+              <Card className="bg-gradient-to-br from-slate-50 to-gray-50 border-slate-100">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-slate-700 flex items-center gap-2 text-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 3v18h18" />
+                      <path d="m19 9-5 5-4-4-3 3" />
+                    </svg>
+                    Career Development Timeline
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <p className="whitespace-pre-line text-sm leading-relaxed">{results.developmentPlan.learningPath}</p>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
           </div>
         </div>
         
         {/* Review Notes */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Analysis Review Notes</h2>
+          <h2 className="text-2xl font-bold mb-4">Quality Assurance Reviews</h2>
+          <p className="text-muted-foreground mb-6">
+            To ensure high-quality analysis, your career pathway assessment has undergone a two-stage quality review process by AI. Below are the reviewer notes.
+          </p>
           
           <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>First Review</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm">{results.reviewNotes.firstReview}</p>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 h-full">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-blue-700 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <line x1="10" y1="9" x2="8" y2="9" />
+                    </svg>
+                    First Stage Review
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm whitespace-pre-line bg-white p-3 rounded-lg border border-blue-100">{results.reviewNotes.firstReview}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Second Review</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm">{results.reviewNotes.secondReview}</p>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Card className="bg-gradient-to-br from-purple-50 to-fuchsia-50 border-purple-100 h-full">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-purple-700 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m22 2-7 20-4-9-9-4Z" />
+                      <path d="M22 2 11 13" />
+                    </svg>
+                    Second Stage Review
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm whitespace-pre-line bg-white p-3 rounded-lg border border-purple-100">{results.reviewNotes.secondReview}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
         
-        <div className="flex justify-center">
-          <Button onClick={onRestart} size="lg">
-            Start a New Analysis
-          </Button>
-        </div>
+        <motion.div 
+          className="flex justify-center mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-0.5 rounded-lg">
+            <Button 
+              onClick={onRestart} 
+              size="lg" 
+              className="bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900 shadow-lg text-base gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Start a New Career Analysis
+            </Button>
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );
