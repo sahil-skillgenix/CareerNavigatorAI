@@ -11,8 +11,6 @@ import {
   ProfessionalLevelSection,
   SkillsToolsSection,
   OrganizationSection,
-  RecommendedCourses,
-  CareerProgressTracker,
   DashboardHeader,
   Navigation
 } from "@/components/dashboard";
@@ -80,19 +78,6 @@ export default function DashboardPage() {
             </Tabs>
           </div>
         </div>
-
-        {/* Career Insights Section */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-semibold mb-8 text-center">Career Insights</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            <div className="lg:col-span-2">
-              <RecommendedCourses />
-            </div>
-            <div>
-              <CareerProgressTracker />
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );

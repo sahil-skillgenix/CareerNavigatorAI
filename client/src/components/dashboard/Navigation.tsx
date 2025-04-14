@@ -7,7 +7,8 @@ import {
   GraduationCap, 
   Route, 
   Book, 
-  Bookmark
+  Bookmark,
+  User
 } from "lucide-react";
 
 export function Navigation() {
@@ -15,9 +16,14 @@ export function Navigation() {
 
   const navigationItems = [
     {
+      name: "Dashboard",
+      path: "/new-dashboard",
+      icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
+    },
+    {
       name: "My Details",
       path: "/dashboard",
-      icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
+      icon: <Route className="h-5 w-5 mr-2" />,
     },
     {
       name: "Career Pathway",
