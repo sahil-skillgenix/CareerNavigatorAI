@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { CareerPathwayForm } from "@/components/career-pathway/CareerPathwayForm";
 import { motion } from "framer-motion";
-import { AuthenticatedLayout } from "@/components/layouts/AuthenticatedLayout";
+import { AuthenticatedLayout } from "@/components/layouts";
 
 export default function CareerAnalysisPage() {
   const { user } = useAuth();

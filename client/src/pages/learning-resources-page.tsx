@@ -2,7 +2,7 @@ import React from "react";
 import { LearningResourcesForm } from "@/components/learning-resources/LearningResourcesForm";
 import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { AuthenticatedLayout } from "@/components/layouts/AuthenticatedLayout";
+import { AuthenticatedLayout } from "@/components/layouts";
 
 export default function LearningResourcesPage() {
   const { user, isLoading } = useAuth();
