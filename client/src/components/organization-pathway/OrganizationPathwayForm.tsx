@@ -64,13 +64,40 @@ interface OrganizationalAnalysisResult {
     keyResponsibilities: string[];
     reportingStructure: string;
   };
+  skillMapping: {
+    sfia9: Array<{skill: string, level: string, description: string}>;
+    digcomp22: Array<{competency: string, level: string, description: string}>;
+  };
+  skillGapAnalysis: {
+    gaps: Array<{skill: string, importance: string, description: string, framework: string}>;
+    strengths: Array<{skill: string, level: string, relevance: string, description: string}>;
+  };
   careerPathwayOptions: {
-    verticalGrowth: Array<{
+    withDegree: Array<{
+      step: number;
       role: string;
       level: string;
-      estimatedTimeframe: string;
-      requiredSkills: string[];
-      keyResponsibilities: string[];
+      timeframe: string;
+      keySkillsNeeded: string[];
+      description: string;
+      requiredQualification?: string;
+      licenseRequired?: string;
+      licenseInfo?: string;
+      courseLink?: string;
+      licenseLink?: string;
+    }>;
+    withoutDegree: Array<{
+      step: number;
+      role: string;
+      level: string;
+      timeframe: string;
+      keySkillsNeeded: string[];
+      description: string;
+      alternativeQualification?: string;
+      licenseRequired?: string;
+      licenseInfo?: string;
+      courseLink?: string;
+      licenseLink?: string;
     }>;
     lateralMovement: Array<{
       role: string;
@@ -80,20 +107,39 @@ interface OrganizationalAnalysisResult {
       benefits: string[];
     }>;
   };
-  skillGapAnalysis: {
-    existingRelevantSkills: string[];
-    criticalSkillGaps: Array<{
-      skill: string;
-      importance: string;
-      developmentPathways: string[];
+  developmentPlan: {
+    skillsToAcquire: Array<{
+      skill: string, 
+      priority: string, 
+      resources: string[],
+      estimatedTime: string,
+      fastTrackMethod: string,
+      licenseRequired?: string,
+      licenseInfo?: string,
+      licenseLink?: string
     }>;
-    internalTrainingOptions: Array<{
-      name: string;
-      type: string;
-      duration: string;
-      keyBenefits: string[];
+    recommendedCertifications: {
+      university: string[];
+      tafe: string[];
+      online: string[];
+      universityLinks?: Array<{name: string, url: string}>;
+      tafeLinks?: Array<{name: string, url: string}>;
+    };
+    suggestedProjects: string[];
+    learningPath: string;
+    socialSkills: Array<{
+      category: string, 
+      skills: Array<{name: string, benefit: string, developmentMethod: string}>
     }>;
   };
+  similarRoles: Array<{
+    title: string;
+    similarity: string;
+    description: string;
+    salaryRange: string;
+    growthOutlook: string;
+    transferableSkills: string[];
+  }>;
   organizationalFitAnalysis: {
     valueAlignment: string;
     culturalFitScore: number;
@@ -137,13 +183,15 @@ export function OrganizationPathwayForm() {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Return mock data
+      const orgName = data.organizationId ? 
+        SAMPLE_ORGANIZATIONS.find(org => org.id === data.organizationId)?.name || "" : 
+        data.organizationName || "";
+      
       return {
         organizationInfo: {
-          name: data.organizationId ? 
-            SAMPLE_ORGANIZATIONS.find(org => org.id === data.organizationId)?.name || "" : 
-            data.organizationName || "",
+          name: orgName,
           structureOverview: "Hierarchical with 5 primary divisions and matrix management",
-          industryPosition: "Leader in Australian telecommunications and technology sector",
+          industryPosition: "Leader in Australian " + (orgName.includes("Bank") ? "financial services" : "technology and telecommunications") + " sector",
         },
         currentRoleAnalysis: {
           role: data.currentRole,
@@ -156,58 +204,199 @@ export function OrganizationPathwayForm() {
           ],
           reportingStructure: "Reports to Senior Manager, with 3 direct reports"
         },
-        careerPathwayOptions: {
-          verticalGrowth: [
+        skillMapping: {
+          sfia9: [
             {
+              skill: "Stakeholder relationship management",
+              level: "Level 4",
+              description: "Influences at operational level, facilitates change, monitors compliance with organizational standards."
+            },
+            {
+              skill: "Data management",
+              level: "Level 3",
+              description: "Performs operational activities related to data quality, implements data management procedures."
+            },
+            {
+              skill: "Project management",
+              level: "Level 3",
+              description: "Defines, documents and carries out small projects or sub-projects, alone or with a small team."
+            },
+            {
+              skill: "Business analysis",
+              level: "Level 3",
+              description: "Investigates operational requirements, problems, and opportunities."
+            }
+          ],
+          digcomp22: [
+            {
+              competency: "Information and data literacy",
+              level: "Intermediate (4)",
+              description: "Can search and filter data independently, evaluate information reliability, and organize content methodically."
+            },
+            {
+              competency: "Communication and collaboration",
+              level: "Advanced (5)",
+              description: "Interacts through digital technologies, shares information, engages in citizenship through digital channels."
+            },
+            {
+              competency: "Digital content creation",
+              level: "Intermediate (3)",
+              description: "Creates and edits digital content in different formats, applies copyright and licenses, uses basic programming."
+            },
+            {
+              competency: "Problem solving",
+              level: "Intermediate (4)",
+              description: "Identifies needs and problems, solves technical issues, creatively uses technology."
+            }
+          ]
+        },
+        skillGapAnalysis: {
+          gaps: [
+            {
+              skill: "Strategic planning and execution",
+              importance: "High",
+              description: "Ability to develop and execute organizational strategy across divisions and departments.",
+              framework: "SFIA 9 - Strategy Level 5"
+            },
+            {
+              skill: "Advanced people management",
+              importance: "High",
+              description: "Leading diverse teams through complex projects and organizational change.",
+              framework: "SFIA 9 - People Management Level 5"
+            },
+            {
+              skill: "Financial acumen",
+              importance: "Medium",
+              description: "Understanding business finance principles and applying them to departmental budgeting and resource allocation.",
+              framework: "SFIA 9 - Financial Management Level 4"
+            },
+            {
+              skill: "Digital security management",
+              importance: "Medium",
+              description: "Ensuring secure practices across digital operations and fostering security-conscious culture.",
+              framework: "DigComp 2.2 - Safety Level 5"
+            }
+          ],
+          strengths: [
+            {
+              skill: "Project coordination",
+              level: "Advanced",
+              relevance: "High",
+              description: "Strong ability to coordinate cross-functional projects and manage resources effectively."
+            },
+            {
+              skill: "Stakeholder communication",
+              level: "Proficient",
+              relevance: "High",
+              description: "Excellent stakeholder management skills with ability to convey complex information clearly."
+            },
+            {
+              skill: "Technical expertise",
+              level: "Intermediate",
+              relevance: "Medium",
+              description: "Solid understanding of technical aspects related to current role with ability to translate between technical and business domains."
+            }
+          ]
+        },
+        careerPathwayOptions: {
+          withDegree: [
+            {
+              step: 1,
               role: "Senior " + data.currentRole,
               level: "Senior",
-              estimatedTimeframe: "1-2 years",
-              requiredSkills: [
+              timeframe: "1-2 years",
+              keySkillsNeeded: [
                 "Advanced stakeholder management",
                 "Strategic planning",
                 "Team leadership",
                 "Budget management"
               ],
-              keyResponsibilities: [
-                "Lead complex projects across divisions",
-                "Develop and implement departmental strategies",
-                "Mentor junior team members",
-                "Participate in organizational planning"
-              ]
+              description: "Lead complex projects across divisions with increased responsibility for strategy development and team leadership.",
+              requiredQualification: "Bachelor's degree in Business, Technology or related field",
+              courseLink: "https://www.sydney.edu.au/courses/subject-areas/major/business.html"
             },
             {
+              step: 2,
               role: data.currentRole + " Manager",
               level: "Management",
-              estimatedTimeframe: "3-5 years",
-              requiredSkills: [
+              timeframe: "3-5 years",
+              keySkillsNeeded: [
                 "Leadership development",
                 "Organizational strategy",
                 "Financial management",
                 "Executive communication"
               ],
-              keyResponsibilities: [
-                "Department oversight and strategic direction",
-                "Cross-functional leadership",
-                "Budget responsibility",
-                "Performance management"
-              ]
+              description: "Oversee department operations with responsibility for team performance, budget management, and strategic planning.",
+              requiredQualification: "Master's in Business Administration or related field recommended",
+              licenseRequired: "Project Management Professional (PMP) certification",
+              licenseInfo: "Requires 4,500 hours leading projects and 35 hours of project management education",
+              courseLink: "https://www.mq.edu.au/study/find-a-course/business/master-of-business-administration",
+              licenseLink: "https://www.pmi.org/certifications/project-management-pmp"
             },
             {
+              step: 3,
               role: "Director of " + data.currentRole.split(" ")[0],
               level: "Executive",
-              estimatedTimeframe: "5-8 years",
-              requiredSkills: [
+              timeframe: "5-8 years",
+              keySkillsNeeded: [
                 "Executive leadership",
                 "Strategic vision",
                 "Business development",
                 "Organizational transformation"
               ],
-              keyResponsibilities: [
-                "Divisional strategy and execution",
-                "Executive team collaboration",
-                "Organizational change management",
-                "Board reporting and engagement"
-              ]
+              description: "Direct organizational strategy and execution at the executive level with accountability for divisional performance and organizational change initiatives.",
+              requiredQualification: "Executive MBA or equivalent advanced degree preferred",
+              courseLink: "https://www.business.unsw.edu.au/degrees-courses/mba/emba"
+            }
+          ],
+          withoutDegree: [
+            {
+              step: 1,
+              role: "Senior " + data.currentRole,
+              level: "Senior",
+              timeframe: "1-3 years",
+              keySkillsNeeded: [
+                "Advanced stakeholder management",
+                "Strategic planning",
+                "Team leadership",
+                "Budget management"
+              ],
+              description: "Progress to a senior role through demonstrated expertise and leadership skills, focusing on practical experience and professional certifications.",
+              alternativeQualification: "Advanced Diploma of Leadership and Management",
+              courseLink: "https://www.tafensw.edu.au/course/advanced-diploma-of-leadership-and-management/BSB60420-01"
+            },
+            {
+              step: 2,
+              role: data.currentRole + " Team Lead",
+              level: "Team Lead",
+              timeframe: "3-5 years",
+              keySkillsNeeded: [
+                "Team supervision",
+                "Process improvement",
+                "Performance management",
+                "Project coordination"
+              ],
+              description: "Lead a team with responsibility for day-to-day operations, mentoring team members, and improving departmental processes.",
+              alternativeQualification: "TAFE Diploma of Project Management",
+              licenseRequired: "PRINCE2 Practitioner certification",
+              licenseInfo: "Internationally recognized project management methodology",
+              courseLink: "https://www.tafensw.edu.au/course/diploma-of-project-management/BSB50820-01",
+              licenseLink: "https://www.axelos.com/certifications/propath/prince2"
+            },
+            {
+              step: 3,
+              role: data.currentRole + " Manager",
+              level: "Management",
+              timeframe: "5-7 years",
+              keySkillsNeeded: [
+                "Departmental leadership",
+                "Strategic planning",
+                "Budget management",
+                "Cross-functional collaboration"
+              ],
+              description: "Manage departmental operations through demonstrated expertise, professional development, and industry recognition.",
+              alternativeQualification: "Advanced TAFE Diploma in Business or Certified Manager Professional",
+              courseLink: "https://www.tafensw.edu.au/course/advanced-diploma-of-business/BSB60120-01"
             }
           ],
           lateralMovement: [
@@ -247,76 +436,188 @@ export function OrganizationPathwayForm() {
             }
           ]
         },
-        skillGapAnalysis: {
-          existingRelevantSkills: data.skills.split(',').map(skill => skill.trim()),
-          criticalSkillGaps: [
+        developmentPlan: {
+          skillsToAcquire: [
             {
               skill: "Strategic planning and execution",
-              importance: "High",
-              developmentPathways: [
+              priority: "High",
+              resources: [
                 "Internal strategic planning workshop series",
                 "Shadow executive planning sessions",
                 "Assigned strategy implementation projects",
                 "External executive education program"
-              ]
+              ],
+              estimatedTime: "6-12 months",
+              fastTrackMethod: "Executive mentorship program"
             },
             {
               skill: "Advanced people management",
-              importance: "High",
-              developmentPathways: [
+              priority: "High",
+              resources: [
                 "Leadership development program",
                 "Management mentoring circle",
                 "360-degree feedback and coaching",
                 "Conflict resolution training"
-              ]
+              ],
+              estimatedTime: "3-6 months",
+              fastTrackMethod: "Intensive leadership bootcamp"
             },
             {
               skill: "Financial acumen",
-              importance: "Medium",
-              developmentPathways: [
+              priority: "Medium",
+              resources: [
                 "Financial management for non-financial managers course",
                 "Budget development and monitoring assignments",
                 "ROI analysis practice",
                 "Business case development workshops"
-              ]
+              ],
+              estimatedTime: "2-4 months",
+              fastTrackMethod: "One-on-one finance coaching"
+            },
+            {
+              skill: "Project Management Professional (PMP) certification",
+              priority: "Medium",
+              resources: [
+                "PMP exam preparation course",
+                "35 contact hours of project management education",
+                "PMP study materials and practice exams",
+                "Project documentation for application"
+              ],
+              estimatedTime: "4-6 months",
+              fastTrackMethod: "Intensive PMP boot camp",
+              licenseRequired: "Project Management Professional (PMP)",
+              licenseInfo: "Globally recognized certification for project management professionals",
+              licenseLink: "https://www.pmi.org/certifications/project-management-pmp"
             }
           ],
-          internalTrainingOptions: [
+          recommendedCertifications: {
+            university: [
+              "Graduate Certificate in Business Administration",
+              "Master of Business Administration (MBA)",
+              "Graduate Diploma in Management",
+              "Master of Leadership"
+            ],
+            tafe: [
+              "Advanced Diploma of Leadership and Management",
+              "Diploma of Project Management",
+              "Advanced Diploma of Business",
+              "Certificate IV in Training and Assessment"
+            ],
+            online: [
+              "LinkedIn Learning Executive Leadership Path",
+              "Coursera Strategic Leadership Specialization",
+              "edX MicroMasters in Management",
+              "Udemy Complete Leadership Course"
+            ],
+            universityLinks: [
+              { name: "University of Sydney", url: "https://www.sydney.edu.au/business" },
+              { name: "University of Melbourne", url: "https://study.unimelb.edu.au/find/courses/graduate/master-of-business-administration/" },
+              { name: "UNSW", url: "https://www.business.unsw.edu.au/" },
+              { name: "Monash University", url: "https://www.monash.edu/business/programs" }
+            ],
+            tafeLinks: [
+              { name: "TAFE NSW", url: "https://www.tafensw.edu.au/courses/business-courses" },
+              { name: "TAFE Queensland", url: "https://tafeqld.edu.au/courses/business-and-management" },
+              { name: "Victoria University Polytechnic", url: "https://www.vu.edu.au/vu-polytechnic" },
+              { name: "South Metropolitan TAFE", url: "https://www.southmetrotafe.wa.edu.au/" }
+            ]
+          },
+          suggestedProjects: [
+            "Lead a cross-functional process improvement initiative",
+            "Develop a departmental strategic plan",
+            "Create and implement a mentorship program",
+            "Conduct a competitor analysis and present findings to leadership"
+          ],
+          learningPath: "Focus initially on closing critical skill gaps in strategic planning and people management while pursuing necessary certifications. Begin with internal opportunities for practical application while engaging in formal education. Transition to more advanced leadership development as you progress through career stages, with increasing focus on executive-level competencies in later phases.",
+          socialSkills: [
             {
-              name: "Leadership Excellence Program",
-              type: "Structured program",
-              duration: "6 months",
-              keyBenefits: [
-                "Leadership skills development",
-                "Strategic thinking enhancement",
-                "Networking with senior leaders",
-                "Real-world project application"
+              category: "Communication",
+              skills: [
+                { 
+                  name: "Executive Presence", 
+                  benefit: "Builds credibility with senior leadership and enhances influence across the organization",
+                  developmentMethod: "Executive communication coaching"
+                },
+                { 
+                  name: "Strategic Storytelling", 
+                  benefit: "Enables persuasive communication of complex ideas and organizational vision",
+                  developmentMethod: "Storytelling workshops and practice" 
+                },
+                { 
+                  name: "Active Listening", 
+                  benefit: "Improves team engagement and problem-solving through better understanding of stakeholder needs",
+                  developmentMethod: "Structured listening exercises and feedback" 
+                }
               ]
             },
             {
-              name: "Career Accelerator Workshop Series",
-              type: "Workshop series",
-              duration: "3 months (bi-weekly sessions)",
-              keyBenefits: [
-                "Skill gap targeted development",
-                "Interactive learning with peers",
-                "Immediate application opportunities",
-                "Senior leader engagement"
+              category: "Leadership",
+              skills: [
+                { 
+                  name: "Emotional Intelligence", 
+                  benefit: "Enhances team management and conflict resolution capabilities",
+                  developmentMethod: "EQ assessment and coaching" 
+                },
+                { 
+                  name: "Inclusive Leadership", 
+                  benefit: "Creates high-performing diverse teams and fosters innovation through multiple perspectives",
+                  developmentMethod: "Diversity and inclusion training" 
+                },
+                { 
+                  name: "Strategic Thinking", 
+                  benefit: "Enables identification of opportunities and long-term planning aligned with organizational goals",
+                  developmentMethod: "Strategic thinking workshops and simulations" 
+                }
               ]
             },
             {
-              name: "Executive Shadowing Program",
-              type: "Experiential learning",
-              duration: "2-4 weeks",
-              keyBenefits: [
-                "Real-time executive decision observation",
-                "Executive networking",
-                "Leadership style exposure",
-                "Organizational perspective broadening"
+              category: "Adaptability",
+              skills: [
+                { 
+                  name: "Change Management", 
+                  benefit: "Facilitates successful organizational transformations and team adaptability",
+                  developmentMethod: "Change management certification" 
+                },
+                { 
+                  name: "Crisis Leadership", 
+                  benefit: "Builds resilience and decision-making capabilities under pressure",
+                  developmentMethod: "Crisis simulation exercises" 
+                },
+                { 
+                  name: "Continuous Learning", 
+                  benefit: "Maintains relevance and adaptability in rapidly evolving organizational environments",
+                  developmentMethod: "Personal learning plan and reflection practices" 
+                }
               ]
             }
           ]
         },
+        similarRoles: [
+          {
+            title: "Program Manager",
+            similarity: "High",
+            description: "Oversees multiple related projects and strategic initiatives, coordinating resources and ensuring alignment with business objectives.",
+            salaryRange: "$120,000 - $160,000",
+            growthOutlook: "Strong",
+            transferableSkills: ["Strategic planning", "Team leadership", "Stakeholder management", "Budget oversight"]
+          },
+          {
+            title: "Business Transformation Lead",
+            similarity: "Medium",
+            description: "Leads organizational change initiatives, process improvements, and strategy implementation across departments.",
+            salaryRange: "$110,000 - $150,000",
+            growthOutlook: "Excellent",
+            transferableSkills: ["Change management", "Process improvement", "Cross-functional collaboration", "Strategic thinking"]
+          },
+          {
+            title: "Operations Director",
+            similarity: "Medium",
+            description: "Manages operational activities, ensures efficient processes, and implements strategic business initiatives to support organizational goals.",
+            salaryRange: "$130,000 - $180,000",
+            growthOutlook: "Good",
+            transferableSkills: ["Operational efficiency", "Team management", "Process optimization", "Performance metrics"]
+          }
+        ],
         organizationalFitAnalysis: {
           valueAlignment: "Strong alignment with organizational values of innovation and customer-centricity",
           culturalFitScore: 85,
