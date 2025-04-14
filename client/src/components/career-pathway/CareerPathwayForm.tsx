@@ -43,16 +43,31 @@ interface CareerAnalysisResult {
     gaps: Array<{skill: string, importance: string, description: string}>;
     strengths: Array<{skill: string, level: string, relevance: string, description: string}>;
   };
-  careerPathway: Array<{
-    step: number;
-    role: string;
-    timeframe: string;
-    keySkillsNeeded: string[];
-    description: string;
-  }>;
+  careerPathway: {
+    withDegree: Array<{
+      step: number;
+      role: string;
+      timeframe: string;
+      keySkillsNeeded: string[];
+      description: string;
+      requiredQualification?: string;
+    }>;
+    withoutDegree: Array<{
+      step: number;
+      role: string;
+      timeframe: string;
+      keySkillsNeeded: string[];
+      description: string;
+      alternativeQualification?: string;
+    }>;
+  };
   developmentPlan: {
     skillsToAcquire: Array<{skill: string, priority: string, resources: string[]}>;
-    recommendedCertifications: string[];
+    recommendedCertifications: {
+      university: string[];
+      tafe: string[];
+      online: string[];
+    };
     suggestedProjects: string[];
     learningPath: string;
   };
@@ -465,41 +480,134 @@ function CareerAnalysisResults({
         
         {/* Career Pathway */}
         <div ref={pathwayRef} className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Career Pathway</h2>
+          <h2 className="text-2xl font-bold mb-4">Career Pathway Options</h2>
+          <p className="text-muted-foreground mb-6">
+            Below are two distinct career pathway options tailored to your background and aspirations. 
+            Choose the path that best aligns with your preferences and circumstances.
+          </p>
           
-          <div className="relative">
-            {/* Vertical line */}
-            <div className="absolute left-[26px] top-8 bottom-0 w-0.5 bg-primary/20" />
-            
-            <div className="space-y-6">
-              {results.careerPathway.map((step, index) => (
-                <div key={index} className="flex">
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg z-10">
-                      {step.step}
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 ml-4 bg-white rounded-lg border p-4">
-                    <div className="font-medium text-lg mb-1">{step.role}</div>
-                    <div className="text-sm text-muted-foreground mb-3">Timeframe: {step.timeframe}</div>
-                    
-                    <p className="text-sm mb-3">{step.description}</p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {step.keySkillsNeeded.map((skill, skillIndex) => (
-                        <span 
-                          key={skillIndex} 
-                          className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Pathway With Degree */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100"
+            >
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-blue-700">University Pathway</h3>
+                <p className="text-sm text-blue-600">Progression with formal academic qualifications</p>
+              </div>
+              
+              <div className="relative">
+                {/* Vertical line */}
+                <div className="absolute left-[26px] top-8 bottom-0 w-0.5 bg-blue-300" />
+                
+                <div className="space-y-6">
+                  {results.careerPathway.withDegree.map((step, index) => (
+                    <motion.div 
+                      key={index} 
+                      className="flex"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.1 * index }}
+                    >
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg z-10 shadow-md">
+                          {step.step}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 ml-4 bg-white rounded-lg border border-blue-200 p-4 shadow-sm">
+                        <div className="font-medium text-lg mb-1 text-blue-800">{step.role}</div>
+                        <div className="text-sm text-blue-500 mb-2">Timeframe: {step.timeframe}</div>
+                        
+                        {step.requiredQualification && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600 mb-2">
+                            <GraduationCap className="h-3 w-3" />
+                            <span>{step.requiredQualification}</span>
+                          </div>
+                        )}
+                        
+                        <p className="text-sm mb-3">{step.description}</p>
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {step.keySkillsNeeded.map((skill, skillIndex) => (
+                            <span 
+                              key={skillIndex} 
+                              className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            </motion.div>
+            
+            {/* Pathway Without Degree */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-xl border border-emerald-100"
+            >
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-emerald-700">TAFE & Skills Pathway</h3>
+                <p className="text-sm text-emerald-600">Progression through practical qualifications & experience</p>
+              </div>
+              
+              <div className="relative">
+                {/* Vertical line */}
+                <div className="absolute left-[26px] top-8 bottom-0 w-0.5 bg-emerald-300" />
+                
+                <div className="space-y-6">
+                  {results.careerPathway.withoutDegree.map((step, index) => (
+                    <motion.div 
+                      key={index} 
+                      className="flex"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.1 * index }}
+                    >
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-lg z-10 shadow-md">
+                          {step.step}
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 ml-4 bg-white rounded-lg border border-emerald-200 p-4 shadow-sm">
+                        <div className="font-medium text-lg mb-1 text-emerald-800">{step.role}</div>
+                        <div className="text-sm text-emerald-500 mb-2">Timeframe: {step.timeframe}</div>
+                        
+                        {step.alternativeQualification && (
+                          <div className="flex items-center gap-1 text-xs text-emerald-600 mb-2">
+                            <BookCheck className="h-3 w-3" />
+                            <span>{step.alternativeQualification}</span>
+                          </div>
+                        )}
+                        
+                        <p className="text-sm mb-3">{step.description}</p>
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {step.keySkillsNeeded.map((skill, skillIndex) => (
+                            <span 
+                              key={skillIndex} 
+                              className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
         
