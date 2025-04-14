@@ -837,7 +837,237 @@ function CareerAnalysisResults({
         
         {/* Development Plan */}
         <div ref={developmentRef} className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Development Plan</h2>
+          <h2 className="text-2xl font-bold mb-4">Comprehensive Development Plan</h2>
+          <p className="text-muted-foreground mb-6">
+            This personalized development plan compares your existing skills against required skills for your target role,
+            outlines development timelines, and suggests both technical and social skills to foster career growth.
+          </p>
+
+          {/* Skills Comparison Visualization */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-10"
+          >
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              Skills Assessment Overview
+            </h3>
+            
+            <div className="bg-white rounded-xl border shadow-md p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Existing Skills */}
+                <div>
+                  <h4 className="text-lg font-medium text-blue-800 mb-4 flex items-center gap-2">
+                    <span className="bg-blue-100 w-6 h-6 rounded-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                      </svg>
+                    </span>
+                    Existing Skills
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    {/* Sample existing skills - in a real app these would come from the API */}
+                    {[
+                      { name: "JavaScript Programming", proficiency: 85, transferability: "High" },
+                      { name: "UI/UX Design Principles", proficiency: 75, transferability: "High" },
+                      { name: "Project Management", proficiency: 70, transferability: "Medium" },
+                      { name: "Content Writing", proficiency: 80, transferability: "Medium" },
+                      { name: "Data Analysis", proficiency: 65, transferability: "High" }
+                    ].map((skill, index) => (
+                      <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-medium text-sm">{skill.name}</span>
+                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                            Transferability: {skill.transferability}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5">
+                          <div 
+                            className="bg-blue-600 h-2.5 rounded-full" 
+                            style={{ width: `${skill.proficiency}%` }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="text-xs text-slate-500">Beginner</span>
+                          <span className="text-xs text-slate-500">Proficient</span>
+                          <span className="text-xs text-slate-500">Expert</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Skills To Develop */}
+                <div>
+                  <h4 className="text-lg font-medium text-rose-800 mb-4 flex items-center gap-2">
+                    <span className="bg-rose-100 w-6 h-6 rounded-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                    </span>
+                    Skills To Develop
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    {/* We'll map just a few skills with more details */}
+                    {results.developmentPlan.skillsToAcquire.slice(0, 5).map((skill: any, index: number) => (
+                      <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-medium text-sm">{skill.skill}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            skill.priority === 'High' ? 'bg-red-100 text-red-700' :
+                            skill.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            Priority: {skill.priority}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="space-y-1">
+                            <div className="text-xs flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                              </svg>
+                              <span>Est. Time: {
+                                skill.priority === 'High' ? '3-6 months' :
+                                skill.priority === 'Medium' ? '2-4 months' : '1-2 months'
+                              }</span>
+                            </div>
+                            <div className="text-xs flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                              </svg>
+                              <span>Fast-track: {
+                                skill.priority === 'High' ? 'Intensive bootcamp' :
+                                skill.priority === 'Medium' ? 'Focused mentorship' : 'Online course'
+                              }</span>
+                            </div>
+                          </div>
+                          <div className="h-8 w-8 flex items-center justify-center rounded-full bg-rose-100">
+                            <div className="h-6 w-6 rounded-full border-2 border-rose-400 flex items-center justify-center">
+                              <div className="h-3 w-3 bg-rose-500 rounded-full"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Social Skills Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-8"
+          >
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              Social & Soft Skills Development
+            </h3>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl p-6 border border-purple-100">
+              <p className="text-sm text-purple-800 mb-6">
+                Developing these social and soft skills will complement your technical abilities, enhancing your effectiveness in professional environments and supporting your career advancement.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    category: "Communication",
+                    skills: [
+                      { name: "Active Listening", benefit: "Builds trust and understanding with team members and stakeholders" },
+                      { name: "Clear Articulation", benefit: "Ensures your ideas are understood and implemented correctly" },
+                      { name: "Persuasive Presentation", benefit: "Helps gain support for your proposals and projects" }
+                    ],
+                    color: "blue"
+                  },
+                  {
+                    category: "Leadership",
+                    skills: [
+                      { name: "Delegation", benefit: "Increases team productivity and develops others' skills" },
+                      { name: "Conflict Resolution", benefit: "Creates harmonious team environments and stronger relationships" },
+                      { name: "Strategic Thinking", benefit: "Enables you to guide teams toward meaningful goals" }
+                    ],
+                    color: "amber"
+                  },
+                  {
+                    category: "Adaptability",
+                    skills: [
+                      { name: "Resilience", benefit: "Helps you navigate setbacks and maintain momentum" },
+                      { name: "Cultural Intelligence", benefit: "Enhances collaboration in diverse teams and global environments" },
+                      { name: "Learning Agility", benefit: "Allows quick adaptation to new technologies and methodologies" }
+                    ],
+                    color: "green"
+                  }
+                ].map((category, catIndex) => (
+                  <motion.div
+                    key={catIndex}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 * catIndex }}
+                    className={`bg-white rounded-lg border p-4 shadow-sm ${
+                      category.category === "Communication" ? "border-blue-100" : 
+                      category.category === "Leadership" ? "border-amber-100" : 
+                      "border-green-100"
+                    }`}
+                  >
+                    <h4 className={`font-medium mb-3 pb-2 border-b ${
+                      category.category === "Communication" ? "text-blue-700 border-blue-100" : 
+                      category.category === "Leadership" ? "text-amber-700 border-amber-100" : 
+                      "text-green-700 border-green-100"
+                    }`}>
+                      {category.category}
+                    </h4>
+                    <ul className="space-y-3">
+                      {category.skills.map((skill, skillIndex) => (
+                        <li key={skillIndex} className="text-sm">
+                          <div className={`font-medium mb-1 ${
+                            category.category === "Communication" ? "text-blue-600" : 
+                            category.category === "Leadership" ? "text-amber-600" : 
+                            "text-green-600"
+                          }`}>{skill.name}</div>
+                          <div className="text-gray-600">{skill.benefit}</div>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className={`mt-4 text-xs flex items-center justify-between ${
+                      category.category === "Communication" ? "text-blue-600" : 
+                      category.category === "Leadership" ? "text-amber-600" : 
+                      "text-green-600"
+                    }`}>
+                      <span>Development methods:</span>
+                      <span className={`px-2 py-1 rounded-full ${
+                        category.category === "Communication" ? "bg-blue-50" : 
+                        category.category === "Leadership" ? "bg-amber-50" : 
+                        "bg-green-50"
+                      }`}>
+                        {category.category === "Communication" ? "Workshops & Practice" : 
+                         category.category === "Leadership" ? "Mentorship & Projects" : 
+                         "Challenges & Reflection"}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
           
           <div className="space-y-6">
             <motion.div
