@@ -504,7 +504,7 @@ function CareerAnalysisResults({
                 <div className="absolute left-[26px] top-8 bottom-0 w-0.5 bg-blue-300" />
                 
                 <div className="space-y-6">
-                  {results.careerPathway.withDegree.map((step, index) => (
+                  {results.careerPathway.withDegree.map((step: any, index: number) => (
                     <motion.div 
                       key={index} 
                       className="flex"
@@ -532,7 +532,7 @@ function CareerAnalysisResults({
                         <p className="text-sm mb-3">{step.description}</p>
                         
                         <div className="flex flex-wrap gap-2">
-                          {step.keySkillsNeeded.map((skill, skillIndex) => (
+                          {step.keySkillsNeeded.map((skill: string, skillIndex: number) => (
                             <span 
                               key={skillIndex} 
                               className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
@@ -565,7 +565,7 @@ function CareerAnalysisResults({
                 <div className="absolute left-[26px] top-8 bottom-0 w-0.5 bg-emerald-300" />
                 
                 <div className="space-y-6">
-                  {results.careerPathway.withoutDegree.map((step, index) => (
+                  {results.careerPathway.withoutDegree.map((step: any, index: number) => (
                     <motion.div 
                       key={index} 
                       className="flex"
@@ -593,7 +593,7 @@ function CareerAnalysisResults({
                         <p className="text-sm mb-3">{step.description}</p>
                         
                         <div className="flex flex-wrap gap-2">
-                          {step.keySkillsNeeded.map((skill, skillIndex) => (
+                          {step.keySkillsNeeded.map((skill: string, skillIndex: number) => (
                             <span 
                               key={skillIndex} 
                               className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full"
@@ -619,7 +619,7 @@ function CareerAnalysisResults({
             <div>
               <h3 className="text-xl font-semibold mb-3">Skills To Acquire</h3>
               <div className="grid gap-4 md:grid-cols-2">
-                {results.developmentPlan.skillsToAcquire.map((skill, index) => (
+                {results.developmentPlan.skillsToAcquire.map((skill: any, index: number) => (
                   <div key={index} className="bg-white rounded-lg border p-4">
                     <div className="font-medium text-primary mb-1">{skill.skill}</div>
                     <div className="text-sm text-muted-foreground mb-2">Priority: {skill.priority}</div>
@@ -627,7 +627,7 @@ function CareerAnalysisResults({
                     <div className="text-sm">
                       <div className="font-medium mb-1">Recommended Resources:</div>
                       <ul className="list-disc list-inside space-y-1">
-                        {skill.resources.map((resource, resourceIndex) => (
+                        {skill.resources.map((resource: string, resourceIndex: number) => (
                           <li key={resourceIndex}>{resource}</li>
                         ))}
                       </ul>
@@ -639,32 +639,105 @@ function CareerAnalysisResults({
             
             <Separator />
             
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <h3 className="text-xl font-semibold mb-3">Recommended Certifications</h3>
-                <Card>
-                  <CardContent className="pt-6">
-                    <ul className="list-disc list-inside space-y-2">
-                      {results.developmentPlan.recommendedCertifications.map((cert, index) => (
-                        <li key={index}>{cert}</li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <h3 className="text-xl font-semibold mb-4">Recommended Educational Programs</h3>
+                
+                <div className="grid gap-6 md:grid-cols-3">
+                  {/* University Programs */}
+                  <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-blue-700 flex items-center gap-2">
+                        <GraduationCap className="h-5 w-5" />
+                        University Programs
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {results.developmentPlan.recommendedCertifications.university.map((cert: string, index: number) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <div className="min-w-4 mt-1">•</div>
+                            <div>{cert}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* TAFE Courses */}
+                  <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-emerald-700 flex items-center gap-2">
+                        <BookCheck className="h-5 w-5" />
+                        TAFE Courses
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {results.developmentPlan.recommendedCertifications.tafe.map((cert: string, index: number) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <div className="min-w-4 mt-1">•</div>
+                            <div>{cert}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Online Courses */}
+                  <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-amber-700 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="2" x2="22" y1="12" y2="12" />
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                        Online Courses
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {results.developmentPlan.recommendedCertifications.online.map((cert: string, index: number) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <div className="min-w-4 mt-1">•</div>
+                            <div>{cert}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
               
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
                 <h3 className="text-xl font-semibold mb-3">Suggested Projects</h3>
-                <Card>
+                <Card className="bg-gradient-to-br from-purple-50 to-fuchsia-50 border-purple-100">
                   <CardContent className="pt-6">
-                    <ul className="list-disc list-inside space-y-2">
-                      {results.developmentPlan.suggestedProjects.map((project, index) => (
-                        <li key={index}>{project}</li>
+                    <ul className="space-y-3">
+                      {results.developmentPlan.suggestedProjects.map((project: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <div className="bg-purple-100 text-purple-800 p-1 rounded-full flex items-center justify-center mt-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-code">
+                              <polyline points="16 18 22 12 16 6" />
+                              <polyline points="8 6 2 12 8 18" />
+                            </svg>
+                          </div>
+                          <div className="text-sm">{project}</div>
+                        </li>
                       ))}
                     </ul>
                   </CardContent>
                 </Card>
-              </div>
+              </motion.div>
             </div>
             
             <div>
