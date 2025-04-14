@@ -21,22 +21,25 @@ export class MongoDBStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    // Initialize session store - we'll connect to the in-memory MongoDB
-    // after it's created in connectToDatabase()
+    // Use a memory store initially - we'll connect to MongoDB later
+    this.sessionStore = new session.MemoryStore();
+  }
+
+  async initialize() {
+    // Connect to MongoDB first
+    await connectToDatabase();
+    
+    // Now that MongoDB is connected, update the session store
+    // We use clientPromise to avoid connection issues
     this.sessionStore = MongoStore.create({
-      mongoUrl: 'mongodb://localhost:27017/careerpathAI', // Will be replaced after connection
+      mongoUrl: mongoose.connection.getClient().s.url,
       ttl: 14 * 24 * 60 * 60, // 14 days
       crypto: {
         secret: process.env.SESSION_SECRET || 'my-secret-key'
       },
-      autoRemove: 'native', // Default
+      autoRemove: 'native',
       touchAfter: 24 * 3600 // 24 hours
     });
-  }
-
-  async initialize() {
-    // Connect to MongoDB
-    await connectToDatabase();
     
     // Check if there's a demo user, create one if not
     await this.seedDemoUser();
