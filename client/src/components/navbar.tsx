@@ -48,7 +48,7 @@ export default function Navbar() {
             transition={{ duration: 0.5 }}
           >
             <Link href="/" className="flex items-center flex-shrink-0">
-              <span className="font-bold text-xl text-primary-dark">Career<span className="text-secondary-dark">Path</span>AI</span>
+              <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
             </Link>
             {isHomePage && (
               <nav className="hidden md:flex space-x-8 ml-10">
