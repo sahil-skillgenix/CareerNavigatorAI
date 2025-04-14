@@ -4,7 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage";
+import { IStorage, storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
 declare global {
@@ -28,12 +28,12 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-export function setupAuth(app: Express) {
+export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "career-path-ai-secret",
     resave: false,
     saveUninitialized: false,
-    store: storage.sessionStore,
+    store: storageInstance.sessionStore,
     cookie: {
       secure: process.env.NODE_ENV === "production",
       maxAge: 1000 * 60 * 60 * 24 // 1 day
@@ -52,7 +52,7 @@ export function setupAuth(app: Express) {
         passwordField: "password",
       },
       async (email, password, done) => {
-        const user = await storage.getUserByEmail(email);
+        const user = await storageInstance.getUserByEmail(email);
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {
@@ -64,7 +64,7 @@ export function setupAuth(app: Express) {
 
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
+    const user = await storageInstance.getUser(id);
     done(null, user);
   });
 
@@ -72,12 +72,12 @@ export function setupAuth(app: Express) {
     try {
       const { confirmPassword, ...userData } = req.body;
       
-      const existingUser = await storage.getUserByEmail(userData.email);
+      const existingUser = await storageInstance.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
-      const user = await storage.createUser({
+      const user = await storageInstance.createUser({
         ...userData,
         password: await hashPassword(userData.password),
       });

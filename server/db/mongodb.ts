@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import { log } from '../vite';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
-// MongoDB connection URI
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/careerpathAI';
+// In-memory MongoDB server instance
+let mongoServer: MongoMemoryServer | null = null;
 
-// Connect to MongoDB
+// Connect to MongoDB (uses in-memory server for development)
 export async function connectToDatabase() {
   try {
     if (mongoose.connection.readyState === 1) {
@@ -12,8 +13,14 @@ export async function connectToDatabase() {
       return;
     }
 
-    await mongoose.connect(MONGODB_URI);
-    log('Connected to MongoDB', 'mongodb');
+    // Create in-memory MongoDB instance
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+    log(`Starting in-memory MongoDB server at ${mongoUri}`, 'mongodb');
+
+    // Connect to the in-memory MongoDB
+    await mongoose.connect(mongoUri);
+    log('Connected to in-memory MongoDB', 'mongodb');
     
     // Handle connection errors after initial connection
     mongoose.connection.on('error', (err) => {
@@ -33,6 +40,10 @@ export async function connectToDatabase() {
     // Gracefully close the connection when the process is terminated
     process.on('SIGINT', async () => {
       await mongoose.connection.close();
+      if (mongoServer) {
+        await mongoServer.stop();
+        log('In-memory MongoDB server stopped', 'mongodb');
+      }
       log('MongoDB connection closed through app termination', 'mongodb');
       process.exit(0);
     });

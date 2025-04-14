@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { IStorage, storage } from "./storage";
 import { setupAuth } from "./auth";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service";
 import { 
@@ -11,9 +11,12 @@ import {
   LearningPathRecommendation
 } from "./learning-resources-service";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
+  // Use provided storage or fallback to in-memory storage
+  const storageInstance = customStorage || storage;
+  
   // Setup authentication
-  setupAuth(app);
+  setupAuth(app, storageInstance);
 
   // API routes
   app.get('/api/health', (req, res) => {

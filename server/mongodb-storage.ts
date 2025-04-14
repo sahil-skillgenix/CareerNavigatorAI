@@ -5,11 +5,9 @@ import UserModel, { UserDocument } from "./db/models/user";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
 import { IStorage } from "./storage";
-import * as ConnectMongo from "connect-mongo";
+import MongoStore from "connect-mongo";
 import { log } from "./vite";
-import createMemoryStore from "memorystore";
-
-const MongoStore = ConnectMongo.default || ConnectMongo;
+import mongoose from "mongoose";
 
 const scryptAsync = promisify(scrypt);
 
@@ -23,9 +21,10 @@ export class MongoDBStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    // Initialize MongoDB-based session store
+    // Initialize session store - we'll connect to the in-memory MongoDB
+    // after it's created in connectToDatabase()
     this.sessionStore = MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/careerpathAI',
+      mongoUrl: 'mongodb://localhost:27017/careerpathAI', // Will be replaced after connection
       ttl: 14 * 24 * 60 * 60, // 14 days
       crypto: {
         secret: process.env.SESSION_SECRET || 'my-secret-key'
@@ -69,12 +68,13 @@ export class MongoDBStorage implements IStorage {
       const user = await UserModel.findById(id).lean();
       if (!user) return undefined;
       
+      const userDoc = user as any;
       return {
-        id: user._id.toString(),
-        fullName: user.fullName,
-        email: user.email,
-        password: user.password,
-        createdAt: user.createdAt.toISOString()
+        id: userDoc._id.toString(),
+        fullName: userDoc.fullName,
+        email: userDoc.email,
+        password: userDoc.password,
+        createdAt: userDoc.createdAt.toISOString()
       };
     } catch (error) {
       log(`Error getting user by ID: ${error}`, "mongodb");
@@ -87,12 +87,13 @@ export class MongoDBStorage implements IStorage {
       const user = await UserModel.findOne({ email }).lean();
       if (!user) return undefined;
       
+      const userDoc = user as any;
       return {
-        id: user._id.toString(),
-        fullName: user.fullName,
-        email: user.email,
-        password: user.password,
-        createdAt: user.createdAt.toISOString()
+        id: userDoc._id.toString(),
+        fullName: userDoc.fullName,
+        email: userDoc.email,
+        password: userDoc.password,
+        createdAt: userDoc.createdAt.toISOString()
       };
     } catch (error) {
       log(`Error getting user by email: ${error}`, "mongodb");
@@ -109,13 +110,14 @@ export class MongoDBStorage implements IStorage {
       });
       
       const savedUser = await newUser.save();
+      const userDoc = savedUser as any;
       
       return {
-        id: savedUser._id.toString(),
-        fullName: savedUser.fullName,
-        email: savedUser.email,
-        password: savedUser.password,
-        createdAt: savedUser.createdAt.toISOString()
+        id: userDoc._id.toString(),
+        fullName: userDoc.fullName,
+        email: userDoc.email,
+        password: userDoc.password,
+        createdAt: userDoc.createdAt.toISOString()
       };
     } catch (error) {
       log(`Error creating user: ${error}`, "mongodb");

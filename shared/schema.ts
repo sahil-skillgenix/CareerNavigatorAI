@@ -20,6 +20,7 @@ export const insertUserSchema = createInsertSchema(users)
     fullName: true,
     email: true,
     password: true,
+    createdAt: true,
   })
   .extend({
     confirmPassword: z.string(),

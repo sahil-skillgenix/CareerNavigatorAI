@@ -11,7 +11,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
-  sessionStore: session.Store;
+  sessionStore: any; // Using any to avoid type conflicts between different session store implementations
 }
 
 const MemoryStore = createMemoryStore(session);
@@ -26,7 +26,7 @@ async function hashPassword(password: string) {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   currentId: number;
-  sessionStore: ReturnType<typeof createMemoryStore>;
+  sessionStore: any; // Using any to avoid type conflicts
 
   constructor() {
     this.users = new Map();
@@ -40,15 +40,18 @@ export class MemStorage implements IStorage {
   }
   
   private async seedDemoUser() {
-    const demoUser: Omit<InsertUser, "confirmPassword"> = {
+    const demoUser = {
       fullName: "Demo User",
       email: "demo@careerpathAI.com",
-      password: await hashPassword("demo123456"),
-      createdAt: new Date().toISOString()
+      password: await hashPassword("demo123456")
     };
     
     const id = this.currentId++;
-    const user: User = { ...demoUser, id };
+    const user: User = { 
+      ...demoUser, 
+      id,
+      createdAt: new Date().toISOString() 
+    };
     this.users.set(id, user);
     console.log("Demo user created:", user.email);
   }
