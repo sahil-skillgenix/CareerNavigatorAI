@@ -10,10 +10,9 @@ import {
   ExperienceSection,
   ProfessionalLevelSection,
   SkillsToolsSection,
-  OrganizationSection,
-  DashboardHeader,
-  Navigation
+  OrganizationSection
 } from "@/components/dashboard";
+import { AuthenticatedLayout } from "@/components/layouts";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -36,49 +35,41 @@ export default function DashboardPage() {
   });
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader />
-      
-      <main className="container mx-auto px-4 py-8">
-        <Navigation />
-        
-        <div className="flex flex-col items-center mb-8">
-          <h1 className="text-2xl font-bold mb-6">My Details</h1>
-          
-          <div className="w-full max-w-3xl">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex justify-center mb-6">
-                <TabsList className="grid grid-cols-3 w-full max-w-xl">
-                  <TabsTrigger value="profile">Profile</TabsTrigger>
-                  <TabsTrigger value="info">Info</TabsTrigger>
-                  <TabsTrigger value="organization">My Organization</TabsTrigger>
-                </TabsList>
-              </div>
-              
-              <TabsContent value="profile" className="space-y-6">
-                <ProfileSection 
-                  userData={{ 
-                    fullName: user?.fullName || "Demo User", 
-                    email: user?.email || "demo@skillgenix.com" 
-                  }} 
-                  onSave={handleSaveChanges} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="info" className="space-y-6">
-                <EducationSection onAddEducation={() => console.log("Add education clicked")} />
-                <ExperienceSection onAddExperience={() => console.log("Add experience clicked")} />
-                <ProfessionalLevelSection onSave={handleSaveChanges} />
-                <SkillsToolsSection onSave={handleSaveChanges} />
-              </TabsContent>
-              
-              <TabsContent value="organization" className="space-y-6">
-                <OrganizationSection />
-              </TabsContent>
-            </Tabs>
-          </div>
+    <AuthenticatedLayout title="My Details">
+      <div className="flex flex-col items-center">
+        <div className="w-full max-w-3xl">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex justify-center mb-6">
+              <TabsList className="grid grid-cols-3 w-full max-w-xl">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="info">Info</TabsTrigger>
+                <TabsTrigger value="organization">My Organization</TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="profile" className="space-y-6">
+              <ProfileSection 
+                userData={{ 
+                  fullName: user?.fullName || "Demo User", 
+                  email: user?.email || "demo@skillgenix.com" 
+                }} 
+                onSave={handleSaveChanges} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="info" className="space-y-6">
+              <EducationSection onAddEducation={() => console.log("Add education clicked")} />
+              <ExperienceSection onAddExperience={() => console.log("Add experience clicked")} />
+              <ProfessionalLevelSection onSave={handleSaveChanges} />
+              <SkillsToolsSection onSave={handleSaveChanges} />
+            </TabsContent>
+            
+            <TabsContent value="organization" className="space-y-6">
+              <OrganizationSection />
+            </TabsContent>
+          </Tabs>
         </div>
-      </main>
-    </div>
+      </div>
+    </AuthenticatedLayout>
   );
 }

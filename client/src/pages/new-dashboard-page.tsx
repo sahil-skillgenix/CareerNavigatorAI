@@ -4,10 +4,9 @@ import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import {
   RecommendedCourses,
-  CareerProgressTracker,
-  DashboardHeader,
-  Navigation
+  CareerProgressTracker
 } from "@/components/dashboard";
+import { AuthenticatedLayout } from "@/components/layouts";
 
 export default function NewDashboardPage() {
   const { user } = useAuth();
@@ -24,29 +23,19 @@ export default function NewDashboardPage() {
   });
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader />
-      
-      <main className="container mx-auto px-4 py-8">
-        <Navigation />
-        
-        <div className="flex flex-col items-center mb-8">
-          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-        </div>
-        
-        {/* Career Insights Section */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-semibold mb-8 text-center">Career Insights</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            <div className="lg:col-span-2">
-              <RecommendedCourses />
-            </div>
-            <div>
-              <CareerProgressTracker />
-            </div>
+    <AuthenticatedLayout title="Dashboard">
+      {/* Career Insights Section */}
+      <section className="mb-16">
+        <h2 className="text-2xl font-semibold mb-8 text-center">Career Insights</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="lg:col-span-2">
+            <RecommendedCourses />
           </div>
-        </section>
-      </main>
-    </div>
+          <div>
+            <CareerProgressTracker />
+          </div>
+        </div>
+      </section>
+    </AuthenticatedLayout>
   );
 }

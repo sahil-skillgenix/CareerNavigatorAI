@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { CareerPathwayForm } from "@/components/career-pathway/CareerPathwayForm";
 import { motion } from "framer-motion";
-import { Navigation, DashboardHeader } from "@/components/dashboard";
+import { AuthenticatedLayout } from "@/components/layouts/AuthenticatedLayout";
 
 export default function CareerAnalysisPage() {
   const { user } = useAuth();
@@ -25,16 +25,10 @@ export default function CareerAnalysisPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader />
-      
-      <main className="container mx-auto px-4 py-8">
-        <Navigation />
-        
-        <div className="mt-6">
-          <CareerPathwayForm />
-        </div>
-      </main>
-    </div>
+    <AuthenticatedLayout title="Career Analysis">
+      <div className="mt-6">
+        <CareerPathwayForm />
+      </div>
+    </AuthenticatedLayout>
   );
 }
