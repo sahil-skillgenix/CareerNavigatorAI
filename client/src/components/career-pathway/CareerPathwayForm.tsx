@@ -24,7 +24,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { FrameworkSkillGapCharts } from "./FrameworkSkillGapCharts";
+import { FrameworkSkillGapCharts } from "./FixedFrameworkSkillGapCharts";
 import { EnhancedFrameworkCharts } from "./EnhancedFrameworkCharts";
 import { 
   ResponsiveContainer, 
@@ -365,6 +365,85 @@ function CareerAnalysisResults({
   const pathwayRef = useRef<HTMLDivElement>(null);
   const developmentRef = useRef<HTMLDivElement>(null);
   
+  // Helper functions for skill evaluations
+  const skillValidated = (skillName: string, results: CareerAnalysisResult): number => {
+    if (!results.skillGapAnalysis.strengths) return 0;
+    return results.skillGapAnalysis.strengths.some(
+      s => s.skill.toLowerCase() === skillName.toLowerCase()
+    ) ? 1 : 0;
+  };
+  
+  const skillPossessed = (skillName: string, results: CareerAnalysisResult): number => {
+    if (!results.skillGapAnalysis.strengths) return 0;
+    return results.skillGapAnalysis.strengths.some(
+      s => s.skill.toLowerCase() === skillName.toLowerCase()
+    ) ? 1 : 0;
+  };
+  
+  const countSkillsPossessed = (skills: any[], results: CareerAnalysisResult): number => {
+    if (!skills || !results.skillGapAnalysis.strengths) return 0;
+    
+    return skills.filter(skill => {
+      const skillName = skill.skill || skill.competency;
+      return results.skillGapAnalysis.strengths.some(
+        s => s.skill.toLowerCase() === skillName.toLowerCase()
+      );
+    }).length;
+  };
+  
+  const countSkillsValidated = (skills: any[], results: CareerAnalysisResult): number => {
+    if (!skills || !results.skillGapAnalysis.strengths) return 0;
+    
+    return skills.filter(skill => {
+      const skillName = skill.skill || skill.competency;
+      return results.skillGapAnalysis.strengths.some(
+        s => s.skill.toLowerCase() === skillName.toLowerCase() && 
+        (s.relevance === 'High' || s.relevance === 'Very High')
+      );
+    }).length;
+  };
+  
+  const isSkillGap = (skillName: string, results: CareerAnalysisResult): boolean => {
+    if (!results.skillGapAnalysis.gaps) return false;
+    return results.skillGapAnalysis.gaps.some(
+      g => g.skill.toLowerCase() === skillName.toLowerCase()
+    );
+  };
+  
+  const getGapSeverity = (skillName: string, results: CareerAnalysisResult): number => {
+    if (!results.skillGapAnalysis.gaps) return 0;
+    const gap = results.skillGapAnalysis.gaps.find(
+      g => g.skill.toLowerCase() === skillName.toLowerCase()
+    );
+    if (!gap) return 0;
+    
+    switch (gap.importance.toLowerCase()) {
+      case 'critical': return 4;
+      case 'high': return 3;
+      case 'medium': return 2;
+      case 'low': return 1;
+      default: return 2;
+    }
+  };
+  
+  // Helper function to convert level string to numeric value for charts
+  const getLevelValue = (level?: string): number => {
+    if (!level) return 3;
+    // SFIA levels are typically 1-7
+    if (!isNaN(Number(level))) {
+      return Math.min(7, Math.max(1, Number(level)));
+    }
+    // For text levels
+    switch (level.toLowerCase()) {
+      case 'beginner': return 1;
+      case 'foundation': return 2;
+      case 'intermediate': return 3;
+      case 'advanced': return 5;
+      case 'expert': return 7;
+      default: return 3;
+    }
+  };
+  
   // Helper functions for checking role types
   const hasDesignerRole = (results: CareerAnalysisResult): boolean => {
     if (!results || !results.executiveSummary) return false;
@@ -492,11 +571,67 @@ function CareerAnalysisResults({
             This analysis is based on the <span className="font-medium">SFIA 9 Framework</span> (Skills Framework for the Information Age) and <span className="font-medium">DigComp 2.2 Framework</span> (European Digital Competence Framework), providing a comprehensive assessment of your technical and digital competencies.
           </p>
           
-          {/* Framework Skill Gap Charts */}
+          {/* Enhanced Framework Charts - Interactive Visualization */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <EnhancedFrameworkCharts 
+              sfiaData={results.skillMapping.sfia9.map(skill => ({
+                name: skill.skill,
+                required: 1,
+                validated: skillValidated(skill.skill, results),
+                userHas: skillPossessed(skill.skill, results),
+                level: skill.level,
+                description: skill.description,
+                framework: 'SFIA 9'
+              }))}
+              digcompData={results.skillMapping.digcomp22.map(comp => ({
+                name: comp.competency,
+                required: 1,
+                validated: skillValidated(comp.competency, results),
+                userHas: skillPossessed(comp.competency, results),
+                level: comp.level,
+                description: comp.description,
+                framework: 'DigComp 2.2'
+              }))}
+              sfiaPieData={[
+                { name: 'Skills Possessed', value: countSkillsPossessed(results.skillMapping.sfia9, results), fill: '#c4b5fd' },
+                { name: 'Skills Required', value: results.skillMapping.sfia9.length, fill: '#93c5fd' },
+                { name: 'Skills Validated', value: countSkillsValidated(results.skillMapping.sfia9, results), fill: '#86efac' }
+              ]}
+              digcompPieData={[
+                { name: 'Skills Possessed', value: countSkillsPossessed(results.skillMapping.digcomp22, results), fill: '#c4b5fd' },
+                { name: 'Skills Required', value: results.skillMapping.digcomp22.length, fill: '#93c5fd' },
+                { name: 'Skills Validated', value: countSkillsValidated(results.skillMapping.digcomp22, results), fill: '#86efac' }
+              ]}
+              sfiaRadarData={results.skillMapping.sfia9.map(skill => ({
+                subject: skill.skill,
+                required: getLevelValue(skill.level),
+                userHas: skillPossessed(skill.skill, results) ? getLevelValue(skill.level) : 0,
+                gap: isSkillGap(skill.skill, results) ? getGapSeverity(skill.skill, results) : 0
+              }))}
+              digcompRadarData={results.skillMapping.digcomp22.map(comp => ({
+                subject: comp.competency,
+                required: getLevelValue(comp.level),
+                userHas: skillPossessed(comp.competency, results) ? getLevelValue(comp.level) : 0,
+                gap: isSkillGap(comp.competency, results) ? getGapSeverity(comp.competency, results) : 0
+              }))}
+              chartColors={{
+                required: "#93c5fd", // Soft blue
+                validated: "#86efac", // Soft green
+                userHas: "#c4b5fd"   // Soft purple
+              }}
+            />
+          </motion.div>
+          
+          {/* Original Framework Skill Gap Charts */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-8"
           >
             <FrameworkSkillGapCharts 
