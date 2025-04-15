@@ -24,8 +24,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { SkillGapCharts } from "./SkillGapCharts";
-import { EnhancedFrameworkCharts } from "./EnhancedFrameworkCharts";
+import { CombinedFrameworkCharts } from "./CombinedFrameworkCharts";
 import { 
   ResponsiveContainer, 
   RadarChart, 
@@ -604,31 +603,43 @@ function CareerAnalysisResults({
             This analysis is based on the <span className="font-medium">SFIA 9 Framework</span> (Skills Framework for the Information Age) and <span className="font-medium">DigComp 2.2 Framework</span> (European Digital Competence Framework), providing a comprehensive assessment of your technical and digital competencies.
           </p>
           
-          {/* Enhanced Framework Charts - Interactive Visualization */}
+          {/* Combined Framework Skill Charts */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <EnhancedFrameworkCharts 
+            <CombinedFrameworkCharts 
+              sfiaSkills={results.skillMapping.sfia9}
+              digcompCompetencies={results.skillMapping.digcomp22}
+              skillGaps={results.skillGapAnalysis.gaps}
+              skillStrengths={results.skillGapAnalysis.strengths}
               sfiaData={results.skillMapping.sfia9.map(skill => ({
                 name: skill.skill,
-                required: 1,
-                validated: skillValidated(skill.skill, results),
-                userHas: skillPossessed(skill.skill, results),
+                required: getLevelValue(skill.level),
+                validated: skillValidated(skill.skill, results) ? getLevelValue(skill.level) : 0,
+                userHas: skillPossessed(skill.skill, results) ? getLevelValue(skill.level) : 0,
                 level: skill.level,
                 description: skill.description,
-                framework: 'SFIA 9'
+                framework: 'SFIA 9',
+                gapDescription: isSkillGap(skill.skill, results) ? 
+                  results.skillGapAnalysis.gaps.find(g => g.skill.toLowerCase() === skill.skill.toLowerCase())?.description : undefined,
+                strengthDescription: !isSkillGap(skill.skill, results) && skillPossessed(skill.skill, results) ?
+                  results.skillGapAnalysis.strengths.find(s => s.skill.toLowerCase() === skill.skill.toLowerCase())?.description : undefined
               }))}
               digcompData={results.skillMapping.digcomp22.map(comp => ({
                 name: comp.competency,
-                required: 1,
-                validated: skillValidated(comp.competency, results),
-                userHas: skillPossessed(comp.competency, results),
+                required: getLevelValue(comp.level),
+                validated: skillValidated(comp.competency, results) ? getLevelValue(comp.level) : 0,
+                userHas: skillPossessed(comp.competency, results) ? getLevelValue(comp.level) : 0,
                 level: comp.level,
                 description: comp.description,
-                framework: 'DigComp 2.2'
+                framework: 'DigComp 2.2',
+                gapDescription: isSkillGap(comp.competency, results) ? 
+                  results.skillGapAnalysis.gaps.find(g => g.skill.toLowerCase() === comp.competency.toLowerCase())?.description : undefined,
+                strengthDescription: !isSkillGap(comp.competency, results) && skillPossessed(comp.competency, results) ?
+                  results.skillGapAnalysis.strengths.find(s => s.skill.toLowerCase() === comp.competency.toLowerCase())?.description : undefined
               }))}
               sfiaPieData={[
                 { name: 'Skills Possessed', value: countSkillsPossessed(results.skillMapping.sfia9, results), fill: '#c4b5fd' },
@@ -652,26 +663,6 @@ function CareerAnalysisResults({
                 userHas: skillPossessed(comp.competency, results) ? getLevelValue(comp.level) : 0,
                 gap: isSkillGap(comp.competency, results) ? getGapSeverity(comp.competency, results) : 0
               }))}
-              chartColors={{
-                required: "#93c5fd", // Soft blue
-                validated: "#86efac", // Soft green
-                userHas: "#c4b5fd"   // Soft purple
-              }}
-            />
-          </motion.div>
-          
-          {/* Original Framework Skill Gap Charts */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-8"
-          >
-            <SkillGapCharts 
-              sfiaSkills={results.skillMapping.sfia9}
-              digcompCompetencies={results.skillMapping.digcomp22}
-              skillGaps={results.skillGapAnalysis.gaps}
-              skillStrengths={results.skillGapAnalysis.strengths}
             />
           </motion.div>
           
