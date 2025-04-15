@@ -205,8 +205,10 @@ export function FrameworkSkillGapCharts({
         framework,
         level: strength.level,
         relevance: strength.relevance,
+        relevanceValue: getRelevanceValue(strength.relevance),
         strengthDescription: strength.description,
         importance: 'Low', // Default importance for strength skills
+        importanceValue: 1,
         isRequired: false,
         isValidated: true,
         userHas: true
@@ -245,16 +247,11 @@ export function FrameworkSkillGapCharts({
       if (aIsGap && !bIsGap) return -1;
       if (!aIsGap && bIsGap) return 1;
       
-      // Then by importance
-      const aImportance = a.importance?.toLowerCase().includes('high') ? 3 : 
-                          a.importance?.toLowerCase().includes('critical') ? 4 : 
-                          a.importance?.toLowerCase().includes('medium') ? 2 : 1;
-                          
-      const bImportance = b.importance?.toLowerCase().includes('high') ? 3 : 
-                          b.importance?.toLowerCase().includes('critical') ? 4 : 
-                          b.importance?.toLowerCase().includes('medium') ? 2 : 1;
+      // Then by importance or relevance value
+      const aValue = a.importanceValue || a.relevanceValue || 1;
+      const bValue = b.importanceValue || b.relevanceValue || 1;
       
-      return bImportance - aImportance;
+      return bValue - aValue;
     }).slice(0, count);
   };
 
