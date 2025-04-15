@@ -12,7 +12,6 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  LabelList,
   Cell
 } from "recharts";
 
@@ -104,6 +103,25 @@ export function FrameworkSkillGapCharts({
     }
   };
 
+  // Calculate importance value based on a string description
+  const getImportanceValue = (importance?: string): number => {
+    if (!importance || typeof importance !== 'string') return 1;
+    
+    if (importance.toLowerCase().includes('critical')) return 4;
+    if (importance.toLowerCase().includes('high')) return 3;
+    if (importance.toLowerCase().includes('medium')) return 2;
+    return 1; // Low or default
+  };
+
+  // Calculate relevance value based on a string description
+  const getRelevanceValue = (relevance?: string): number => {
+    if (!relevance || typeof relevance !== 'string') return 1;
+    
+    if (relevance.toLowerCase().includes('high')) return 3;
+    if (relevance.toLowerCase().includes('medium')) return 2;
+    return 1; // Low or default
+  };
+
   // Create a comprehensive list of all skills with their sources
   const allSkills: ProcessedSkill[] = [
     // Map SFIA skills
@@ -128,25 +146,6 @@ export function FrameworkSkillGapCharts({
       userHas: false
     }))
   ];
-
-  // Calculate importance value based on a string description
-  const getImportanceValue = (importance?: string): number => {
-    if (!importance || typeof importance !== 'string') return 1;
-    
-    if (importance.toLowerCase().includes('critical')) return 4;
-    if (importance.toLowerCase().includes('high')) return 3;
-    if (importance.toLowerCase().includes('medium')) return 2;
-    return 1; // Low or default
-  };
-
-  // Calculate relevance value based on a string description
-  const getRelevanceValue = (relevance?: string): number => {
-    if (!relevance || typeof relevance !== 'string') return 1;
-    
-    if (relevance.toLowerCase().includes('high')) return 3;
-    if (relevance.toLowerCase().includes('medium')) return 2;
-    return 1; // Low or default
-  };
 
   // Mark skills as gaps (needed but user doesn't have)
   skillGaps.forEach(gap => {
@@ -283,6 +282,18 @@ export function FrameworkSkillGapCharts({
     }
   };
 
+  // Soft color palette for charts
+  const chartColors = {
+    required: "#93c5fd", // Soft blue
+    validated: "#86efac", // Soft green
+    userHas: "#c4b5fd",   // Soft purple
+    cardGap: "bg-red-50 border border-red-100",
+    cardStrength: "bg-green-50 border border-green-100",
+    tagRequired: "bg-blue-100 text-blue-800",
+    tagValidated: "bg-green-100 text-green-800",
+    tagUserHas: "bg-purple-100 text-purple-800"
+  };
+
   // Custom tooltip for skill chart
   const SkillStatusTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -306,13 +317,13 @@ export function FrameworkSkillGapCharts({
           {data.gapDescription && (
             <div className="mt-1 border-t pt-1">
               <p className="text-red-500 font-medium">Gap Analysis:</p>
-              <p className="text-gray-600 max-w-[250px]">{data.gapDescription}</p>
+              <p className="text-gray-600 max-w-[300px]">{data.gapDescription}</p>
             </div>
           )}
           {data.strengthDescription && (
             <div className="mt-1 border-t pt-1">
               <p className="text-green-500 font-medium">Strength Assessment:</p>
-              <p className="text-gray-600 max-w-[250px]">{data.strengthDescription}</p>
+              <p className="text-gray-600 max-w-[300px]">{data.strengthDescription}</p>
             </div>
           )}
         </div>
@@ -328,26 +339,26 @@ export function FrameworkSkillGapCharts({
       animate="visible"
       className="w-full mb-8"
     >
-      <Card className="p-6">
+      <Card className="p-6 shadow-md border border-slate-100">
         <motion.h2 
-          className="text-2xl font-bold mb-6"
+          className="text-2xl font-bold mb-6 text-slate-800"
           variants={itemVariants}
         >
           Framework-Based Skill Gap Analysis
         </motion.h2>
         
         <Tabs defaultValue="sfia" className="w-full">
-          <TabsList className="w-full mb-6">
-            <TabsTrigger value="sfia" className="flex-1">SFIA 9 Skills</TabsTrigger>
-            <TabsTrigger value="digcomp" className="flex-1">DigComp 2.2 Skills</TabsTrigger>
+          <TabsList className="w-full mb-6 bg-slate-100">
+            <TabsTrigger value="sfia" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-slate-800">SFIA 9 Skills</TabsTrigger>
+            <TabsTrigger value="digcomp" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-slate-800">DigComp 2.2 Skills</TabsTrigger>
           </TabsList>
           
           {/* SFIA 9 Skills Tab */}
           <TabsContent value="sfia">
             <motion.div variants={itemVariants}>
-              <Card className="p-4">
-                <h3 className="text-lg font-semibold mb-2">SFIA 9 Framework Skill Comparison</h3>
-                <p className="text-sm text-gray-500 mb-4">
+              <Card className="p-4 bg-white shadow-sm">
+                <h3 className="text-lg font-semibold mb-2 text-slate-800">SFIA 9 Framework Skill Comparison</h3>
+                <p className="text-sm text-slate-500 mb-4">
                   Compare your current skills against requirements for the desired role
                 </p>
                 
@@ -358,7 +369,7 @@ export function FrameworkSkillGapCharts({
                       layout="vertical"
                       margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis 
                         type="number" 
                         domain={[0, 1]} 
@@ -368,7 +379,8 @@ export function FrameworkSkillGapCharts({
                       <YAxis 
                         type="category" 
                         dataKey="name" 
-                        tick={{ fill: 'var(--foreground)', fontSize: 12 }}
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        axisLine={false}
                       />
                       <Tooltip content={<SkillStatusTooltip />} />
                       <Legend />
@@ -376,76 +388,83 @@ export function FrameworkSkillGapCharts({
                         dataKey="required" 
                         name="Required for Role" 
                         stackId="status"
-                        fill="#3b82f6" // blue
+                        fill={chartColors.required}
+                        radius={[4, 4, 0, 0]}
+                        barSize={20}
                       />
                       <Bar 
                         dataKey="validated" 
                         name="Validated in Current Role" 
                         stackId="status"
-                        fill="#10b981" // green
+                        fill={chartColors.validated}
+                        radius={[0, 0, 0, 0]}
+                        barSize={20}
                       />
                       <Bar 
                         dataKey="userHas" 
                         name="You Have This Skill" 
                         stackId="status"
-                        fill="#8b5cf6" // purple
+                        fill={chartColors.userHas}
+                        radius={[0, 0, 4, 4]}
+                        barSize={20}
                       />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 
                 <div className="mt-6">
-                  <h4 className="text-sm font-medium mb-3">Legend</h4>
+                  <h4 className="text-sm font-medium mb-3 text-slate-700">Legend</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded bg-blue-500"></span>
-                      <span className="text-sm">Required for Role</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.required }}></span>
+                      <span className="text-sm text-slate-600">Required for Role</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded bg-green-500"></span>
-                      <span className="text-sm">Validated in Current Role</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.validated }}></span>
+                      <span className="text-sm text-slate-600">Validated in Current Role</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded bg-purple-500"></span>
-                      <span className="text-sm">You Have This Skill</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.userHas }}></span>
+                      <span className="text-sm text-slate-600">You Have This Skill</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mt-6 space-y-4">
-                  <h4 className="text-sm font-medium">SFIA 9 Skills Detail</h4>
+                  <h4 className="text-sm font-medium text-slate-700">SFIA 9 Skills Detail</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {sfiaChartData.map((skill, index) => (
                       <div 
                         key={index} 
-                        className={`p-3 rounded-md ${
+                        className={`p-3 rounded-md shadow-sm transition-all hover:shadow-md ${
                           skill.gapDescription 
-                            ? 'bg-red-50 border border-red-100' 
-                            : 'bg-green-50 border border-green-100'
+                            ? chartColors.cardGap 
+                            : chartColors.cardStrength
                         }`}
                       >
                         <div className="flex justify-between items-center mb-1">
-                          <h5 className="font-medium">{skill.name}</h5>
+                          <h5 className="font-medium text-slate-800">{skill.name}</h5>
                           <Badge 
                             variant={
                               skill.gapDescription ? "destructive" : "default"
                             }
+                            className="ml-2 font-normal"
                           >
                             {skill.gapDescription ? skill.importance : "You Have"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-slate-600 mb-2">
                           {skill.gapDescription || skill.strengthDescription || skill.description}
                         </p>
                         <div className="flex flex-wrap gap-1 text-xs">
                           {skill.required === 1 && (
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Required</span>
+                            <span className={`px-2 py-0.5 ${chartColors.tagRequired} rounded-full`}>Required</span>
                           )}
                           {skill.validated === 1 && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full">Validated</span>
+                            <span className={`px-2 py-0.5 ${chartColors.tagValidated} rounded-full`}>Validated</span>
                           )}
                           {skill.userHas === 1 && (
-                            <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full">You Have</span>
+                            <span className={`px-2 py-0.5 ${chartColors.tagUserHas} rounded-full`}>You Have</span>
                           )}
                           {skill.level && (
                             <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full">
@@ -464,9 +483,9 @@ export function FrameworkSkillGapCharts({
           {/* DigComp 2.2 Skills Tab */}
           <TabsContent value="digcomp">
             <motion.div variants={itemVariants}>
-              <Card className="p-4">
-                <h3 className="text-lg font-semibold mb-2">DigComp 2.2 Framework Skill Comparison</h3>
-                <p className="text-sm text-gray-500 mb-4">
+              <Card className="p-4 bg-white shadow-sm">
+                <h3 className="text-lg font-semibold mb-2 text-slate-800">DigComp 2.2 Framework Skill Comparison</h3>
+                <p className="text-sm text-slate-500 mb-4">
                   Compare your digital competencies against requirements for the desired role
                 </p>
                 
@@ -477,7 +496,7 @@ export function FrameworkSkillGapCharts({
                       layout="vertical"
                       margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis 
                         type="number" 
                         domain={[0, 1]} 
@@ -487,7 +506,8 @@ export function FrameworkSkillGapCharts({
                       <YAxis 
                         type="category" 
                         dataKey="name" 
-                        tick={{ fill: 'var(--foreground)', fontSize: 12 }}
+                        tick={{ fill: '#64748b', fontSize: 12 }}
+                        axisLine={false}
                       />
                       <Tooltip content={<SkillStatusTooltip />} />
                       <Legend />
@@ -495,76 +515,83 @@ export function FrameworkSkillGapCharts({
                         dataKey="required" 
                         name="Required for Role" 
                         stackId="status"
-                        fill="#3b82f6" // blue
+                        fill={chartColors.required}
+                        radius={[4, 4, 0, 0]}
+                        barSize={20}
                       />
                       <Bar 
                         dataKey="validated" 
                         name="Validated in Current Role" 
                         stackId="status"
-                        fill="#10b981" // green
+                        fill={chartColors.validated}
+                        radius={[0, 0, 0, 0]}
+                        barSize={20}
                       />
                       <Bar 
                         dataKey="userHas" 
                         name="You Have This Skill" 
                         stackId="status"
-                        fill="#8b5cf6" // purple
+                        fill={chartColors.userHas}
+                        radius={[0, 0, 4, 4]}
+                        barSize={20}
                       />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 
                 <div className="mt-6">
-                  <h4 className="text-sm font-medium mb-3">Legend</h4>
+                  <h4 className="text-sm font-medium mb-3 text-slate-700">Legend</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded bg-blue-500"></span>
-                      <span className="text-sm">Required for Role</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.required }}></span>
+                      <span className="text-sm text-slate-600">Required for Role</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded bg-green-500"></span>
-                      <span className="text-sm">Validated in Current Role</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.validated }}></span>
+                      <span className="text-sm text-slate-600">Validated in Current Role</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded bg-purple-500"></span>
-                      <span className="text-sm">You Have This Skill</span>
+                      <span className="w-4 h-4 rounded" style={{ backgroundColor: chartColors.userHas }}></span>
+                      <span className="text-sm text-slate-600">You Have This Skill</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mt-6 space-y-4">
-                  <h4 className="text-sm font-medium">DigComp 2.2 Skills Detail</h4>
+                  <h4 className="text-sm font-medium text-slate-700">DigComp 2.2 Skills Detail</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {digcompChartData.map((skill, index) => (
                       <div 
                         key={index} 
-                        className={`p-3 rounded-md ${
+                        className={`p-3 rounded-md shadow-sm transition-all hover:shadow-md ${
                           skill.gapDescription 
-                            ? 'bg-red-50 border border-red-100' 
-                            : 'bg-green-50 border border-green-100'
+                            ? chartColors.cardGap 
+                            : chartColors.cardStrength
                         }`}
                       >
                         <div className="flex justify-between items-center mb-1">
-                          <h5 className="font-medium">{skill.name}</h5>
+                          <h5 className="font-medium text-slate-800">{skill.name}</h5>
                           <Badge 
                             variant={
                               skill.gapDescription ? "destructive" : "default"
                             }
+                            className="ml-2 font-normal"
                           >
                             {skill.gapDescription ? skill.importance : "You Have"}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-slate-600 mb-2">
                           {skill.gapDescription || skill.strengthDescription || skill.description}
                         </p>
                         <div className="flex flex-wrap gap-1 text-xs">
                           {skill.required === 1 && (
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">Required</span>
+                            <span className={`px-2 py-0.5 ${chartColors.tagRequired} rounded-full`}>Required</span>
                           )}
                           {skill.validated === 1 && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full">Validated</span>
+                            <span className={`px-2 py-0.5 ${chartColors.tagValidated} rounded-full`}>Validated</span>
                           )}
                           {skill.userHas === 1 && (
-                            <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full">You Have</span>
+                            <span className={`px-2 py-0.5 ${chartColors.tagUserHas} rounded-full`}>You Have</span>
                           )}
                           {skill.level && (
                             <span className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-full">
