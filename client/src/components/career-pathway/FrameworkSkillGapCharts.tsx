@@ -1,8 +1,10 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { InfoIcon, Lightbulb, CheckCircle, AlertTriangle, BarChart4, PieChart, Activity } from "lucide-react";
 import { 
   ResponsiveContainer,
   BarChart,
@@ -10,9 +12,20 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
-  Cell
+  Cell,
+  PieChart as RechartsPieChart,
+  Pie,
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  LineChart,
+  Line,
+  Area,
+  AreaChart
 } from "recharts";
 
 // Define interfaces for the skills data
@@ -73,6 +86,8 @@ export function FrameworkSkillGapCharts({
   skillGaps = [],
   skillStrengths = []
 }: FrameworkSkillGapChartsProps) {
+  // State for chart type selection
+  const [chartType, setChartType] = useState<'bar' | 'radar' | 'pie'>('bar');
   
   // Helper function to convert level text to numeric value
   const getLevelValue = (level?: string): number => {
