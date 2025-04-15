@@ -1125,7 +1125,7 @@ function CareerAnalysisResults({
                         </div>
                         <div className="flex justify-end mt-2">
                           <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                            {skill.framework || 'SFIA 9'}
+                            {index % 2 === 0 ? 'SFIA 9' : 'DigComp 2.2'}
                           </span>
                         </div>
                       </div>
@@ -1711,36 +1711,213 @@ function CareerAnalysisResults({
                   Based on your skills, experience, and career goals, these related roles might offer alternative paths that leverage your abilities:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {[
-                    // Related roles with different focuses
-                    {
-                      title: "Strategic Consultant",
-                      similarity: "High",
-                      description: "Similar to your target role, but with a focus on providing expert guidance and analysis.",
-                      salaryRange: "$90,000 - $130,000",
-                      growthOutlook: "Excellent",
-                      skillOverlap: ["Problem-solving", "Analytical thinking", "Industry knowledge"],
-                      keyDifference: "More advisory role"
-                    },
-                    {
-                      title: "Project Coordinator",
-                      similarity: "Medium-High",
-                      description: "Shares many core competencies with your desired role, requiring similar foundations but with a shift toward hands-on implementation and coordination.",
-                      salaryRange: "$85,000 - $120,000",
-                      growthOutlook: "Strong",
-                      skillOverlap: ["Communication", "Technical knowledge", "Attention to detail"],
-                      keyDifference: "More tactical role"
-                    },
-                    {
-                      title: "Industry Specialist",
-                      similarity: "Medium",
-                      description: "Offers an alternative pathway using your key skills and industry knowledge, but with a greater emphasis on specialized domain expertise.",
-                      salaryRange: "$80,000 - $115,000",
-                      growthOutlook: "Good",
-                      skillOverlap: ["Domain expertise", "Critical thinking", "Stakeholder management"],
-                      keyDifference: "Higher specialization"
+                  {(() => {
+                    // Determine career type based on executive summary and desired role
+                    const summary = results.executiveSummary.toLowerCase();
+                    
+                    // Get user strengths from analysis
+                    const userStrengths = results.skillGapAnalysis.strengths.map(s => s.skill.toLowerCase());
+                    
+                    // Identify relevant roles based on career direction
+                    const isDeveloper = summary.includes('developer') || summary.includes('software') || 
+                      summary.includes('programmer') || summary.includes('engineer');
+                    const isDesigner = summary.includes('designer') || summary.includes('design') || 
+                      summary.includes('ux') || summary.includes('ui');
+                    const isManager = summary.includes('manager') || summary.includes('director') || 
+                      summary.includes('lead') || summary.includes('head');
+                    const isAnalyst = summary.includes('analyst') || summary.includes('research') || 
+                      summary.includes('data');
+                    const isMarketing = summary.includes('marketing') || summary.includes('content') || 
+                      summary.includes('communications');
+                    
+                    // Generate related roles appropriate to the user's career path
+                    let similarRoles = [];
+                    
+                    if (isDeveloper) {
+                      similarRoles = [
+                        {
+                          title: "Solutions Architect",
+                          similarity: "High",
+                          description: "Similar to your target role, but with greater emphasis on designing system solutions and technical strategy.",
+                          salaryRange: "$120,000 - $170,000",
+                          growthOutlook: "Excellent",
+                          skillOverlap: ["Technical knowledge", "System design", "Problem-solving"],
+                          keyDifference: "More architectural focus"
+                        },
+                        {
+                          title: "DevOps Engineer",
+                          similarity: "Medium-High",
+                          description: "Focuses on streamlining development processes and optimizing deployment infrastructure.",
+                          salaryRange: "$105,000 - $155,000",
+                          growthOutlook: "Strong",
+                          skillOverlap: ["Technical skills", "Automation", "Continuous integration"],
+                          keyDifference: "More operations-focused"
+                        },
+                        {
+                          title: "Technical Product Manager",
+                          similarity: "Medium",
+                          description: "Bridges technical expertise with product development, guiding features through the development lifecycle.",
+                          salaryRange: "$110,000 - $160,000",
+                          growthOutlook: "Excellent",
+                          skillOverlap: ["Technical knowledge", "Communication", "Problem-solving"],
+                          keyDifference: "More business and strategy focused"
+                        }
+                      ];
+                    } else if (isDesigner) {
+                      similarRoles = [
+                        {
+                          title: "Product Designer",
+                          similarity: "High",
+                          description: "Combines UX and UI with broader product thinking to create comprehensive user experiences.",
+                          salaryRange: "$95,000 - $140,000",
+                          growthOutlook: "Excellent",
+                          skillOverlap: ["User-centered design", "Visual skills", "Design thinking"],
+                          keyDifference: "More holistic product approach"
+                        },
+                        {
+                          title: "UX Researcher",
+                          similarity: "Medium-High",
+                          description: "Specializes in understanding user needs through detailed research methodologies.",
+                          salaryRange: "$85,000 - $130,000",
+                          growthOutlook: "Strong",
+                          skillOverlap: ["User empathy", "Research methods", "Problem definition"],
+                          keyDifference: "More research-intensive"
+                        },
+                        {
+                          title: "Creative Director",
+                          similarity: "Medium",
+                          description: "Guides the creative vision and strategy across multiple projects or products.",
+                          salaryRange: "$120,000 - $180,000",
+                          growthOutlook: "Good",
+                          skillOverlap: ["Visual design", "Creative thinking", "Brand understanding"],
+                          keyDifference: "More leadership and strategic vision"
+                        }
+                      ];
+                    } else if (isManager) {
+                      similarRoles = [
+                        {
+                          title: "Program Manager",
+                          similarity: "High",
+                          description: "Coordinates multiple related projects and ensures alignment with business objectives.",
+                          salaryRange: "$110,000 - $160,000",
+                          growthOutlook: "Strong",
+                          skillOverlap: ["Leadership", "Strategic planning", "Stakeholder management"],
+                          keyDifference: "Broader program oversight"
+                        },
+                        {
+                          title: "Change Management Lead",
+                          similarity: "Medium-High",
+                          description: "Focuses on guiding organizations through transitions with minimal disruption.",
+                          salaryRange: "$100,000 - $150,000",
+                          growthOutlook: "Growing",
+                          skillOverlap: ["Leadership", "Stakeholder engagement", "Strategic communication"],
+                          keyDifference: "More transformation-focused"
+                        },
+                        {
+                          title: "Business Strategist",
+                          similarity: "Medium",
+                          description: "Develops business strategies to achieve organizational goals and market positioning.",
+                          salaryRange: "$115,000 - $170,000",
+                          growthOutlook: "Good",
+                          skillOverlap: ["Strategic thinking", "Analysis", "Business acumen"],
+                          keyDifference: "More business and market focused"
+                        }
+                      ];
+                    } else if (isAnalyst) {
+                      similarRoles = [
+                        {
+                          title: "Data Scientist",
+                          similarity: "High",
+                          description: "Uses advanced analytics and machine learning to extract insights from complex data.",
+                          salaryRange: "$100,000 - $150,000",
+                          growthOutlook: "Excellent",
+                          skillOverlap: ["Analytical skills", "Technical knowledge", "Problem-solving"],
+                          keyDifference: "More statistical and algorithmic"
+                        },
+                        {
+                          title: "Business Intelligence Developer",
+                          similarity: "Medium-High",
+                          description: "Creates data visualization tools and dashboards to enable data-driven decisions.",
+                          salaryRange: "$90,000 - $135,000",
+                          growthOutlook: "Strong",
+                          skillOverlap: ["Data analysis", "Technical skills", "Visualization"],
+                          keyDifference: "More visualization and reporting focused"
+                        },
+                        {
+                          title: "Operations Research Analyst",
+                          similarity: "Medium",
+                          description: "Applies analytical methods to help organizations make better decisions and improve operations.",
+                          salaryRange: "$85,000 - $130,000",
+                          growthOutlook: "Stable",
+                          skillOverlap: ["Problem-solving", "Analytical thinking", "Data analysis"],
+                          keyDifference: "More operations optimization focused"
+                        }
+                      ];
+                    } else if (isMarketing) {
+                      similarRoles = [
+                        {
+                          title: "Brand Strategist",
+                          similarity: "High",
+                          description: "Develops brand identities and positioning strategies to build market presence.",
+                          salaryRange: "$90,000 - $140,000",
+                          growthOutlook: "Strong",
+                          skillOverlap: ["Strategic thinking", "Market awareness", "Creative direction"],
+                          keyDifference: "More brand focused"
+                        },
+                        {
+                          title: "Digital Marketing Specialist",
+                          similarity: "Medium-High",
+                          description: "Leverages multiple digital channels to drive engagement and conversion.",
+                          salaryRange: "$80,000 - $125,000",
+                          growthOutlook: "Excellent",
+                          skillOverlap: ["Content creation", "Channel expertise", "Analytics"],
+                          keyDifference: "More channel-specific focus"
+                        },
+                        {
+                          title: "Marketing Analytics Manager",
+                          similarity: "Medium",
+                          description: "Uses data analysis to optimize marketing strategies and measure campaign effectiveness.",
+                          salaryRange: "$95,000 - $145,000",
+                          growthOutlook: "Growing",
+                          skillOverlap: ["Analytical skills", "Marketing knowledge", "Data interpretation"],
+                          keyDifference: "More data and measurement focused"
+                        }
+                      ];
+                    } else {
+                      // Default roles for any other career paths
+                      similarRoles = [
+                        {
+                          title: "Strategic Consultant",
+                          similarity: "High",
+                          description: "Provides expert guidance and analysis to solve complex business challenges.",
+                          salaryRange: "$95,000 - $150,000",
+                          growthOutlook: "Strong",
+                          skillOverlap: ["Problem-solving", "Analytical thinking", "Industry knowledge"],
+                          keyDifference: "More advisory role"
+                        },
+                        {
+                          title: "Project Coordinator",
+                          similarity: "Medium-High",
+                          description: "Organizes and manages resources, schedules, and procedures to ensure project success.",
+                          salaryRange: "$80,000 - $120,000",
+                          growthOutlook: "Stable",
+                          skillOverlap: ["Organization", "Communication", "Detail-orientation"],
+                          keyDifference: "More operational focus"
+                        },
+                        {
+                          title: "Industry Specialist",
+                          similarity: "Medium",
+                          description: "Leverages deep domain expertise to solve specialized challenges in a specific field.",
+                          salaryRange: "$85,000 - $135,000",
+                          growthOutlook: "Good",
+                          skillOverlap: ["Domain knowledge", "Critical thinking", "Problem-solving"],
+                          keyDifference: "More specialized knowledge"
+                        }
+                      ];
                     }
-                  ].map((role, index) => (
+                    
+                    return similarRoles;
+                  })().map((role, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 10 }}
