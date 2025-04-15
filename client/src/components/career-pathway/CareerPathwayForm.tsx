@@ -364,6 +364,28 @@ function CareerAnalysisResults({
   const pathwayRef = useRef<HTMLDivElement>(null);
   const developmentRef = useRef<HTMLDivElement>(null);
   
+  // Helper functions for checking role types
+  const hasDesignerRole = (results: CareerAnalysisResult): boolean => {
+    if (!results || !results.executiveSummary) return false;
+    const searchTerms = ['design', 'designer', 'ui', 'ux', 'interface', 'creative', 'art'];
+    const roleStr = results.executiveSummary.toLowerCase();
+    return searchTerms.some(term => roleStr.includes(term));
+  };
+  
+  const hasManagerRole = (results: CareerAnalysisResult): boolean => {
+    if (!results || !results.executiveSummary) return false;
+    const searchTerms = ['manager', 'management', 'lead', 'director', 'executive', 'coordinator', 'head'];
+    const roleStr = results.executiveSummary.toLowerCase();
+    return searchTerms.some(term => roleStr.includes(term));
+  };
+  
+  const hasDeveloperRole = (results: CareerAnalysisResult): boolean => {
+    if (!results || !results.executiveSummary) return false;
+    const searchTerms = ['developer', 'engineer', 'programmer', 'coder', 'software', 'web', 'technical'];
+    const roleStr = results.executiveSummary.toLowerCase();
+    return searchTerms.some(term => roleStr.includes(term));
+  };
+  
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
       ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1427,52 +1449,33 @@ function CareerAnalysisResults({
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
-                    // Generate dynamic roles based on user's desired role rather than hardcoded examples
-                    // The roles below are examples and should be generated from OpenAI based on user input
+                    // Related roles with different focuses
                     {
-                      title: results.desiredRole.includes("Designer") ? "UX Researcher" : 
-                             results.desiredRole.includes("Manager") ? "Program Manager" :
-                             results.desiredRole.includes("Developer") ? "Solutions Architect" : "Strategic Consultant",
+                      title: "Strategic Consultant",
                       similarity: "High",
-                      description: `Similar to your target role of ${results.desiredRole || "your desired position"}, but with a focus on ${results.desiredRole.includes("Designer") ? "user research and behavioral analysis" : 
-                                   results.desiredRole.includes("Manager") ? "coordinating multiple related projects" :
-                                   results.desiredRole.includes("Developer") ? "designing system architecture and integration" : "providing expert guidance and analysis"}.`,
-                      salaryRange: `${Math.round(90000 + Math.random() * 40000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} - ${Math.round(120000 + Math.random() * 50000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`,
+                      description: "Similar to your target role, but with a focus on providing expert guidance and analysis.",
+                      salaryRange: "$90,000 - $130,000",
                       growthOutlook: "Excellent",
                       skillOverlap: ["Problem-solving", "Analytical thinking", "Industry knowledge"],
-                      keyDifference: results.desiredRole.includes("Designer") ? "More research-focused" : 
-                                     results.desiredRole.includes("Manager") ? "Broader oversight" :
-                                     results.desiredRole.includes("Developer") ? "Less coding, more design" : "More advisory role"
+                      keyDifference: "More advisory role"
                     },
                     {
-                      title: results.desiredRole.includes("Designer") ? "Product Designer" :
-                             results.desiredRole.includes("Manager") ? "Business Analyst" :
-                             results.desiredRole.includes("Developer") ? "DevOps Engineer" : "Project Coordinator",
+                      title: "Project Coordinator",
                       similarity: "Medium-High",
-                      description: `Shares many core competencies with ${results.desiredRole || "your desired role"}, requiring similar technical foundations but with a shift toward ${results.desiredRole.includes("Designer") ? "product functionality and user interfaces" : 
-                                   results.desiredRole.includes("Manager") ? "analysis and requirements gathering" :
-                                   results.desiredRole.includes("Developer") ? "infrastructure and deployment automation" : "hands-on implementation and coordination"}.`,
-                      salaryRange: `${Math.round(85000 + Math.random() * 30000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} - ${Math.round(110000 + Math.random() * 40000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`,
+                      description: "Shares many core competencies with your desired role, requiring similar foundations but with a shift toward hands-on implementation and coordination.",
+                      salaryRange: "$85,000 - $120,000",
                       growthOutlook: "Strong",
                       skillOverlap: ["Communication", "Technical knowledge", "Attention to detail"],
-                      keyDifference: results.desiredRole.includes("Designer") ? "More product-centric" : 
-                                     results.desiredRole.includes("Manager") ? "More analytical focus" :
-                                     results.desiredRole.includes("Developer") ? "Infrastructure focus" : "More tactical role"
+                      keyDifference: "More tactical role"
                     },
                     {
-                      title: results.desiredRole.includes("Designer") ? "Content Strategist" :
-                             results.desiredRole.includes("Manager") ? "Customer Success Manager" :
-                             results.desiredRole.includes("Developer") ? "QA Automation Engineer" : "Industry Consultant",
+                      title: "Industry Specialist",
                       similarity: "Medium",
-                      description: `Offers an alternative pathway using your ${results.skillGapAnalysis.strengths[0]?.skill || "key skills"} and industry knowledge, but with a greater emphasis on ${results.desiredRole.includes("Designer") ? "content planning and information architecture" : 
-                                   results.desiredRole.includes("Manager") ? "client relationships and retention" :
-                                   results.desiredRole.includes("Developer") ? "quality assurance and test automation" : "specialized domain expertise"}.`,
-                      salaryRange: `${Math.round(80000 + Math.random() * 25000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} - ${Math.round(100000 + Math.random() * 35000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`,
+                      description: "Offers an alternative pathway using your key skills and industry knowledge, but with a greater emphasis on specialized domain expertise.",
+                      salaryRange: "$80,000 - $115,000",
                       growthOutlook: "Good",
                       skillOverlap: ["Domain expertise", "Critical thinking", "Stakeholder management"],
-                      keyDifference: results.desiredRole.includes("Designer") ? "Content vs. visual focus" : 
-                                     results.desiredRole.includes("Manager") ? "Client-facing role" :
-                                     results.desiredRole.includes("Developer") ? "Testing vs. building" : "Advisory vs. implementation"
+                      keyDifference: "Higher specialization"
                     }
                   ].map((role, index) => (
                     <motion.div
