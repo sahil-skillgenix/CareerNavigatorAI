@@ -66,6 +66,10 @@ export function FrameworkSkillGapCharts({
 }: FrameworkSkillGapChartsProps) {
   // Helper function to convert level text to numeric value
   const getLevelValue = (level: string): number => {
+    if (!level || typeof level !== 'string') {
+      return 1; // Default to level 1 if level is not a string
+    }
+    
     // SFIA levels are typically 1-7
     if (level.match(/^level\s*\d$/i)) {
       const levelNum = parseInt(level.replace(/[^0-9]/g, ''));
@@ -111,9 +115,11 @@ export function FrameworkSkillGapCharts({
   const processedGapsData = skillGaps.map(gap => {
     // Convert importance to numeric value
     let importanceValue = 1;
-    if (gap.importance.toLowerCase().includes('high')) importanceValue = 3;
-    else if (gap.importance.toLowerCase().includes('medium')) importanceValue = 2;
-    else if (gap.importance.toLowerCase().includes('critical')) importanceValue = 4;
+    if (gap.importance && typeof gap.importance === 'string') {
+      if (gap.importance.toLowerCase().includes('high')) importanceValue = 3;
+      else if (gap.importance.toLowerCase().includes('medium')) importanceValue = 2;
+      else if (gap.importance.toLowerCase().includes('critical')) importanceValue = 4;
+    }
     
     return {
       ...gap,
@@ -356,12 +362,18 @@ export function FrameworkSkillGapCharts({
                 <div className="h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={skillStrengths.map(s => ({
-                        ...s,
-                        levelValue: getLevelValue(s.level),
-                        relevanceValue: s.relevance?.toLowerCase().includes('high') ? 3 : 
-                                      s.relevance?.toLowerCase().includes('medium') ? 2 : 1
-                      }))}
+                      data={skillStrengths.map(s => {
+                        let relevanceValue = 1;
+                        if (s.relevance && typeof s.relevance === 'string') {
+                          if (s.relevance.toLowerCase().includes('high')) relevanceValue = 3;
+                          else if (s.relevance.toLowerCase().includes('medium')) relevanceValue = 2;
+                        }
+                        return {
+                          ...s,
+                          levelValue: getLevelValue(s.level),
+                          relevanceValue
+                        };
+                      })}
                       margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
