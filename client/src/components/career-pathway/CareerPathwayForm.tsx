@@ -374,20 +374,47 @@ function CareerAnalysisResults({
   };
   
   const skillPossessed = (skillName: string, results: CareerAnalysisResult): number => {
-    if (!results.skillGapAnalysis.strengths) return 0;
-    return results.skillGapAnalysis.strengths.some(
+    // First check in strengths
+    if (results.skillGapAnalysis.strengths && 
+        results.skillGapAnalysis.strengths.some(s => s.skill.toLowerCase() === skillName.toLowerCase())) {
+      return 1;
+    }
+    
+    // Then check if it's NOT in gaps (if a skill is required but not in gaps, user must have it)
+    if (results.skillGapAnalysis.gaps && 
+        !results.skillGapAnalysis.gaps.some(g => g.skill.toLowerCase() === skillName.toLowerCase())) {
+      
+      // Check if this skill is actually required for the role
+      const isRequiredSkill = hasRequiredSkill(skillName, results);
+      if (isRequiredSkill) {
+        return 1; // It's required but not a gap, so user has it
+      }
+    }
+    
+    return 0; // User doesn't have this skill
+  };
+  
+  // Helper to check if a skill is explicitly mentioned as required
+  const hasRequiredSkill = (skillName: string, results: CareerAnalysisResult): boolean => {
+    // Check SFIA skills
+    const inSfia = results.skillMapping.sfia9.some(
       s => s.skill.toLowerCase() === skillName.toLowerCase()
-    ) ? 1 : 0;
+    );
+    
+    // Check DigComp skills
+    const inDigComp = results.skillMapping.digcomp22.some(
+      c => c.competency.toLowerCase() === skillName.toLowerCase()
+    );
+    
+    return inSfia || inDigComp;
   };
   
   const countSkillsPossessed = (skills: any[], results: CareerAnalysisResult): number => {
-    if (!skills || !results.skillGapAnalysis.strengths) return 0;
+    if (!skills) return 0;
     
     return skills.filter(skill => {
       const skillName = skill.skill || skill.competency;
-      return results.skillGapAnalysis.strengths.some(
-        s => s.skill.toLowerCase() === skillName.toLowerCase()
-      );
+      return skillPossessed(skillName, results) === 1;
     }).length;
   };
   
@@ -396,10 +423,16 @@ function CareerAnalysisResults({
     
     return skills.filter(skill => {
       const skillName = skill.skill || skill.competency;
-      return results.skillGapAnalysis.strengths.some(
-        s => s.skill.toLowerCase() === skillName.toLowerCase() && 
-        (s.relevance === 'High' || s.relevance === 'Very High')
+      
+      // Check if this skill is validated (in strengths with high relevance)
+      const validatedStrength = results.skillGapAnalysis.strengths.find(
+        s => s.skill.toLowerCase() === skillName.toLowerCase()
       );
+      
+      return validatedStrength && 
+             (validatedStrength.relevance === 'High' || 
+              validatedStrength.relevance === 'Very High' || 
+              validatedStrength.relevance === 'Medium');
     }).length;
   };
   
@@ -1046,31 +1079,63 @@ function CareerAnalysisResults({
                   </h4>
                   
                   <div className="space-y-4">
-                    {/* Sample existing skills - in a real app these would come from the API */}
-                    {[
-                      { name: "JavaScript Programming", proficiency: 85, transferability: "High" },
-                      { name: "UI/UX Design Principles", proficiency: 75, transferability: "High" },
-                      { name: "Project Management", proficiency: 70, transferability: "Medium" },
-                      { name: "Content Writing", proficiency: 80, transferability: "Medium" },
-                      { name: "Data Analysis", proficiency: 65, transferability: "High" }
-                    ].map((skill, index) => (
-                      <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                    {/* User's existing skills based on analysis */}
+                    {/* First display skills from strengths */}
+                    {results.skillGapAnalysis.strengths.map((strength: any, index: number) => (
+                      <div key={`strength-${index}`} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
                         <div className="flex justify-between mb-1">
-                          <span className="font-medium text-sm">{skill.name}</span>
-                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                            Transferability: {skill.transferability}
+                          <span className="font-medium text-sm">{strength.skill}</span>
+                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                            Level: {strength.level || 'Proficient'}
                           </span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2.5">
-                          <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
-                            style={{ width: `${skill.proficiency}%` }}
-                          ></div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                            Relevance: {strength.relevance}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                            {strength.framework || (index % 2 === 0 ? 'DigComp 2.2' : 'SFIA 9')}
+                          </span>
                         </div>
-                        <div className="flex justify-between mt-1">
-                          <span className="text-xs text-slate-500">Beginner</span>
-                          <span className="text-xs text-slate-500">Proficient</span>
-                          <span className="text-xs text-slate-500">Expert</span>
+                      </div>
+                    ))}
+                    
+                    {/* Then display framework skills that are required but not in gaps (user must have these) */}
+                    {[...results.skillMapping.sfia9, ...results.skillMapping.digcomp22.map(c => ({
+                      skill: c.competency, 
+                      level: c.level, 
+                      description: c.description,
+                      framework: 'DigComp 2.2'
+                    }))].filter(skill => {
+                      // Only show skills that aren't already in strengths but user has them
+                      const skillName = skill.skill;
+                      
+                      // Skip if it's already in strengths
+                      const inStrengths = results.skillGapAnalysis.strengths.some(
+                        s => s.skill.toLowerCase() === skillName.toLowerCase()
+                      );
+                      if (inStrengths) return false;
+                      
+                      // Skip if it's in gaps (user doesn't have it)
+                      const inGaps = results.skillGapAnalysis.gaps.some(
+                        g => g.skill.toLowerCase() === skillName.toLowerCase()
+                      );
+                      if (inGaps) return false;
+                      
+                      // Include if user has this skill
+                      return skillPossessed(skillName, results) === 1;
+                    }).map((skill, index) => (
+                      <div key={`framework-${index}`} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-medium text-sm">{skill.skill}</span>
+                          <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                            Level: {skill.level || 'Intermediate'}
+                          </span>
+                        </div>
+                        <div className="flex justify-end mt-2">
+                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
+                            {skill.framework || 'SFIA 9'}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -1090,8 +1155,8 @@ function CareerAnalysisResults({
                   </h4>
                   
                   <div className="space-y-4">
-                    {/* We'll map just a few skills with more details */}
-                    {results.developmentPlan.skillsToAcquire.slice(0, 5).map((skill: any, index: number) => (
+                    {/* We'll map all skills with detailed information */}
+                    {results.developmentPlan.skillsToAcquire.map((skill: any, index: number) => (
                       <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-100">
                         <div className="flex justify-between mb-1">
                           <span className="font-medium text-sm">{skill.skill}</span>

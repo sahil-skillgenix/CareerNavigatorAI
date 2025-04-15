@@ -139,6 +139,7 @@ export function EnhancedFrameworkCharts({
           dataKey="name" 
           tick={{ fill: '#64748b', fontSize: 12 }}
           axisLine={false}
+          width={150}
         />
         <Tooltip content={<SkillTooltip />} />
         <Legend />
@@ -200,9 +201,13 @@ export function EnhancedFrameworkCharts({
 
   const renderRadarChart = (data: RadarChartData[]) => (
     <ResponsiveContainer width="100%" height="100%">
-      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data.slice(0, 8)}>
         <PolarGrid stroke="#e5e7eb" />
-        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11 }} />
+        <PolarAngleAxis 
+          dataKey="subject" 
+          tick={{ fill: '#64748b', fontSize: 11 }}
+          tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value}
+        />
         <PolarRadiusAxis angle={30} domain={[0, 7]} />
         <Radar
           name="Required Skills"
@@ -226,7 +231,12 @@ export function EnhancedFrameworkCharts({
           fillOpacity={0.3}
         />
         <Legend />
-        <Tooltip />
+        <Tooltip formatter={(value, name, props) => {
+          if (name === 'Skill Gaps' && value === 0) {
+            return 'No gap';
+          }
+          return value;
+        }} />
       </RadarChart>
     </ResponsiveContainer>
   );
