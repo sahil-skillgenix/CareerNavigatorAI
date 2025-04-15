@@ -1218,40 +1218,111 @@ function CareerAnalysisResults({
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  {
-                    category: "Communication",
-                    skills: [
-                      { name: "Active Listening", benefit: "Builds trust and understanding with team members and stakeholders" },
-                      { name: "Clear Articulation", benefit: "Ensures your ideas are understood and implemented correctly" },
-                      { name: "Persuasive Presentation", benefit: "Helps gain support for your proposals and projects" }
-                    ],
-                    color: "blue"
-                  },
-                  {
-                    category: "Leadership",
-                    skills: [
-                      { name: "Delegation", benefit: "Increases team productivity and develops others' skills" },
-                      { name: "Conflict Resolution", benefit: "Creates harmonious team environments and stronger relationships" },
-                      { name: "Strategic Thinking", benefit: "Enables you to guide teams toward meaningful goals" }
-                    ],
-                    color: "amber"
-                  },
-                  {
-                    category: "Adaptability",
-                    skills: [
-                      { name: "Resilience", benefit: "Helps you navigate setbacks and maintain momentum" },
-                      { name: "Cultural Intelligence", benefit: "Enhances collaboration in diverse teams and global environments" },
-                      { name: "Learning Agility", benefit: "Allows quick adaptation to new technologies and methodologies" }
-                    ],
-                    color: "green"
+                {(() => {
+                  // Generate dynamic soft skills based on the desired role from executive summary
+                  const summary = results.executiveSummary.toLowerCase();
+                  
+                  // Determine role type
+                  const isManager = summary.includes('manager') || summary.includes('director') || summary.includes('lead');
+                  const isDeveloper = summary.includes('developer') || summary.includes('programmer') || summary.includes('engineer');
+                  const isDesigner = summary.includes('design') || summary.includes('ux') || summary.includes('ui');
+                  const isCustomerFacing = summary.includes('client') || summary.includes('customer') || summary.includes('service');
+                  
+                  // Select the most relevant categories for the role
+                  let categories = [];
+                  
+                  // First category - Communication (for all roles)
+                  let communicationSkills = [
+                    { name: "Active Listening", benefit: "Builds trust and understanding with team members and stakeholders" },
+                    { name: "Clear Articulation", benefit: "Ensures your ideas are understood and implemented correctly" }
+                  ];
+                  
+                  // Add role-specific communication skill
+                  if (isCustomerFacing) {
+                    communicationSkills.push({ name: "Client Communication", benefit: "Helps navigate sensitive client discussions effectively" });
+                  } else {
+                    communicationSkills.push({ name: "Persuasive Presentation", benefit: "Helps gain support for your proposals and projects" });
                   }
-                ].map((category, catIndex) => (
+                  
+                  categories.push({
+                    category: "Communication",
+                    skills: communicationSkills,
+                    color: "blue"
+                  });
+                  
+                  // Second category based on role
+                  if (isManager) {
+                    categories.push({
+                      category: "Leadership",
+                      skills: [
+                        { name: "Team Mentoring", benefit: "Develops team capabilities and collective performance" },
+                        { name: "Conflict Resolution", benefit: "Creates harmonious environments and addresses issues early" },
+                        { name: "Strategic Vision", benefit: "Guides teams toward meaningful goals with clear purpose" }
+                      ],
+                      color: "amber"
+                    });
+                  } else if (isDeveloper) {
+                    categories.push({
+                      category: "Technical Collaboration",
+                      skills: [
+                        { name: "Knowledge Sharing", benefit: "Strengthens team capabilities and creates learning culture" },
+                        { name: "Code Review Skills", benefit: "Turns feedback exchanges into positive learning experiences" },
+                        { name: "Cross-functional Collaboration", benefit: "Bridges technical and non-technical stakeholder needs" }
+                      ],
+                      color: "amber"
+                    });
+                  } else if (isDesigner) {
+                    categories.push({
+                      category: "Creative Collaboration",
+                      skills: [
+                        { name: "Design Critique", benefit: "Giving and receiving constructive design feedback" },
+                        { name: "Visual Storytelling", benefit: "Communicating design decisions with compelling narratives" },
+                        { name: "Stakeholder Management", benefit: "Navigating competing priorities in design requirements" }
+                      ],
+                      color: "amber"
+                    });
+                  } else {
+                    categories.push({
+                      category: "Collaboration",
+                      skills: [
+                        { name: "Teamwork", benefit: "Creates synergy and leverages diverse strengths" },
+                        { name: "Constructive Feedback", benefit: "Helps improve work quality while maintaining relationships" },
+                        { name: "Cross-functional Understanding", benefit: "Enables effective work across departments" }
+                      ],
+                      color: "amber"
+                    });
+                  }
+                  
+                  // Third category for all roles
+                  if (isCustomerFacing) {
+                    categories.push({
+                      category: "Client Relations",
+                      skills: [
+                        { name: "Needs Assessment", benefit: "Accurately identifies client requirements and expectations" },
+                        { name: "Expectation Management", benefit: "Prevents misunderstandings and ensures satisfaction" },
+                        { name: "Relationship Building", benefit: "Develops long-term client partnerships and trust" }
+                      ],
+                      color: "green"
+                    });
+                  } else {
+                    categories.push({
+                      category: "Adaptability",
+                      skills: [
+                        { name: "Resilience", benefit: "Helps navigate setbacks and maintain momentum" },
+                        { name: "Cultural Intelligence", benefit: "Enhances collaboration in diverse teams" },
+                        { name: "Learning Agility", benefit: "Allows quick adaptation to new technologies" }
+                      ],
+                      color: "green"
+                    });
+                  }
+                  
+                  return categories;
+                })().map((category, index) => (
                   <motion.div
-                    key={catIndex}
+                    key={index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.1 * catIndex }}
+                    transition={{ duration: 0.4, delay: 0.1 * index }}
                     className={`bg-white rounded-lg border p-4 shadow-sm ${
                       category.category === "Communication" ? "border-blue-100" : 
                       category.category === "Leadership" ? "border-amber-100" : 
