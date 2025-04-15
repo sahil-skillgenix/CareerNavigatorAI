@@ -239,11 +239,42 @@ export function FrameworkSkillGapCharts({
       required: skill.isRequired ? 1 : 0,
       validated: skill.isValidated ? 1 : 0,
       userHas: skill.userHas ? 1 : 0,
+      // Add numeric values for radar charts
+      requiredValue: skill.isRequired ? getLevelValue(skill.level) : 0,
+      validatedValue: skill.isValidated ? getLevelValue(skill.level) : 0,
+      userHasValue: skill.userHas ? getLevelValue(skill.level) : 0,
+      // Add values for gap and coverage metrics
+      gapValue: skill.isRequired && !skill.userHas ? getImportanceValue(skill.importance) : 0,
+      coverageValue: skill.userHas ? getRelevanceValue(skill.relevance) : 0,
       level: skill.level || 'Not Specified',
       importance: skill.importance || 'Medium',
       relevance: skill.relevance || 'Medium',
       gapDescription: skill.gapDescription || '',
       strengthDescription: skill.strengthDescription || ''
+    }));
+  };
+  
+  // Prepare data specifically for pie charts
+  const preparePieChartData = (skills: ProcessedSkill[]) => {
+    const totalSkills = skills.length;
+    const userHasCount = skills.filter(s => s.userHas).length;
+    const gapsCount = skills.filter(s => s.isRequired && !s.userHas).length;
+    const validatedCount = skills.filter(s => s.isValidated).length;
+    
+    return [
+      { name: 'Skills You Have', value: userHasCount, fill: chartColors.userHas },
+      { name: 'Skill Gaps', value: gapsCount, fill: '#FCA5A5' }, // Light red
+      { name: 'Validated Skills', value: validatedCount, fill: chartColors.validated }
+    ];
+  };
+  
+  // Prepare data for radar charts
+  const prepareRadarChartData = (skills: ProcessedSkill[]) => {
+    return skills.map(skill => ({
+      subject: skill.name,
+      required: skill.isRequired ? getLevelValue(skill.level) : 0,
+      userHas: skill.userHas ? getLevelValue(skill.level) : 0,
+      gap: skill.isRequired && !skill.userHas ? getImportanceValue(skill.importance) : 0
     }));
   };
 

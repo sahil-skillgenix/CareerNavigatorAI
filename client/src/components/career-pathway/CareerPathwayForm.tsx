@@ -25,6 +25,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { FrameworkSkillGapCharts } from "./FrameworkSkillGapCharts";
+import { EnhancedFrameworkCharts } from "./EnhancedFrameworkCharts";
 import { 
   ResponsiveContainer, 
   RadarChart, 
