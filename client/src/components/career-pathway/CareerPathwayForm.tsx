@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { FrameworkSkillGapCharts } from "./FrameworkSkillGapCharts";
 import { 
   ResponsiveContainer, 
   RadarChart, 
@@ -467,6 +468,21 @@ function CareerAnalysisResults({
           <p className="text-muted-foreground mb-6">
             This analysis is based on the <span className="font-medium">SFIA 9 Framework</span> (Skills Framework for the Information Age) and <span className="font-medium">DigComp 2.2 Framework</span> (European Digital Competence Framework), providing a comprehensive assessment of your technical and digital competencies.
           </p>
+          
+          {/* Framework Skill Gap Charts */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <FrameworkSkillGapCharts 
+              sfiaSkills={results.skillMapping.sfia9}
+              digcompCompetencies={results.skillMapping.digcomp22}
+              skillGaps={results.skillGapAnalysis.gaps}
+              skillStrengths={results.skillGapAnalysis.strengths}
+            />
+          </motion.div>
           
           <div className="grid gap-8 md:grid-cols-2">
             <motion.div
