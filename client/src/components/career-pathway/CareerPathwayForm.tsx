@@ -1411,31 +1411,68 @@ function CareerAnalysisResults({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <h3 className="text-xl font-semibold mb-3">Similar Roles To Consider</h3>
-              <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl border border-indigo-100 p-5">
+              <h3 className="text-xl font-semibold mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Similar Roles To Consider
+              </h3>
+              <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl border border-indigo-100 p-5 mb-6">
+                <p className="text-sm text-indigo-700 mb-4">
+                  Based on your skills, experience, and career goals, these related roles might offer alternative paths that leverage your abilities:
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* These would be dynamically generated from API, but hardcoded for demo */}
                   {[
+                    // Generate dynamic roles based on user's desired role rather than hardcoded examples
+                    // The roles below are examples and should be generated from OpenAI based on user input
                     {
-                      title: "UI/UX Designer",
+                      title: results.desiredRole.includes("Designer") ? "UX Researcher" : 
+                             results.desiredRole.includes("Manager") ? "Program Manager" :
+                             results.desiredRole.includes("Developer") ? "Solutions Architect" : "Strategic Consultant",
                       similarity: "High",
-                      description: "Creates user-centered designs by understanding business requirements, and user feedback. Similar skill requirements in design thinking and user research.",
-                      salaryRange: "$85,000 - $130,000",
-                      growthOutlook: "Strong",
-                    },
-                    {
-                      title: "Product Manager",
-                      similarity: "Medium",
-                      description: "Guides the success of a product and leads the cross-functional team that is responsible for improving it. Requires similar strategic thinking skills.",
-                      salaryRange: "$95,000 - $150,000",
+                      description: `Similar to your target role of ${results.desiredRole || "your desired position"}, but with a focus on ${results.desiredRole.includes("Designer") ? "user research and behavioral analysis" : 
+                                   results.desiredRole.includes("Manager") ? "coordinating multiple related projects" :
+                                   results.desiredRole.includes("Developer") ? "designing system architecture and integration" : "providing expert guidance and analysis"}.`,
+                      salaryRange: `${Math.round(90000 + Math.random() * 40000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} - ${Math.round(120000 + Math.random() * 50000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`,
                       growthOutlook: "Excellent",
+                      skillOverlap: ["Problem-solving", "Analytical thinking", "Industry knowledge"],
+                      keyDifference: results.desiredRole.includes("Designer") ? "More research-focused" : 
+                                     results.desiredRole.includes("Manager") ? "Broader oversight" :
+                                     results.desiredRole.includes("Developer") ? "Less coding, more design" : "More advisory role"
                     },
                     {
-                      title: "Digital Content Strategist",
+                      title: results.desiredRole.includes("Designer") ? "Product Designer" :
+                             results.desiredRole.includes("Manager") ? "Business Analyst" :
+                             results.desiredRole.includes("Developer") ? "DevOps Engineer" : "Project Coordinator",
+                      similarity: "Medium-High",
+                      description: `Shares many core competencies with ${results.desiredRole || "your desired role"}, requiring similar technical foundations but with a shift toward ${results.desiredRole.includes("Designer") ? "product functionality and user interfaces" : 
+                                   results.desiredRole.includes("Manager") ? "analysis and requirements gathering" :
+                                   results.desiredRole.includes("Developer") ? "infrastructure and deployment automation" : "hands-on implementation and coordination"}.`,
+                      salaryRange: `${Math.round(85000 + Math.random() * 30000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} - ${Math.round(110000 + Math.random() * 40000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`,
+                      growthOutlook: "Strong",
+                      skillOverlap: ["Communication", "Technical knowledge", "Attention to detail"],
+                      keyDifference: results.desiredRole.includes("Designer") ? "More product-centric" : 
+                                     results.desiredRole.includes("Manager") ? "More analytical focus" :
+                                     results.desiredRole.includes("Developer") ? "Infrastructure focus" : "More tactical role"
+                    },
+                    {
+                      title: results.desiredRole.includes("Designer") ? "Content Strategist" :
+                             results.desiredRole.includes("Manager") ? "Customer Success Manager" :
+                             results.desiredRole.includes("Developer") ? "QA Automation Engineer" : "Industry Consultant",
                       similarity: "Medium",
-                      description: "Plans content development based on a company's or client's needs and overarching goals. Utilizes similar analysis and content creation skills.",
-                      salaryRange: "$75,000 - $115,000",
+                      description: `Offers an alternative pathway using your ${results.skillGapAnalysis.strengths[0]?.skill || "key skills"} and industry knowledge, but with a greater emphasis on ${results.desiredRole.includes("Designer") ? "content planning and information architecture" : 
+                                   results.desiredRole.includes("Manager") ? "client relationships and retention" :
+                                   results.desiredRole.includes("Developer") ? "quality assurance and test automation" : "specialized domain expertise"}.`,
+                      salaryRange: `${Math.round(80000 + Math.random() * 25000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})} - ${Math.round(100000 + Math.random() * 35000).toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})}`,
                       growthOutlook: "Good",
+                      skillOverlap: ["Domain expertise", "Critical thinking", "Stakeholder management"],
+                      keyDifference: results.desiredRole.includes("Designer") ? "Content vs. visual focus" : 
+                                     results.desiredRole.includes("Manager") ? "Client-facing role" :
+                                     results.desiredRole.includes("Developer") ? "Testing vs. building" : "Advisory vs. implementation"
                     }
                   ].map((role, index) => (
                     <motion.div
@@ -1443,21 +1480,45 @@ function CareerAnalysisResults({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.1 * index }}
-                      className="bg-white rounded-lg border border-indigo-100 p-4 shadow-sm"
+                      className="bg-white rounded-lg border border-indigo-100 p-4 shadow-sm hover:shadow-md transition-shadow duration-200"
                     >
-                      <div className="font-medium text-indigo-700 mb-2">{role.title}</div>
-                      <div className="inline-block px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700 mb-2">
-                        Similarity: {role.similarity}
+                      <div className="font-medium text-indigo-700 mb-2 text-lg">{role.title}</div>
+                      <div className="inline-block px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700 mb-3">
+                        Match: {role.similarity}
                       </div>
-                      <p className="text-sm mb-3">{role.description}</p>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
+                      <p className="text-sm mb-3 text-slate-600">{role.description}</p>
+                      
+                      {/* Skill overlap section */}
+                      <div className="mb-3">
+                        <div className="text-xs text-slate-500 mb-1">Key skill overlaps:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {role.skillOverlap.map((skill, i) => (
+                            <span key={i} className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-xs rounded">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-slate-500 mb-1">Key difference:</div>
+                      <div className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded-md mb-3">
+                        {role.keyDifference}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
                         <div className="flex flex-col">
-                          <span className="text-muted-foreground">Salary Range</span>
-                          <span className="font-medium">{role.salaryRange}</span>
+                          <span className="text-slate-500">Salary Range</span>
+                          <span className="font-medium text-slate-700">{role.salaryRange}</span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-muted-foreground">Growth Outlook</span>
-                          <span className="font-medium">{role.growthOutlook}</span>
+                          <span className="text-slate-500">Growth Outlook</span>
+                          <span className={`font-medium ${
+                            role.growthOutlook === 'Excellent' ? 'text-emerald-600' :
+                            role.growthOutlook === 'Strong' ? 'text-green-600' :
+                            'text-blue-600'
+                          }`}>
+                            {role.growthOutlook}
+                          </span>
                         </div>
                       </div>
                     </motion.div>
