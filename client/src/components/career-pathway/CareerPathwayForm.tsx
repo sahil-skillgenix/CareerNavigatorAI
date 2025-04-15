@@ -24,7 +24,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { FrameworkSkillGapCharts } from "./FixedFrameworkSkillGapCharts";
+import { SkillGapCharts } from "./SkillGapCharts";
 import { EnhancedFrameworkCharts } from "./EnhancedFrameworkCharts";
 import { 
   ResponsiveContainer, 
@@ -634,7 +634,7 @@ function CareerAnalysisResults({
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-8"
           >
-            <FrameworkSkillGapCharts 
+            <SkillGapCharts 
               sfiaSkills={results.skillMapping.sfia9}
               digcompCompetencies={results.skillMapping.digcomp22}
               skillGaps={results.skillGapAnalysis.gaps}
