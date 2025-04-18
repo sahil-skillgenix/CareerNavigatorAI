@@ -26,7 +26,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { CombinedFrameworkCharts } from "./CombinedFrameworkCharts";
+
 import { SkillRadarChart } from "./SkillRadarChart";
 import { ComparativeBarChart } from "./ComparativeBarChart";
 import { 
@@ -674,70 +674,7 @@ function CareerAnalysisResults({
           >
             <ComparativeBarChart results={results} />
           </motion.div>
-          
-          {/* Combined Framework Skill Charts */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mb-8"
-          >
-            <CombinedFrameworkCharts 
-              sfiaSkills={results.skillMapping.sfia9}
-              digcompCompetencies={results.skillMapping.digcomp22}
-              skillGaps={results.skillGapAnalysis.gaps}
-              skillStrengths={results.skillGapAnalysis.strengths}
-              sfiaData={results.skillMapping.sfia9.map(skill => ({
-                name: skill.skill,
-                required: getLevelValue(skill.level),
-                validated: skillValidated(skill.skill, results) ? getLevelValue(skill.level) : 0,
-                userHas: skillPossessed(skill.skill, results) ? getLevelValue(skill.level) : 0,
-                level: skill.level,
-                description: skill.description,
-                framework: 'SFIA 9',
-                gapDescription: isSkillGap(skill.skill, results) ? 
-                  results.skillGapAnalysis.gaps.find(g => g.skill.toLowerCase() === skill.skill.toLowerCase())?.description : undefined,
-                strengthDescription: !isSkillGap(skill.skill, results) && skillPossessed(skill.skill, results) ?
-                  results.skillGapAnalysis.strengths.find(s => s.skill.toLowerCase() === skill.skill.toLowerCase())?.description : undefined
-              }))}
-              digcompData={results.skillMapping.digcomp22.map(comp => ({
-                name: comp.competency,
-                required: getLevelValue(comp.level),
-                validated: skillValidated(comp.competency, results) ? getLevelValue(comp.level) : 0,
-                userHas: skillPossessed(comp.competency, results) ? getLevelValue(comp.level) : 0,
-                level: comp.level,
-                description: comp.description,
-                framework: 'DigComp 2.2',
-                gapDescription: isSkillGap(comp.competency, results) ? 
-                  results.skillGapAnalysis.gaps.find(g => g.skill.toLowerCase() === comp.competency.toLowerCase())?.description : undefined,
-                strengthDescription: !isSkillGap(comp.competency, results) && skillPossessed(comp.competency, results) ?
-                  results.skillGapAnalysis.strengths.find(s => s.skill.toLowerCase() === comp.competency.toLowerCase())?.description : undefined
-              }))}
-              sfiaPieData={[
-                { name: 'Skills Possessed', value: countSkillsPossessed(results.skillMapping.sfia9, results), fill: '#c4b5fd' },
-                { name: 'Skills Required', value: results.skillMapping.sfia9.length, fill: '#93c5fd' },
-                { name: 'Skills Validated', value: countSkillsValidated(results.skillMapping.sfia9, results), fill: '#86efac' }
-              ]}
-              digcompPieData={[
-                { name: 'Skills Possessed', value: countSkillsPossessed(results.skillMapping.digcomp22, results), fill: '#c4b5fd' },
-                { name: 'Skills Required', value: results.skillMapping.digcomp22.length, fill: '#93c5fd' },
-                { name: 'Skills Validated', value: countSkillsValidated(results.skillMapping.digcomp22, results), fill: '#86efac' }
-              ]}
-              sfiaRadarData={results.skillMapping.sfia9.map(skill => ({
-                subject: skill.skill,
-                required: getLevelValue(skill.level),
-                userHas: skillPossessed(skill.skill, results) ? getLevelValue(skill.level) : 0,
-                gap: isSkillGap(skill.skill, results) ? getGapSeverity(skill.skill, results) : 0
-              }))}
-              digcompRadarData={results.skillMapping.digcomp22.map(comp => ({
-                subject: comp.competency,
-                required: getLevelValue(comp.level),
-                userHas: skillPossessed(comp.competency, results) ? getLevelValue(comp.level) : 0,
-                gap: isSkillGap(comp.competency, results) ? getGapSeverity(comp.competency, results) : 0
-              }))}
-            />
-          </motion.div>
-          
+                    
           <div className="grid gap-8 md:grid-cols-2">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
