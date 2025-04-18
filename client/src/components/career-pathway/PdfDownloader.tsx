@@ -3,19 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { CareerAnalysisResult } from './CareerPathwayForm';
 
 interface PdfDownloaderProps {
   results: CareerAnalysisResult;
   userName?: string;
-}
-
-// Add the autotable type to jsPDF
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
 }
 
 export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps) {
@@ -27,329 +19,359 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       setIsGenerating(true);
       toast({
         title: 'Preparing PDF',
-        description: 'Generating your career pathway analysis PDF...',
+        description: 'Creating your career pathway analysis PDF...',
       });
 
-      // Create PDF Document
+      // Create PDF Document with portrait orientation
       const pdf = new jsPDF();
       
       // Set document properties
       pdf.setProperties({
-        title: 'Skillgenix Career Pathway Analysis',
-        subject: 'Career Development Report',
-        author: 'Skillgenix AI Platform'
+        title: 'Skillgenix Career Analysis',
+        subject: 'Career Analysis Report',
+        author: 'Skillgenix'
       });
       
-      // Basic Setup
+      // Get page dimensions
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const maxLineWidth = pageWidth - 20; // 10mm margins on each side
       
-      // Title and Date
-      pdf.setFontSize(22);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('Skillgenix Career Analysis', pageWidth/2, 20, { align: 'center' });
+      // Title
+      pdf.setFontSize(18);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("Skillgenix Career Analysis", pageWidth/2, 20, { align: "center" });
       
-      // Current Date
+      // Add date and user name
       const today = new Date().toLocaleDateString();
       pdf.setFontSize(10);
       pdf.setTextColor(100, 100, 100);
-      pdf.text(`Generated: ${today} | For: ${userName}`, pageWidth/2, 28, { align: 'center' });
+      pdf.text(`Generated on: ${today}`, 15, 30);
+      pdf.text(`Prepared for: ${userName}`, 15, 36);
       
-      // Executive Summary
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('Executive Summary', 10, 40);
+      // Section: Executive Summary
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("1. Executive Summary", 15, 46);
       
+      // Executive Summary content
       pdf.setFontSize(10);
       pdf.setTextColor(0, 0, 0);
-      const summaryLines = pdf.splitTextToSize(results.executiveSummary, maxLineWidth);
-      pdf.text(summaryLines, 10, 48);
+      const summaryText = pdf.splitTextToSize(results.executiveSummary, 180);
+      pdf.text(summaryText, 15, 54);
       
-      // Move position based on summary length
-      let yPos = 50 + (summaryLines.length * 5);
+      // Add second page
+      pdf.addPage();
       
-      // Check if we need a new page
-      if (yPos > 270) {
-        pdf.addPage();
-        yPos = 20;
-      }
+      // Section: Skill Analysis
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("2. Skill Analysis", 15, 20);
       
-      // Framework Skills Section
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('Framework-Based Skills', 10, yPos);
-      yPos += 10;
-      
-      // SFIA 9 Skills Table
+      // SFIA 9 Skills
       pdf.setFontSize(12);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('SFIA 9 Skills', 10, yPos);
-      yPos += 5;
+      pdf.text("SFIA 9 Skills:", 15, 30);
       
-      // Create SFIA skills table
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Skill', 'Level', 'Description']],
-        body: results.skillMapping.sfia9.map(skill => [
-          skill.skill,
-          skill.level,
-          skill.description
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [0, 0, 128], textColor: 255 },
-        margin: { left: 10, right: 10 },
+      // List SFIA skills
+      let yPos = 38;
+      pdf.setFontSize(10);
+      results.skillMapping.sfia9.forEach((skill, index) => {
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${skill.skill} (${skill.level})`, 20, yPos);
+        yPos += 7;
       });
       
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
+      // Add page for DigComp skills
+      pdf.addPage();
       
-      // Check if we need a new page
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 20;
-      }
+      // DigComp Skills
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("3. Digital Competencies", 15, 20);
       
-      // DigComp 2.2 Competencies Table
       pdf.setFontSize(12);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('DigComp 2.2 Competencies', 10, yPos);
-      yPos += 5;
+      pdf.text("DigComp 2.2 Framework:", 15, 30);
       
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Competency', 'Level', 'Description']],
-        body: results.skillMapping.digcomp22.map(comp => [
-          comp.competency,
-          comp.level,
-          comp.description
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [0, 0, 128], textColor: 255 },
-        margin: { left: 10, right: 10 },
+      // List DigComp skills
+      yPos = 38;
+      pdf.setFontSize(10);
+      results.skillMapping.digcomp22.forEach((comp, index) => {
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${comp.competency} (${comp.level})`, 20, yPos);
+        yPos += 7;
       });
       
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
-      
-      // Check if we need a new page
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 20;
-      }
+      // Add page for Skill Gap
+      pdf.addPage();
       
       // Skill Gap Analysis
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('Skill Gap Analysis', 10, yPos);
-      yPos += 10;
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("4. Skill Gap Analysis", 15, 20);
       
-      // Skill Gaps Table
+      // Skill Gaps
       pdf.setFontSize(12);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('Identified Skill Gaps', 10, yPos);
-      yPos += 5;
+      pdf.text("Skill Gaps to Address:", 15, 30);
       
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Skill', 'Importance', 'Description']],
-        body: results.skillGapAnalysis.gaps.map(gap => [
-          gap.skill,
-          gap.importance,
-          gap.description
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [220, 50, 50], textColor: 255 },
-        margin: { left: 10, right: 10 },
+      // List skill gaps
+      yPos = 38;
+      pdf.setFontSize(10);
+      results.skillGapAnalysis.gaps.forEach((gap, index) => {
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${gap.skill} (Importance: ${gap.importance})`, 20, yPos);
+        yPos += 7;
       });
       
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
-      
-      // Check if we need a new page
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 20;
-      }
-      
-      // Skill Strengths Table
-      pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('Skill Strengths', 10, yPos);
-      yPos += 5;
-      
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Skill', 'Level', 'Relevance']],
-        body: results.skillGapAnalysis.strengths.map(strength => [
-          strength.skill,
-          strength.level,
-          strength.relevance
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [40, 167, 69], textColor: 255 },
-        margin: { left: 10, right: 10 },
-      });
-      
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
-      
-      // Add new page for career pathways
+      // Add page for strengths
       pdf.addPage();
-      yPos = 20;
+      
+      // Strengths
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("5. Skill Strengths", 15, 20);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Your Current Strengths:", 15, 30);
+      
+      // List strengths
+      yPos = 38;
+      pdf.setFontSize(10);
+      results.skillGapAnalysis.strengths.forEach((strength, index) => {
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${strength.skill} (Level: ${strength.level}, Relevance: ${strength.relevance})`, 20, yPos);
+        yPos += 7;
+      });
+      
+      // Add page for University Pathway
+      pdf.addPage();
       
       // University Pathway
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('University Pathway', 10, yPos);
-      yPos += 10;
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("6. University Pathway", 15, 20);
       
-      // Create pathway steps table
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Step', 'Role', 'Timeframe', 'Qualification', 'Skills Needed']],
-        body: results.careerPathway.withDegree.map(step => [
-          step.step,
-          step.role,
-          step.timeframe,
-          step.requiredQualification || 'N/A',
-          step.keySkillsNeeded.join(', ')
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [0, 0, 128], textColor: 255 },
-        margin: { left: 10, right: 10 },
+      // List university pathway steps
+      yPos = 30;
+      pdf.setFontSize(10);
+      results.careerPathway.withDegree.forEach((step, index) => {
+        if (yPos > 240) {
+          pdf.addPage();
+          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(0, 0, 150);
+          pdf.text("6. University Pathway (continued)", 15, yPos);
+          yPos += 10;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
+        }
+        
+        pdf.setTextColor(0, 0, 150);
+        pdf.setFontSize(12);
+        pdf.text(`Step ${step.step}: ${step.role}`, 15, yPos);
+        yPos += 7;
+        
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
+        pdf.text(`Timeframe: ${step.timeframe}`, 20, yPos);
+        yPos += 6;
+        
+        if (step.requiredQualification) {
+          pdf.text(`Qualification: ${step.requiredQualification}`, 20, yPos);
+          yPos += 6;
+        }
+        
+        pdf.text("Key Skills:", 20, yPos);
+        yPos += 6;
+        
+        step.keySkillsNeeded.forEach(skill => {
+          pdf.text(`- ${skill}`, 25, yPos);
+          yPos += 6;
+        });
+        
+        yPos += 6;
       });
       
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
-      
-      // Check if we need a new page
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 20;
-      }
+      // Add page for Vocational Pathway
+      pdf.addPage();
       
       // Vocational Pathway
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('Vocational Pathway', 10, yPos);
-      yPos += 10;
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("7. Vocational Pathway", 15, 20);
       
-      // Create pathway steps table
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Step', 'Role', 'Timeframe', 'Qualification', 'Skills Needed']],
-        body: results.careerPathway.withoutDegree.map(step => [
-          step.step,
-          step.role,
-          step.timeframe,
-          step.alternativeQualification || 'N/A',
-          step.keySkillsNeeded.join(', ')
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [46, 139, 87], textColor: 255 },
-        margin: { left: 10, right: 10 },
+      // List vocational pathway steps
+      yPos = 30;
+      pdf.setFontSize(10);
+      results.careerPathway.withoutDegree.forEach((step, index) => {
+        if (yPos > 240) {
+          pdf.addPage();
+          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(0, 0, 150);
+          pdf.text("7. Vocational Pathway (continued)", 15, yPos);
+          yPos += 10;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
+        }
+        
+        pdf.setTextColor(0, 60, 0);
+        pdf.setFontSize(12);
+        pdf.text(`Step ${step.step}: ${step.role}`, 15, yPos);
+        yPos += 7;
+        
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
+        pdf.text(`Timeframe: ${step.timeframe}`, 20, yPos);
+        yPos += 6;
+        
+        if (step.alternativeQualification) {
+          pdf.text(`Qualification: ${step.alternativeQualification}`, 20, yPos);
+          yPos += 6;
+        }
+        
+        pdf.text("Key Skills:", 20, yPos);
+        yPos += 6;
+        
+        step.keySkillsNeeded.forEach(skill => {
+          pdf.text(`- ${skill}`, 25, yPos);
+          yPos += 6;
+        });
+        
+        yPos += 6;
       });
       
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
-      
-      // Add new page for development plan
+      // Add page for Development Plan
       pdf.addPage();
-      yPos = 20;
       
       // Development Plan
-      pdf.setFontSize(16);
-      pdf.setTextColor(0, 0, 128);
-      pdf.text('Development Plan', 10, yPos);
-      yPos += 10;
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("8. Development Plan", 15, 20);
       
       // Skills to Acquire
       pdf.setFontSize(12);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('Skills to Acquire', 10, yPos);
-      yPos += 5;
+      pdf.text("Skills to Acquire:", 15, 30);
       
-      pdf.autoTable({
-        startY: yPos,
-        head: [['Skill', 'Priority']],
-        body: results.developmentPlan.skillsToAcquire.map(skill => [
-          skill.skill,
-          skill.priority
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [0, 0, 128], textColor: 255 },
-        margin: { left: 10, right: 10 },
+      // List skills to acquire
+      yPos = 38;
+      pdf.setFontSize(10);
+      results.developmentPlan.skillsToAcquire.forEach((skill, index) => {
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${skill.skill} (Priority: ${skill.priority})`, 20, yPos);
+        yPos += 7;
       });
       
-      yPos = (pdf as any).lastAutoTable.finalY + 10;
+      // Add page for Recommended Programs
+      pdf.addPage();
       
-      // Check if we need a new page
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 20;
-      }
+      // Recommended Programs 
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 150);
+      pdf.text("9. Recommended Programs", 15, 20);
       
-      // Recommended Certifications
+      yPos = 30;
+      
+      // University Programs
       pdf.setFontSize(12);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('Recommended Certifications', 10, yPos);
-      yPos += 5;
+      pdf.text("University Programs:", 15, yPos);
+      yPos += 8;
       
-      // University
       pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('University Programs:', 10, yPos);
-      yPos += 5;
-      
       results.developmentPlan.recommendedCertifications.university.forEach(cert => {
-        pdf.text(`• ${cert}`, 15, yPos);
-        yPos += 5;
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${cert}`, 20, yPos);
+        yPos += 7;
       });
       
       yPos += 5;
       
-      // Vocational
-      pdf.setFontSize(10);
-      pdf.text('Vocational Programs:', 10, yPos);
-      yPos += 5;
+      // Vocational Programs
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Vocational Programs:", 15, yPos);
+      yPos += 8;
       
+      pdf.setFontSize(10);
       results.developmentPlan.recommendedCertifications.vocational.forEach(cert => {
-        pdf.text(`• ${cert}`, 15, yPos);
-        yPos += 5;
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${cert}`, 20, yPos);
+        yPos += 7;
       });
       
       yPos += 5;
       
-      // Online
+      // Online Programs
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("Online Programs:", 15, yPos);
+      yPos += 8;
+      
       pdf.setFontSize(10);
-      pdf.text('Online Programs:', 10, yPos);
-      yPos += 5;
-      
       results.developmentPlan.recommendedCertifications.online.forEach(cert => {
-        pdf.text(`• ${cert}`, 15, yPos);
-        yPos += 5;
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.text(`• ${cert}`, 20, yPos);
+        yPos += 7;
       });
       
-      // Add page numbers to all pages
-      const pageCount = pdf.internal.getNumberOfPages();
-      for(let i = 1; i <= pageCount; i++) {
+      // Add page numbers to each page
+      const pageCount = pdf.internal.pages.length - 1;
+      for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
         pdf.setTextColor(100, 100, 100);
-        pdf.text(`Page ${i} of ${pageCount}`, pageWidth/2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
-        
-        // Add footer
-        pdf.setFontSize(8);
-        pdf.text('© Skillgenix - AI-Powered Career Analysis Platform', pageWidth/2, pdf.internal.pageSize.getHeight() - 5, { align: 'center' });
+        pdf.text(`Page ${i} of ${pageCount}`, pageWidth / 2, 287, { align: 'center' });
+        pdf.text('© Skillgenix - AI-Powered Career Analysis', pageWidth / 2, 293, { align: 'center' });
       }
       
-      // Save PDF
-      pdf.save(`Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${today.replace(/\//g, '-')}.pdf`);
+      // Save the PDF file
+      pdf.save(`Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
       
       toast({
         title: 'PDF Created Successfully',
-        description: 'Your career pathway analysis has been downloaded as a PDF.',
+        description: 'Your career pathway analysis PDF has been downloaded.',
         variant: 'default',
       });
     } catch (error: any) {
       console.error('PDF generation error:', error);
       toast({
         title: 'PDF Generation Failed',
-        description: error?.message || 'Failed to generate PDF. Please try again.',
+        description: 'Sorry, we could not generate your PDF. Please try again.',
         variant: 'destructive',
       });
     } finally {
