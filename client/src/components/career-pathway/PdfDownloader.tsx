@@ -165,20 +165,27 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       (container as HTMLElement).style.backgroundColor = 'white';
     });
 
-    // Use html2canvas to capture the prepared section
+    // Use html2canvas to capture the prepared section with higher quality settings
     const canvas = await html2canvas(clonedSection, {
-      scale: scale,
+      scale: 3, // Increased from 2 to 3 for better quality
       useCORS: true,
       logging: false,
       allowTaint: true,
       backgroundColor: "#ffffff",
-      imageTimeout: 8000, // Increased timeout for complex sections
+      imageTimeout: 10000, // Extended timeout for complex sections
     });
     
     // Clean up the temporary elements
     document.body.removeChild(tempContainer);
     
     return canvas;
+  };
+
+  // Add divider between sections
+  const addDivider = (pdf: jsPDF, pageWidth: number, yPosition: number) => {
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.2);
+    pdf.line(20, yPosition, pageWidth - 20, yPosition);
   };
 
   const addSectionToPage = (
@@ -189,35 +196,87 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
     maxHeight: number = 220
   ): number => {
     // Use PNG for better quality with charts and diagrams
-    const imgData = canvas.toDataURL('image/png', 0.92);
+    const imgData = canvas.toDataURL('image/png', 0.95);
     
     // Calculate dimensions while preserving aspect ratio
     const aspectRatio = canvas.height / canvas.width;
-    const imgWidth = pageWidth - 20; // 10mm margins on each side
+    const imgWidth = pageWidth - 30; // 15mm margins on each side for cleaner look
     let imgHeight = imgWidth * aspectRatio;
     
-    // If image is too tall, scale it down to fit the page
+    // If image is too tall, split it across multiple pages
     if (imgHeight > maxHeight) {
-      imgHeight = maxHeight;
-      // Recalculate width to maintain aspect ratio
-      const newWidth = imgHeight / aspectRatio;
-      // Center the image
-      const leftMargin = (pageWidth - newWidth) / 2;
+      const pagesRequired = Math.ceil(imgHeight / maxHeight);
+      let remainingHeight = imgHeight;
+      let currentY = startY;
+      let currentPage = 0;
       
-      // Use compression for optimized file size
-      pdf.addImage(
-        imgData, 
-        'PNG', 
-        leftMargin, 
-        startY, 
-        newWidth, 
-        imgHeight,
-        undefined,
-        'FAST'
-      );
+      // Calculate source height per page based on aspect ratio
+      const sourceHeightPerPage = canvas.height / pagesRequired;
+      const destHeightPerPage = Math.min(maxHeight, imgHeight / pagesRequired);
+      
+      for (let i = 0; i < pagesRequired; i++) {
+        // If not the first page of this section, add a new page
+        if (i > 0) {
+          pdf.addPage();
+          addPageHeader(pdf, pageWidth);
+          currentY = 40; // Reset Y position for new page
+        }
+        
+        // Create a temporary canvas for this page segment
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Set dimensions for the temporary canvas
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = sourceHeightPerPage;
+        
+        if (tempCtx) {
+          // Draw the appropriate portion of the original canvas
+          tempCtx.fillStyle = 'white';
+          tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+          tempCtx.drawImage(
+            canvas,
+            0, i * sourceHeightPerPage, // Source X, Y
+            canvas.width, sourceHeightPerPage, // Source width, height
+            0, 0, // Destination X, Y
+            tempCanvas.width, tempCanvas.height // Destination width, height
+          );
+          
+          // Convert this segment to image data
+          const segmentImgData = tempCanvas.toDataURL('image/png', 0.95);
+          
+          // Calculate dimensions for this segment
+          const segmentWidth = imgWidth;
+          const segmentHeight = Math.min(destHeightPerPage, remainingHeight);
+          
+          // Center the image horizontally
+          const leftMargin = (pageWidth - segmentWidth) / 2;
+          
+          // Add this segment to the PDF
+          pdf.addImage(
+            segmentImgData,
+            'PNG',
+            leftMargin,
+            currentY,
+            segmentWidth,
+            segmentHeight,
+            undefined,
+            'FAST'
+          );
+          
+          // Update remaining height and current Y position
+          remainingHeight -= segmentHeight;
+          currentY += segmentHeight + 5; // 5mm spacing
+          currentPage = i;
+        }
+      }
+      
+      // Return final Y position on the last page
+      return currentY + 10;
     } else {
-      // Center the image horizontally
+      // For content that fits on a single page, center it horizontally
       const leftMargin = (pageWidth - imgWidth) / 2;
+      
       pdf.addImage(
         imgData, 
         'PNG', 
@@ -228,9 +287,9 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         undefined,
         'FAST'
       );
+      
+      return startY + imgHeight + 10; // Return the Y position after this section
     }
-    
-    return startY + imgHeight + 10; // Return the Y position after this section
   };
 
   const generatePDF = async () => {
@@ -248,11 +307,12 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         format: 'a4',
       });
 
-      // Set document properties
+      // Set enhanced document properties for better metadata
       pdf.setProperties({
         title: 'Skillgenix Career Pathway Analysis',
-        subject: 'Professional Career Development Plan',
-        author: 'Skillgenix',
+        subject: 'Detailed career development analysis with personalized pathways',
+        author: 'Skillgenix AI Platform',
+        keywords: 'Career, AI, Professional Development, Skill Analysis, SFIA 9, DigComp 2.2, PDF Report',
         creator: 'Skillgenix Career Platform'
       });
 
@@ -354,16 +414,41 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           pdf.text(`${sectionIndex + 1}. ${section.name}`, 10, 25);
           
           try {
+            // Update toast with progress message for better user feedback
+            toast({
+              title: `Capturing ${section.name}`,
+              description: `Processing section ${sectionIndex + 1} of ${sectionOrder.filter(s => elementExists(s.id)).length}`,
+              variant: 'default',
+            });
+            
             // Capture and add section content
             const sectionCanvas = await captureSectionToCanvas(section.id);
+            
+            // Add section content to the PDF
             addSectionToPage(pdf, sectionCanvas, pageWidth, 35);
-          } catch (error) {
+            
+            // Add divider after section (except on the last section)
+            if (sectionIndex < sectionOrder.filter(s => elementExists(s.id)).length - 1) {
+              addDivider(pdf, pageWidth, pdf.internal.pageSize.getHeight() - 20);
+            }
+          } catch (error: any) {
             console.error(`Error capturing section ${section.id}:`, error);
             
-            // Add a placeholder if section can't be captured
+            // Add a more informative placeholder if section can't be captured
             pdf.setFontSize(12);
+            pdf.setTextColor(255, 0, 0); // red text for better visibility
+            pdf.text(`Unable to capture content for ${section.name}.`, pageWidth/2, 50, { align: 'center' });
+            
+            pdf.setFontSize(10);
             pdf.setTextColor(100, 100, 100);
-            pdf.text(`[Content for ${section.name} could not be captured]`, pageWidth/2, 50, { align: 'center' });
+            pdf.text(`Please try again or view this section directly in the application.`, pageWidth/2, 60, { align: 'center' });
+            
+            // Log detailed error for troubleshooting
+            console.error('PDF section capture error details:', { 
+              sectionId: section.id, 
+              sectionName: section.name,
+              errorMessage: error?.message || 'Unknown error'
+            });
           }
           
           sectionIndex++;
@@ -390,11 +475,11 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         description: 'Your career pathway analysis has been downloaded as a PDF.',
         variant: 'default',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('PDF generation error:', error);
       toast({
         title: 'PDF Generation Failed',
-        description: 'There was an error creating your PDF. Please try again later.',
+        description: `Error: ${error?.message || 'There was an error creating your PDF. Please try again later.'}`,
         variant: 'destructive',
       });
     } finally {
@@ -406,11 +491,43 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
     <Button 
       onClick={generatePDF} 
       size="lg" 
-      className="bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900 shadow-lg text-base gap-2"
+      className={`${
+        isGenerating 
+          ? 'bg-blue-100 text-blue-800' 
+          : 'bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900'
+      } shadow-lg text-base gap-2 transition-all duration-200`}
       disabled={isGenerating}
     >
-      <Download className="h-5 w-5" />
-      {isGenerating ? 'Generating PDF...' : 'Download PDF Analysis'}
+      {isGenerating ? (
+        <>
+          <svg 
+            className="h-5 w-5 animate-spin text-blue-600" 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24"
+          >
+            <circle 
+              className="opacity-25" 
+              cx="12" 
+              cy="12" 
+              r="10" 
+              stroke="currentColor" 
+              strokeWidth="4"
+            />
+            <path 
+              className="opacity-75" 
+              fill="currentColor" 
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          Generating PDF...
+        </>
+      ) : (
+        <>
+          <Download className="h-5 w-5" />
+          Download PDF Analysis
+        </>
+      )}
     </Button>
   );
 }
