@@ -46,7 +46,6 @@ export function Navigation() {
       name: "Saved Resources",
       path: "/saved-resources",
       icon: <Bookmark className="h-5 w-5 mr-2" />,
-      disabled: true,
     },
   ];
 

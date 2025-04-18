@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, BookOpen, Video, GraduationCap, File, Clock, DollarSign, Tag, ThumbsUp, Award } from "lucide-react";
+import { ExternalLink, BookOpen, Video, GraduationCap, File, Clock, DollarSign, Tag, ThumbsUp, Award, Bookmark, BookmarkCheck } from "lucide-react";
+import { useSavedResources, SavedResource } from "@/hooks/use-saved-resources";
+import { useToast } from "@/hooks/use-toast";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -29,10 +31,37 @@ interface ResourceCarouselProps {
 }
 
 export function ResourceCarousel({ resources, skillName }: ResourceCarouselProps) {
+  const { savedResources, saveResource, removeResource, isResourceSaved } = useSavedResources();
+  const { toast } = useToast();
+
   // Skip rendering if no resources
   if (!resources || resources.length === 0) {
     return null;
   }
+
+  const handleSaveResource = (resource: LearningResource) => {
+    const savedResource: SavedResource = {
+      ...resource,
+      skillName,
+      savedAt: Date.now()
+    };
+    
+    if (isResourceSaved(resource.id)) {
+      removeResource(resource.id);
+      toast({
+        title: "Resource removed",
+        description: `"${resource.title}" has been removed from your saved resources.`,
+        variant: "default"
+      });
+    } else {
+      saveResource(savedResource);
+      toast({
+        title: "Resource saved",
+        description: `"${resource.title}" has been added to your saved resources.`,
+        variant: "default"
+      });
+    }
+  };
 
   const sliderSettings = {
     dots: true,

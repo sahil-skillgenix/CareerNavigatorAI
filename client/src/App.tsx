@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
+import { SavedResourcesProvider } from "@/hooks/use-saved-resources";
 import { ProtectedRoute } from "@/lib/protected-route";
 
 import Home from "@/pages/home";
@@ -35,8 +36,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <SavedResourcesProvider>
+          <Router />
+          <Toaster />
+        </SavedResourcesProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
