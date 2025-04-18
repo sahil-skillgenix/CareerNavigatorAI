@@ -216,15 +216,30 @@ export function ResourceCarousel({ resources, skillName }: ResourceCarouselProps
                       </div>
                     )}
                     
-                    {resource.url && resource.url !== "N/A" && (
-                      <Button 
-                        variant="default" 
-                        className="w-full"
-                        onClick={() => window.open(resource.url, '_blank')}
+                    <div className="flex gap-2">
+                      {resource.url && resource.url !== "N/A" && (
+                        <Button 
+                          variant="default" 
+                          className="flex-1"
+                          onClick={() => window.open(resource.url, '_blank')}
+                        >
+                          View Resource <ExternalLink className="w-4 h-4 ml-2" />
+                        </Button>
+                      )}
+                      
+                      <Button
+                        variant={isResourceSaved(resource.id) ? "secondary" : "outline"}
+                        className={`${isResourceSaved(resource.id) ? "bg-blue-100 text-blue-800 hover:bg-blue-200" : ""}`}
+                        onClick={() => handleSaveResource(resource)}
+                        title={isResourceSaved(resource.id) ? "Remove from saved resources" : "Save this resource"}
                       >
-                        View Resource <ExternalLink className="w-4 h-4 ml-2" />
+                        {isResourceSaved(resource.id) ? (
+                          <BookmarkCheck className="w-5 h-5" />
+                        ) : (
+                          <Bookmark className="w-5 h-5" />
+                        )}
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </Card>
               </motion.div>
