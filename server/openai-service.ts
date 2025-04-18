@@ -47,7 +47,7 @@ export interface CareerAnalysisOutput {
     skillsToAcquire: Array<{skill: string, priority: string, resources: string[]}>;
     recommendedCertifications: {
       university: string[];
-      tafe: string[];
+      vocational: string[]; // TAFE in Australia, Community College in USA, Further Education in UK, etc.
       online: string[];
     };
     suggestedProjects: string[];
@@ -113,13 +113,13 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     4. GENERATE CAREER PATHWAY:
     - Create TWO distinct pathway options:
       a) WITH Degree + Skills + Experience: Traditional pathway assuming university education
-      b) WITHOUT Degree, using Skills + TAFE courses + Experience: Alternative pathway for non-university route
+      b) WITHOUT Degree, using vocational qualifications + Skills + Experience: Alternative pathway for non-university route (use appropriate local terms: TAFE in Australia, Community College in USA, Further Education in UK, etc.)
     - For each pathway option, create a logical progression of roles/steps toward the goal
     - Include realistic timeframe estimates for each step
     - List specific key skills needed for each step
     - Provide detailed descriptions of each role/step
-    - For the degree pathway, include specific qualification requirements from institutions in the user's location
-    - For the non-degree pathway, include alternative qualifications like TAFE courses available in the user's location
+    - For the degree pathway, include specific qualification requirements from universities in the user's location
+    - For the non-degree pathway, include alternative qualifications from vocational institutions available in the user's location
     
     5. IDENTIFY SIMILAR ROLES:
     - Analyze the job market specifically in the user's location (state/province and country)
@@ -177,7 +177,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
         skillsToAcquire: [{skill, priority, resources}],
         recommendedCertifications: {
           university: [],
-          tafe: [],
+          vocational: [], // TAFE in Australia, Community College in USA, Further Education in UK, etc.
           online: []
         },
         suggestedProjects: [],
@@ -205,43 +205,43 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     
     CRITICAL LOCATION-SPECIFIC INSTRUCTIONS (HIGHEST PRIORITY): 
     - Every section must contain explicit location-specific information directly mentioning the user's state/province and country
-    - ALL educational program recommendations MUST ONLY come from the user's exact location (state/province)
+    - ALL educational program recommendations MUST ONLY come from the user's exact location (state/province and country)
     
     For Educational Programs:
-    - In Australia: ONLY recommend universities and TAFE institutions from the user's specific state:
-      * Victoria: ONLY Melbourne University, RMIT, Monash, Victoria University, Deakin, Swinburne, La Trobe, Box Hill TAFE, Holmesglen TAFE
-      * New South Wales: ONLY UNSW, Sydney University, UTS, Macquarie, Western Sydney University, TAFE NSW
-      * Queensland: ONLY UQ, QUT, Griffith, James Cook, TAFE Queensland
-      * Western Australia: ONLY UWA, Curtin, Murdoch, Edith Cowan, North Metropolitan TAFE
-      * South Australia: ONLY Adelaide University, UniSA, Flinders, TAFE SA
-      * Tasmania: ONLY University of Tasmania, TasTAFE
-      * Northern Territory: ONLY Charles Darwin University, CDU VET
-      * ACT: ONLY ANU, University of Canberra, CIT
+    - Based on the user's provided location (country and state/province):
+      * If Australia - Victoria: Recommend Melbourne University, RMIT, Monash, Victoria University, Deakin, Swinburne, etc.
+      * If Australia - New South Wales: Recommend UNSW, Sydney University, UTS, Macquarie, Western Sydney University, etc.
+      * If UK - England: Recommend universities specific to their region (London, Manchester, etc.)
+      * If USA - California: Recommend universities specific to California (UCLA, Stanford, UC Berkeley, etc.)
+      * If Canada - Ontario: Recommend universities specific to Ontario (University of Toronto, York University, etc.)
+      * For ANY other country or region: ONLY recommend actual educational institutions from that specific location
     
-    - For other countries: ONLY recommend institutions from that specific country and region/city
-    - Always include the full location name in the recommendation (e.g., "RMIT University, Melbourne, Victoria")
+    - Always include the full location name in recommendations (e.g., "RMIT University, Melbourne, Victoria, Australia" or "University of Manchester, Manchester, UK")
     
     For Similar Roles:
-    - Provide salary ranges with the EXACT local currency and format:
-      * Australia: "AUD 90,000-110,000 in Melbourne, Victoria"
-      * US: "USD 80,000-95,000 in San Francisco, California"
+    - Provide salary ranges with the EXACT local currency and format for the user's location:
+      * If Australia: "AUD 90,000-110,000 in Melbourne, Victoria"
+      * If UK: "GBP 45,000-60,000 in Manchester, England"
+      * If USA: "USD 80,000-95,000 in San Francisco, California"
+      * If Germany: "EUR 60,000-75,000 in Berlin"
     - Specify demand levels with the exact location name:
-      * "High demand in Sydney metropolitan area, NSW"
-      * "Moderate demand in Brisbane CBD, Queensland"
+      * "High demand in the Greater London area, UK"
+      * "Moderate demand in Toronto metropolitan area, Ontario, Canada"
     
     For Social Skills & Networking:
-    - Name actual professional organizations that exist in the user's location
-    - Recommend real networking events or meetup types in the user's city/state
+    - Name actual professional organizations that exist in the user's specific country and region
+    - Recommend networking opportunities relevant to the user's exact location (city/region)
     - Include location-specific cultural context for communication style
     
-    For non-specified locations, default to Australian national options, but CLEARLY indicate this is due to unspecified location.`;
+    DO NOT default to Australian options unless the user specifies Australia as their country.
+    If location is not specified, CLEARLY state this limitation in your recommendations.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { 
           role: "system", 
-          content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways, with particular expertise in Australian systems.
+          content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways worldwide.
           
           SFIA 9 (Skills Framework for the Information Age) defines IT skills across 7 levels of responsibility and numerous skill categories. The 7 levels represent progressive levels of autonomy, influence, complexity, and business skills.
           
@@ -267,7 +267,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           4. GENERATE CAREER PATHWAY:
           - Create TWO distinct pathway options:
             a) WITH university degree + skills + experience
-            b) WITHOUT degree, using TAFE qualifications + skills + experience
+            b) WITHOUT degree, using vocational/technical qualifications + skills + experience (using country-appropriate terms: TAFE in Australia, Community College in USA, Further Education in UK, etc.)
           - Design logical progression steps for each pathway
           - Include role descriptions, timeframes, and required skills for each step
           
@@ -294,24 +294,30 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Validate all recommendations against education standards for the user's location
           - Ensure pathways are realistic and achievable in the specified location
           
-          MANDATORY LOCATION-SPECIFIC REQUIREMENTS:
+          MANDATORY GLOBAL LOCATION-SPECIFIC REQUIREMENTS:
           - NEVER provide generic location recommendations - all must be specific to the user's state/province and country
           - For educational institution recommendations:
-            * In Victoria: ONLY recommend Melbourne-based institutions (Melbourne Uni, RMIT, Monash, Victoria Uni, Deakin, Swinburne)
-            * In New South Wales: ONLY recommend NSW-based institutions (UNSW, Sydney Uni, UTS, Macquarie, Western Sydney)
-            * In Queensland: ONLY recommend QLD institutions (UQ, QUT, Griffith, etc.)
-            * For all other locations: strictly limit to institutions physically located in that region
+            * If Australia - Victoria: ONLY recommend Melbourne-based institutions (Melbourne Uni, RMIT, Monash, etc.)
+            * If Australia - New South Wales: ONLY recommend NSW-based institutions (UNSW, Sydney Uni, UTS, etc.)
+            * If UK - England: ONLY recommend universities in the specific region (London, Manchester, etc.)
+            * If USA - California: ONLY recommend Californian institutions (UCLA, Stanford, USC, etc.)
+            * For ANY location worldwide: ONLY recommend institutions that actually exist in that specific region/country
           
           - For similar roles analysis:
-            * ALL salary information must include the local currency and format (e.g., "AUD 85,000-95,000 in Melbourne")
-            * ALL demand assessments must specify exact locations (e.g., "High demand in Sydney CBD" not just "High demand")
+            * ALL salary information must include the correct local currency and format for that country:
+              - Australia: "AUD 85,000-95,000 in Melbourne"
+              - UK: "GBP 45,000-60,000 in London"
+              - USA: "USD 90,000-120,000 in New York"
+              - Germany: "EUR 65,000-80,000 in Berlin"
+            * ALL demand assessments must specify exact locations with region/city names
           
           - For networking recommendations:
-            * Name ACTUAL professional organizations that exist in the user's location
-            * Suggest SPECIFIC events, meetups or communities in the user's exact city/region
+            * Name ACTUAL professional organizations that exist in the user's specific country and region
+            * Suggest SPECIFIC events, meetups or communities relevant to the user's exact location
 
-          EVERY recommendation MUST explicitly mention the user's location by name (e.g., "in Melbourne, Victoria" not just "local programs")
+          EVERY recommendation MUST explicitly mention the user's actual location by name, including both city/region and country
 
+          DO NOT default to Australian options unless the user specifically indicates Australia.
           If location is not specified, CLEARLY state this limitation in your recommendations.
           
           Only return output that follows the specified JSON format after both review stages are passed.`
