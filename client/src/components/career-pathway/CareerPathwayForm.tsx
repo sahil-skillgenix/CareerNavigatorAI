@@ -557,7 +557,7 @@ function CareerAnalysisResults({
         </div>
         
         {/* Executive Summary */}
-        <div ref={executeRef} className="mb-12">
+        <div ref={executeRef} id="executive-summary" className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Executive Summary</h2>
           <div className="bg-white rounded-lg border p-6">
             <p className="text-gray-700 whitespace-pre-line">{results.executiveSummary}</p>
@@ -565,7 +565,7 @@ function CareerAnalysisResults({
         </div>
         
         {/* Skill Mapping */}
-        <div ref={skillMappingRef} className="mb-12">
+        <div ref={skillMappingRef} id="framework-analysis" className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Skill Mapping</h2>
           
           <div className="space-y-6">
@@ -600,7 +600,7 @@ function CareerAnalysisResults({
         </div>
         
         {/* Skill Gap Analysis */}
-        <div ref={gapAnalysisRef} className="mb-12">
+        <div ref={gapAnalysisRef} id="skill-gap-analysis" className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Framework-Based Skill Gap Analysis</h2>
           <p className="text-muted-foreground mb-6">
             This analysis is based on the <span className="font-medium">SFIA 9 Framework</span> (Skills Framework for the Information Age) and <span className="font-medium">DigComp 2.2 Framework</span> (European Digital Competence Framework), providing a comprehensive assessment of your technical and digital competencies.

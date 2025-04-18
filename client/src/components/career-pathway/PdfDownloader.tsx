@@ -16,6 +16,101 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const addPageHeader = (pdf: jsPDF, pageWidth: number, isFirstPage: boolean = false) => {
+    // Header height is taller on first page
+    const headerHeight = isFirstPage ? 20 : 15;
+    
+    pdf.setFillColor(65, 82, 179);
+    pdf.rect(0, 0, pageWidth, headerHeight, 'F');
+    
+    if (isFirstPage) {
+      // Add Skillgenix text logo
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Skill', 20, 12);
+      pdf.setTextColor(220, 220, 255);
+      pdf.text('genix', 35, 12);
+      
+      // Add title
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('Career Pathway Analysis', pageWidth / 2, 12, { align: 'center' });
+    } else {
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(12);
+      pdf.text('Skillgenix - Career Pathway Analysis', pageWidth / 2, 10, { align: 'center' });
+    }
+  };
+
+  const addPageFooter = (pdf: jsPDF, pageWidth: number, pageHeight: number) => {
+    pdf.setFillColor(65, 82, 179);
+    pdf.rect(0, pageHeight - 10, pageWidth, 10, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(8);
+    pdf.text('© Skillgenix - Generated with AI Career Planning Technology', pageWidth / 2, pageHeight - 4, { align: 'center' });
+  };
+
+  const captureSectionToCanvas = async (sectionId: string, scale: number = 2): Promise<HTMLCanvasElement> => {
+    const section = document.getElementById(sectionId);
+    if (!section) {
+      throw new Error(`Section not found: ${sectionId}`);
+    }
+
+    return html2canvas(section, {
+      scale: scale,
+      useCORS: true,
+      logging: false,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+    });
+  };
+
+  const addSectionToPage = (
+    pdf: jsPDF, 
+    canvas: HTMLCanvasElement, 
+    pageWidth: number, 
+    startY: number = 40, 
+    maxHeight: number = 220
+  ): number => {
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    
+    // Calculate dimensions while preserving aspect ratio
+    const aspectRatio = canvas.height / canvas.width;
+    const imgWidth = pageWidth - 20; // 10mm margins on each side
+    let imgHeight = imgWidth * aspectRatio;
+    
+    // If image is too tall, scale it down to fit the page
+    if (imgHeight > maxHeight) {
+      imgHeight = maxHeight;
+      // Recalculate width to maintain aspect ratio
+      const newWidth = imgHeight / aspectRatio;
+      // Center the image
+      const leftMargin = (pageWidth - newWidth) / 2;
+      
+      pdf.addImage(
+        imgData, 
+        'JPEG', 
+        leftMargin, 
+        startY, 
+        newWidth, 
+        imgHeight
+      );
+    } else {
+      // Center the image horizontally
+      const leftMargin = (pageWidth - imgWidth) / 2;
+      pdf.addImage(
+        imgData, 
+        'JPEG', 
+        leftMargin, 
+        startY, 
+        imgWidth, 
+        imgHeight
+      );
+    }
+    
+    return startY + imgHeight + 10; // Return the Y position after this section
+  };
+
   const generatePDF = async () => {
     try {
       setIsGenerating(true);
@@ -23,12 +118,6 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         title: 'Preparing PDF',
         description: 'We are generating your career pathway analysis PDF. This may take a moment...',
       });
-
-      // Get the content to be printed
-      const contentElement = document.getElementById('career-analysis-results');
-      if (!contentElement) {
-        throw new Error('Content element not found');
-      }
 
       // Create a new jsPDF instance
       const pdf = new jsPDF({
@@ -45,55 +134,11 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         creator: 'Skillgenix Career Platform'
       });
 
-      // Use html2canvas to capture the entire content with styling
-      const scale = 2; // Higher scale for better quality
-      const canvas = await html2canvas(contentElement, {
-        scale: scale,
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        windowWidth: 1200, // Fixed width for consistency
-        onclone: (clonedDoc) => {
-          // Add print-specific styling to the cloned document
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            * { box-sizing: border-box; }
-            body { background: white !important; }
-            .pdf-page-break { page-break-after: always; }
-          `;
-          clonedDoc.head.appendChild(style);
-          
-          // Mark page breaks for main sections
-          const sections = clonedDoc.querySelectorAll('.mb-12');
-          sections.forEach(section => {
-            if (section.nextElementSibling && section.nextElementSibling.classList.contains('mb-12')) {
-              section.classList.add('pdf-page-break');
-            }
-          });
-        }
-      });
-
-      // Canvas dimensions
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Add header to first page
-      pdf.setFillColor(65, 82, 179); // Primary blue color
-      pdf.rect(0, 0, pageWidth, 20, 'F');
-      
-      // Add Skillgenix text logo
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Skill', 20, 12);
-      pdf.setTextColor(220, 220, 255);
-      pdf.text('genix', 35, 12);
-      
-      // Add title
-      pdf.setTextColor(255, 255, 255);
-      pdf.text('Career Pathway Analysis', pageWidth / 2, 12, { align: 'center' });
+      // First page - Executive Summary
+      addPageHeader(pdf, pageWidth, true);
       
       // Add date and user info
       const today = new Date().toLocaleDateString('en-AU', { 
@@ -107,62 +152,59 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       pdf.text(`Generated on: ${today}`, pageWidth - 10, 30, { align: 'right' });
       pdf.text(`Prepared for: ${userName}`, 10, 30);
       
-      // Calculate dimensions for fitting canvas to PDF
-      const canvasRatio = canvas.height / canvas.width;
-      const usablePageHeight = pageHeight - 40; // Account for header and margins
+      // Get each section individually for better quality and control
+      // Executive Summary
+      const executiveSummaryCanvas = await captureSectionToCanvas('executive-summary');
+      const yAfterSummary = addSectionToPage(pdf, executiveSummaryCanvas, pageWidth, 40);
       
-      // How many pages we need based on the content height
-      const totalSlices = Math.ceil((canvas.height * (pageWidth / canvas.width)) / usablePageHeight);
+      // Framework-Based Skill Analysis
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const frameworkAnalysisCanvas = await captureSectionToCanvas('framework-analysis');
+      addSectionToPage(pdf, frameworkAnalysisCanvas, pageWidth, 20);
       
-      for (let i = 0; i < totalSlices; i++) {
-        // First page starts after header (40mm from top)
-        const yPos = i === 0 ? 40 : 10;
-        
-        // Height to use from source canvas for this page
-        const sourceY = i * (canvas.width * (usablePageHeight / pageWidth));
-        const sliceHeight = Math.min(
-          canvas.width * (usablePageHeight / pageWidth),
-          canvas.height - sourceY
-        );
-        
-        // Calculate the destination height for this slice
-        const destHeight = (sliceHeight * pageWidth) / canvas.width;
-        
-        // Add this slice of the canvas to the PDF
-        pdf.addImage(
-          imgData,
-          'JPEG',
-          0, // x position - full width
-          yPos, // y position
-          pageWidth, // width (full page width)
-          destHeight, // proportional height
-          '', // alias
-          'MEDIUM', // compression
-          0, // rotation
-          sourceY, // source Y (cropping start)
-          canvas.width, // source width
-          sliceHeight // source height (cropping height)
-        );
-        
-        // Add new page if needed
-        if (i < totalSlices - 1) {
-          pdf.addPage();
-          
-          // Add header to subsequent pages
-          pdf.setFillColor(65, 82, 179);
-          pdf.rect(0, 0, pageWidth, 15, 'F');
-          pdf.setTextColor(255, 255, 255);
-          pdf.setFontSize(12);
-          pdf.text('Skillgenix - Career Pathway Analysis', pageWidth / 2, 10, { align: 'center' });
-        }
+      // Skill Gap Analysis
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const skillGapCanvas = await captureSectionToCanvas('skill-gap-analysis');
+      addSectionToPage(pdf, skillGapCanvas, pageWidth, 20);
+      
+      // Career Pathway University
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const universityPathCanvas = await captureSectionToCanvas('university-pathway');
+      addSectionToPage(pdf, universityPathCanvas, pageWidth, 20);
+      
+      // Career Pathway TAFE
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const tafePathCanvas = await captureSectionToCanvas('tafe-pathway');
+      addSectionToPage(pdf, tafePathCanvas, pageWidth, 20);
+      
+      // Development Plan
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const developmentPlanCanvas = await captureSectionToCanvas('development-plan');
+      addSectionToPage(pdf, developmentPlanCanvas, pageWidth, 20);
+      
+      // Social Skills Development
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const socialSkillsCanvas = await captureSectionToCanvas('social-skills');
+      addSectionToPage(pdf, socialSkillsCanvas, pageWidth, 20);
+      
+      // Similar Roles
+      pdf.addPage();
+      addPageHeader(pdf, pageWidth);
+      const similarRolesCanvas = await captureSectionToCanvas('similar-roles');
+      addSectionToPage(pdf, similarRolesCanvas, pageWidth, 20);
+      
+      // Add footer to all pages
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        addPageFooter(pdf, pageWidth, pageHeight);
       }
-      
-      // Add footer
-      pdf.setFillColor(65, 82, 179);
-      pdf.rect(0, pageHeight - 10, pageWidth, 10, 'F');
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(8);
-      pdf.text('© Skillgenix - Generated with AI Career Planning Technology', pageWidth / 2, pageHeight - 4, { align: 'center' });
 
       // Save the PDF
       pdf.save(`Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
@@ -170,7 +212,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       toast({
         title: 'PDF Created Successfully',
         description: 'Your career pathway analysis has been downloaded as a PDF.',
-        variant: 'success',
+        variant: 'default',
       });
     } catch (error) {
       console.error('PDF generation error:', error);
