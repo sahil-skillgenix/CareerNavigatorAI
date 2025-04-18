@@ -16,6 +16,29 @@ import { Book, BookOpen, Video, GraduationCap, File, Clock, DollarSign, Tag, Boo
 
 // Custom component for saved resources card
 function SavedResourceCard({ resource, onRemove }: { resource: SavedResource; onRemove: () => void }) {
+  // Safety check for resource object
+  if (!resource) {
+    console.error("Invalid resource object in SavedResourceCard");
+    return null;
+  }
+  
+  // Create a safe resource object with fallbacks for all properties
+  const safeResource = {
+    id: resource.id || `resource-${Date.now()}`,
+    title: resource.title || "Untitled Resource",
+    type: resource.type || "Other",
+    provider: resource.provider || "Unknown Provider",
+    url: resource.url || "",
+    description: resource.description || "No description available",
+    estimatedHours: Number(resource.estimatedHours) || 0,
+    difficulty: resource.difficulty || "Beginner",
+    costType: resource.costType || "Unknown",
+    tags: Array.isArray(resource.tags) ? resource.tags : [],
+    relevanceScore: Number(resource.relevanceScore) || 5,
+    matchReason: resource.matchReason || "",
+    skillName: resource.skillName || "General Skill",
+    savedAt: resource.savedAt || Date.now()
+  };
   // Helper function to render resource type icon
   const getResourceIcon = (type: string) => {
     if (!type) return <File className="w-5 h-5" />;
@@ -90,50 +113,52 @@ function SavedResourceCard({ resource, onRemove }: { resource: SavedResource; on
         <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 flex justify-between items-center">
           <div className="flex items-center">
             <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center mr-4 shadow-sm">
-              {getResourceIcon(resource.type)}
+              {getResourceIcon(safeResource.type)}
             </div>
             <div>
-              <h4 className="text-lg font-semibold line-clamp-1">{resource.title}</h4>
+              <h4 className="text-lg font-semibold line-clamp-1">{safeResource.title}</h4>
               <div className="flex items-center text-sm">
-                <span className="text-gray-600">by {resource.provider}</span>
+                <span className="text-gray-600">by {safeResource.provider}</span>
                 <span className="mx-2 text-gray-400">•</span>
-                <span className="text-gray-600">{resource.skillName}</span>
+                <span className="text-gray-600">{safeResource.skillName}</span>
               </div>
             </div>
           </div>
-          <Badge variant="outline" className={getDifficultyColor(resource.difficulty)}>
-            {resource.difficulty}
+          <Badge variant="outline" className={getDifficultyColor(safeResource.difficulty)}>
+            {safeResource.difficulty}
           </Badge>
         </div>
         
         <div className="p-6">
-          <p className="text-gray-700 mb-4 line-clamp-2">{resource.description}</p>
+          <p className="text-gray-700 mb-4 line-clamp-2">{safeResource.description}</p>
           
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="flex items-center">
               <Clock className="w-4 h-4 text-gray-500 mr-2" />
-              <span className="text-sm">{resource.estimatedHours} hours</span>
+              <span className="text-sm">{safeResource.estimatedHours} hours</span>
             </div>
             <div className="flex items-center">
               <DollarSign className="w-4 h-4 text-gray-500 mr-2" />
-              <Badge variant="outline" className={getCostTypeColor(resource.costType)}>
-                {resource.costType}
+              <Badge variant="outline" className={getCostTypeColor(safeResource.costType)}>
+                {safeResource.costType}
               </Badge>
             </div>
           </div>
           
           <div className="mb-4 flex items-center">
             <Calendar className="w-4 h-4 text-gray-500 mr-2" />
-            <span className="text-sm text-gray-600">Saved on {formatDate(resource.savedAt)}</span>
+            <span className="text-sm text-gray-600">
+              Saved on {formatDate(safeResource.savedAt)}
+            </span>
           </div>
           
-          {resource.tags && resource.tags.length > 0 && (
+          {safeResource.tags && safeResource.tags.length > 0 && (
             <div className="mb-6">
               <div className="flex flex-wrap gap-2">
-                {resource.tags.map((tag, index) => (
+                {safeResource.tags.map((tag, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
                     <Tag className="w-3 h-3 mr-1" />
-                    {tag}
+                    {tag || "Tag"}
                   </Badge>
                 ))}
               </div>
@@ -141,11 +166,11 @@ function SavedResourceCard({ resource, onRemove }: { resource: SavedResource; on
           )}
           
           <div className="flex gap-2">
-            {resource.url && resource.url !== "N/A" && (
+            {safeResource.url && safeResource.url !== "N/A" && (
               <Button 
                 variant="default" 
                 className="flex-1"
-                onClick={() => window.open(resource.url, '_blank')}
+                onClick={() => window.open(safeResource.url, '_blank')}
               >
                 View Resource <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
@@ -177,35 +202,62 @@ export default function SavedResourcesPage() {
 
   // Filter resources based on search term and type
   const filteredResources = savedResources.filter(resource => {
-    const matchesSearch = searchTerm === "" || 
-      resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.skillName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesType = selectedType === "all" || resource.type.toLowerCase() === selectedType.toLowerCase();
-    
-    return matchesSearch && matchesType;
+    try {
+      // Safely handle search term matching with null/undefined checks
+      const lowerSearchTerm = (searchTerm || "").toLowerCase();
+      
+      const title = (resource.title || "").toLowerCase();
+      const provider = (resource.provider || "").toLowerCase();
+      const skillName = (resource.skillName || "").toLowerCase();
+      const description = (resource.description || "").toLowerCase();
+      
+      const matchesSearch = searchTerm === "" || 
+        title.includes(lowerSearchTerm) ||
+        provider.includes(lowerSearchTerm) ||
+        skillName.includes(lowerSearchTerm) ||
+        description.includes(lowerSearchTerm) ||
+        (Array.isArray(resource.tags) && resource.tags.some(tag => 
+          (tag || "").toLowerCase().includes(lowerSearchTerm)
+        ));
+      
+      // Safely handle type filtering
+      const resourceType = (resource.type || "").toLowerCase();
+      const filterType = (selectedType || "all").toLowerCase();
+      const matchesType = filterType === "all" || resourceType === filterType;
+      
+      return matchesSearch && matchesType;
+    } catch (error) {
+      console.error("Error filtering resource:", error, resource);
+      return false;
+    }
   });
 
   // Sort resources
   const sortedResources = [...filteredResources].sort((a, b) => {
-    switch (sortBy) {
-      case "newest":
-        return b.savedAt - a.savedAt;
-      case "oldest":
-        return a.savedAt - b.savedAt;
-      case "title-asc":
-        return a.title.localeCompare(b.title);
-      case "title-desc":
-        return b.title.localeCompare(a.title);
-      case "hours-asc":
-        return a.estimatedHours - b.estimatedHours;
-      case "hours-desc":
-        return b.estimatedHours - a.estimatedHours;
-      default:
-        return 0;
+    try {
+      switch (sortBy) {
+        case "newest":
+          // Use nullish coalescing to handle missing savedAt values
+          const bSavedAt = b.savedAt ?? 0;
+          const aSavedAt = a.savedAt ?? 0;
+          return bSavedAt - aSavedAt;
+        case "oldest":
+          return (a.savedAt ?? 0) - (b.savedAt ?? 0);
+        case "title-asc":
+          return (a.title || "").localeCompare(b.title || "");
+        case "title-desc":
+          return (b.title || "").localeCompare(a.title || "");
+        case "hours-asc":
+          return (Number(a.estimatedHours) || 0) - (Number(b.estimatedHours) || 0);
+        case "hours-desc":
+          return (Number(b.estimatedHours) || 0) - (Number(a.estimatedHours) || 0);
+        default:
+          // Default to newest first
+          return (b.savedAt ?? 0) - (a.savedAt ?? 0);
+      }
+    } catch (error) {
+      console.error("Error sorting resources:", error, { a, b });
+      return 0;
     }
   });
 
@@ -230,8 +282,14 @@ export default function SavedResourcesPage() {
     });
   };
 
-  // Get unique resource types
-  const resourceTypes = Array.from(new Set(savedResources.map(resource => resource.type)));
+  // Get unique resource types with protection against undefined values
+  const resourceTypes = Array.from(
+    new Set(
+      savedResources
+        .map(resource => resource.type || "Other")
+        .filter(Boolean) // Remove any empty strings
+    )
+  ).sort(); // Sort alphabetically for better UX
 
   return (
     <div className="container mx-auto max-w-7xl py-8">

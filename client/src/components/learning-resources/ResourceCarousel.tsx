@@ -30,7 +30,7 @@ interface ResourceCarouselProps {
   skillName: string;
 }
 
-export function ResourceCarousel({ resources, skillName }: ResourceCarouselProps) {
+export function ResourceCarousel({ resources = [], skillName = "General Skill" }: ResourceCarouselProps) {
   const { savedResources, saveResource, removeResource, isResourceSaved } = useSavedResources();
   const { toast } = useToast();
 
@@ -40,25 +40,46 @@ export function ResourceCarousel({ resources, skillName }: ResourceCarouselProps
   }
 
   const handleSaveResource = (resource: LearningResource) => {
-    const savedResource: SavedResource = {
-      ...resource,
-      skillName,
-      savedAt: Date.now()
-    };
-    
-    if (isResourceSaved(resource.id)) {
-      removeResource(resource.id);
+    try {
+      // Ensure all required fields are present
+      const safeResource = {
+        id: resource.id || `resource-${Date.now()}`,
+        title: resource.title || "Untitled Resource",
+        type: resource.type || "Other",
+        provider: resource.provider || "Unknown Provider",
+        url: resource.url || "",
+        description: resource.description || "No description available",
+        estimatedHours: Number(resource.estimatedHours) || 0,
+        difficulty: resource.difficulty || "Beginner",
+        costType: resource.costType || "Unknown",
+        tags: Array.isArray(resource.tags) ? resource.tags : [],
+        relevanceScore: Number(resource.relevanceScore) || 5,
+        matchReason: resource.matchReason || "",
+        skillName: skillName || "General Skill",
+        savedAt: Date.now()
+      };
+      
+      if (isResourceSaved(safeResource.id)) {
+        removeResource(safeResource.id);
+        toast({
+          title: "Resource removed",
+          description: `"${safeResource.title}" has been removed from your saved resources.`,
+          variant: "default"
+        });
+      } else {
+        saveResource(safeResource);
+        toast({
+          title: "Resource saved",
+          description: `"${safeResource.title}" has been added to your saved resources.`,
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error("Error saving/removing resource:", error);
       toast({
-        title: "Resource removed",
-        description: `"${resource.title}" has been removed from your saved resources.`,
-        variant: "default"
-      });
-    } else {
-      saveResource(savedResource);
-      toast({
-        title: "Resource saved",
-        description: `"${resource.title}" has been added to your saved resources.`,
-        variant: "default"
+        title: "Error",
+        description: "There was a problem processing this resource. Please try again.",
+        variant: "destructive"
       });
     }
   };
