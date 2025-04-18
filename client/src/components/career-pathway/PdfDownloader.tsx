@@ -56,12 +56,41 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       throw new Error(`Section not found: ${sectionId}`);
     }
 
+    // Wait for animations to complete and images to load
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Special handling for sections with charts and graphics
+    const hasCanvas = section.querySelectorAll('canvas').length > 0;
+    const hasSvg = section.querySelectorAll('svg').length > 0;
+    
     return html2canvas(section, {
       scale: scale,
       useCORS: true,
       logging: false,
       allowTaint: true,
       backgroundColor: "#ffffff",
+      // Higher quality rendering for sections with graphics
+      imageTimeout: 5000, // increase timeout for image loading
+      // Use foreign objects for SVG elements
+      foreignObjectRendering: hasSvg,
+      // Ensure canvas elements are captured properly
+      onclone: (clonedDoc) => {
+        if (hasCanvas) {
+          const sourceCanvases = section.querySelectorAll('canvas');
+          const clonedCanvases = clonedDoc.getElementById(sectionId)?.querySelectorAll('canvas');
+          
+          if (sourceCanvases && clonedCanvases) {
+            for (let i = 0; i < sourceCanvases.length; i++) {
+              if (i < clonedCanvases.length) {
+                const context = clonedCanvases[i].getContext('2d');
+                if (context) {
+                  context.drawImage(sourceCanvases[i], 0, 0);
+                }
+              }
+            }
+          }
+        }
+      }
     });
   };
 
@@ -137,7 +166,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // First page - Executive Summary
+      // First page - Title page with logo and summary
       addPageHeader(pdf, pageWidth, true);
       
       // Add date and user info
@@ -152,58 +181,112 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       pdf.text(`Generated on: ${today}`, pageWidth - 10, 30, { align: 'right' });
       pdf.text(`Prepared for: ${userName}`, 10, 30);
       
-      // Get each section individually for better quality and control
-      // Executive Summary
-      const executiveSummaryCanvas = await captureSectionToCanvas('executive-summary');
-      const yAfterSummary = addSectionToPage(pdf, executiveSummaryCanvas, pageWidth, 40);
+      // First, get all section IDs to ensure we're capturing everything
+      const sectionOrder = [
+        {id: 'executive-summary', name: 'Executive Summary'},
+        {id: 'framework-analysis', name: 'Framework-Based Skill Analysis'},
+        {id: 'skill-gap-analysis', name: 'Skill Gap Analysis'},
+        {id: 'university-pathway', name: 'University Pathway'},
+        {id: 'tafe-pathway', name: 'TAFE Pathway'},
+        {id: 'development-plan', name: 'Development Plan'},
+        {id: 'social-skills', name: 'Social Skills Development'},
+        {id: 'similar-roles', name: 'Similar Roles'}
+      ];
+
+      // Function to check if element exists in DOM
+      const elementExists = (id: string) => document.getElementById(id) !== null;
       
-      // Framework-Based Skill Analysis
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const frameworkAnalysisCanvas = await captureSectionToCanvas('framework-analysis');
-      addSectionToPage(pdf, frameworkAnalysisCanvas, pageWidth, 20);
+      // Add title page
+      pdf.setFontSize(24);
+      pdf.setTextColor(65, 82, 179);
+      pdf.text('Career Pathway Analysis', pageWidth/2, 60, { align: 'center' });
       
-      // Skill Gap Analysis
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const skillGapCanvas = await captureSectionToCanvas('skill-gap-analysis');
-      addSectionToPage(pdf, skillGapCanvas, pageWidth, 20);
+      pdf.setFontSize(12);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('Comprehensive Professional Development Report', pageWidth/2, 70, { align: 'center' });
       
-      // Career Pathway University
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const universityPathCanvas = await captureSectionToCanvas('university-pathway');
-      addSectionToPage(pdf, universityPathCanvas, pageWidth, 20);
+      // Add Skillgenix logo/branding
+      pdf.setFillColor(65, 82, 179);
+      pdf.circle(pageWidth/2, 90, 15, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('S', pageWidth/2, 95, { align: 'center' });
       
-      // Career Pathway TAFE
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const tafePathCanvas = await captureSectionToCanvas('tafe-pathway');
-      addSectionToPage(pdf, tafePathCanvas, pageWidth, 20);
+      // Add description
+      pdf.setFontSize(11);
+      pdf.setTextColor(80, 80, 80);
+      pdf.setFont('helvetica', 'normal');
+      const description = 'This personalized career analysis provides a comprehensive assessment of your skills, details your career pathway options, and outlines a development plan tailored to your professional goals.';
+      const splitDescription = pdf.splitTextToSize(description, pageWidth - 60);
+      pdf.text(splitDescription, pageWidth/2, 120, { align: 'center' });
       
-      // Development Plan
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const developmentPlanCanvas = await captureSectionToCanvas('development-plan');
-      addSectionToPage(pdf, developmentPlanCanvas, pageWidth, 20);
+      // Add table of contents
+      pdf.setFontSize(14);
+      pdf.setTextColor(65, 82, 179);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Contents:', 20, 145);
       
-      // Social Skills Development
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const socialSkillsCanvas = await captureSectionToCanvas('social-skills');
-      addSectionToPage(pdf, socialSkillsCanvas, pageWidth, 20);
+      pdf.setFontSize(11);
+      pdf.setTextColor(80, 80, 80);
+      pdf.setFont('helvetica', 'normal');
       
-      // Similar Roles
-      pdf.addPage();
-      addPageHeader(pdf, pageWidth);
-      const similarRolesCanvas = await captureSectionToCanvas('similar-roles');
-      addSectionToPage(pdf, similarRolesCanvas, pageWidth, 20);
+      let contentY = 155;
+      sectionOrder.forEach((section, index) => {
+        if (elementExists(section.id)) {
+          pdf.text(`${index + 1}. ${section.name}`, 25, contentY);
+          contentY += 8;
+        }
+      });
+      
+      // Process each section and add to PDF
+      let sectionIndex = 0;
+      for (const section of sectionOrder) {
+        if (elementExists(section.id)) {
+          // Add new page for each section (except first one)
+          if (sectionIndex > 0) {
+            pdf.addPage();
+          } else {
+            // First content section starts on page 2
+            pdf.addPage();
+          }
+          
+          // Add header
+          addPageHeader(pdf, pageWidth);
+          
+          // Add section title
+          pdf.setFontSize(16);
+          pdf.setTextColor(65, 82, 179);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`${sectionIndex + 1}. ${section.name}`, 10, 25);
+          
+          try {
+            // Capture and add section content
+            const sectionCanvas = await captureSectionToCanvas(section.id);
+            addSectionToPage(pdf, sectionCanvas, pageWidth, 35);
+          } catch (error) {
+            console.error(`Error capturing section ${section.id}:`, error);
+            
+            // Add a placeholder if section can't be captured
+            pdf.setFontSize(12);
+            pdf.setTextColor(100, 100, 100);
+            pdf.text(`[Content for ${section.name} could not be captured]`, pageWidth/2, 50, { align: 'center' });
+          }
+          
+          sectionIndex++;
+        }
+      }
       
       // Add footer to all pages
       const totalPages = pdf.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
         addPageFooter(pdf, pageWidth, pageHeight);
+        
+        // Add page numbers
+        pdf.setFontSize(9);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth/2, pageHeight - 15, { align: 'center' });
       }
 
       // Save the PDF
