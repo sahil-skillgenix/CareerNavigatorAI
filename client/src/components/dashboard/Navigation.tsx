@@ -35,6 +35,7 @@ export function Navigation() {
       name: "Organization Pathway",
       path: "/organization-pathway",
       icon: <Building className="h-5 w-5 mr-2" />,
+      disabled: true,
     },
     {
       name: "Learning Resources",
