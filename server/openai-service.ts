@@ -197,11 +197,19 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     IMPORTANT: 
     - Only return the final output AFTER both review stages are passed
     - The output must follow the exact format specified above
-    - Tailor recommendations based on the user's location (state/province and country)
-    - If the user is in Australia, focus on specific state-based university and TAFE options
-    - If the user is in another country, recommend appropriate local education options
-    - For non-specified locations, prioritize Australian education options as the default
-    - Provide detailed and actionable information in each section
+    - STRONGLY prioritize the user's location (state/province and country) in ALL recommendations
+    - For Educational Programs:
+      * In Australia: ONLY recommend universities and TAFE institutions from the specified state (e.g., Victoria = Melbourne Uni, RMIT, Victoria Uni, Box Hill TAFE)
+      * In other countries: ONLY recommend institutions specific to that country and region
+      * Include the institution's location directly in the recommendation text
+    - For Similar Roles:
+      * Provide salary ranges SPECIFIC to the user's location (e.g., "AUD 90,000-110,000 in Victoria, Australia")
+      * Indicate demand levels specific to the location (e.g., "High demand in Sydney region")
+    - For Social Skills & Networking:
+      * Recommend networking events in the user's specific city/state
+      * Include location-specific professional associations
+    - For non-specified locations, default to Australian options but clearly indicate this
+    - ALL sections must contain explicit location-specific information where applicable
     `;
 
     const response = await openai.chat.completions.create({
@@ -262,7 +270,20 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Validate all recommendations against education standards for the user's location
           - Ensure pathways are realistic and achievable in the specified location
           
-          Only return output that follows the specified JSON format after both review stages are passed. Focus on providing detailed, accurate, and actionable information that is location-specific based on the provided state/province and country information. If the location is in Australia, give priority to Australian education and career contexts.` 
+          Only return output that follows the specified JSON format after both review stages are passed. 
+          
+          LOCATION-SPECIFIC GUIDANCE (HIGHEST PRIORITY):
+          - All educational recommendations MUST be filtered by the user's exact location (state/province)
+          - For users in Victoria, Australia: ONLY recommend Melbourne-based universities (Melbourne Uni, RMIT, Monash, Victoria Uni, Deakin, Swinburne, La Trobe) and Melbourne-based TAFE institutes
+          - For users in New South Wales, Australia: ONLY recommend Sydney-based universities (UNSW, Sydney Uni, UTS, Macquarie, Western Sydney) and NSW-based TAFE institutes
+          - For users in Queensland, Australia: ONLY recommend QLD universities (UQ, QUT, Griffith, etc.) and Queensland-based TAFE institutes
+          - For other Australian states/territories: Similarly restrict recommendations to that specific state/territory
+          - For international locations: Only suggest institutions within that specific country and region
+          - Salary information MUST include the local currency and typical ranges for that exact location
+          - Networking recommendations should name actual professional organizations and events in the exact location
+          - Every location-specific recommendation should explicitly mention the location by name
+          
+          If the user does not specify a location, default to Australian national options, but clearly indicate this in your response.` 
         },
         { role: "user", content: prompt }
       ],
