@@ -11,6 +11,8 @@ export interface CareerAnalysisInput {
   educationalBackground: string;
   careerHistory: string;
   desiredRole: string;
+  state?: string;
+  country?: string;
 }
 
 export interface CareerAnalysisOutput {
@@ -68,6 +70,8 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     Educational Background: ${input.educationalBackground}
     Career History: ${input.careerHistory}
     Desired Role or Career Goal: ${input.desiredRole}
+    State/Province: ${input.state || 'Not specified'}
+    Country: ${input.country || 'Not specified'}
     
     STRICTLY follow this 6-step process in order:
     
@@ -144,7 +148,10 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     IMPORTANT: 
     - Only return the final output AFTER both review stages are passed
     - The output must follow the exact format specified above
-    - Focus specifically on Australian education options (universities and TAFEs)
+    - Tailor recommendations based on the user's location (state/province and country)
+    - If the user is in Australia, focus on specific state-based university and TAFE options
+    - If the user is in another country, recommend appropriate local education options
+    - For non-specified locations, prioritize Australian education options as the default
     - Provide detailed and actionable information in each section
     `;
 
@@ -153,7 +160,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       messages: [
         { 
           role: "system", 
-          content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of Australian education and career pathways.
+          content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways, with particular expertise in Australian systems.
           
           SFIA 9 (Skills Framework for the Information Age) defines IT skills across 7 levels of responsibility and numerous skill categories. The 7 levels represent progressive levels of autonomy, influence, complexity, and business skills.
           
@@ -184,17 +191,18 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Include role descriptions, timeframes, and required skills for each step
           
           5. CREATE PERSONALIZED DEVELOPMENT PLAN:
-          - Recommend specific Australian university courses and programs
-          - Suggest relevant TAFE courses and certificates
-          - Include quality online learning resources
-          - Provide a structured learning roadmap with clear milestones
+          - Consider the user's location (state/province and country) when making recommendations
+          - For Australia: Recommend specific university courses and TAFE programs relevant to the state
+          - For other countries: Recommend appropriate local educational institutions and programs
+          - Include quality online learning resources that are accessible globally
+          - Provide a structured learning roadmap with clear milestones tailored to location
           
           6. CONDUCT QUALITY ASSURANCE:
           - Perform two-stage review to ensure accuracy and completeness
           - Validate all recommendations against Australian education standards
           - Ensure pathways are realistic and achievable
           
-          Only return output that follows the specified JSON format after both review stages are passed. Focus on providing detailed, accurate, and actionable information specific to Australian education and career contexts.` 
+          Only return output that follows the specified JSON format after both review stages are passed. Focus on providing detailed, accurate, and actionable information that is location-specific based on the provided state/province and country information. If the location is in Australia, give priority to Australian education and career contexts.` 
         },
         { role: "user", content: prompt }
       ],

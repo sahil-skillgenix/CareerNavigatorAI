@@ -62,7 +62,9 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         currentSkills, 
         educationalBackground, 
         careerHistory, 
-        desiredRole 
+        desiredRole,
+        state,
+        country
       } = req.body;
       
       // Validate required fields
@@ -92,7 +94,9 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         currentSkills,
         educationalBackground,
         careerHistory,
-        desiredRole
+        desiredRole,
+        state,
+        country
       };
       
       const analysisResult = await analyzeCareerPathway(input);
