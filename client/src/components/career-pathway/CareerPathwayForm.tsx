@@ -27,6 +27,8 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { CombinedFrameworkCharts } from "./CombinedFrameworkCharts";
+import { SkillRadarChart } from "./SkillRadarChart";
+import { ComparativeBarChart } from "./ComparativeBarChart";
 import { 
   ResponsiveContainer, 
   RadarChart, 

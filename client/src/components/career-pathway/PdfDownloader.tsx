@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { CareerAnalysisResult } from './CareerPathwayForm';
+import { SkillRadarChart } from './SkillRadarChart';
+import { ComparativeBarChart } from './ComparativeBarChart';
 
 interface PdfDownloaderProps {
   results: CareerAnalysisResult;
@@ -13,14 +16,50 @@ interface PdfDownloaderProps {
 export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps) {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const radarChartRef = useRef<HTMLDivElement>(null);
+  const barChartRef = useRef<HTMLDivElement>(null);
+  const [chartsReady, setChartsReady] = useState(false);
+
+  // Render the charts but hide them so we can capture them
+  useEffect(() => {
+    // Set charts as ready after a small delay to ensure they're properly rendered
+    const timer = setTimeout(() => {
+      setChartsReady(true);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [results]);
+
+  // Function to capture a chart as an image
+  const captureChart = async (ref: React.RefObject<HTMLDivElement>): Promise<string | null> => {
+    if (!ref.current) return null;
+    
+    try {
+      const canvas = await html2canvas(ref.current, {
+        scale: 2, // Higher scale for better resolution
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+      });
+      
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+      return null;
+    }
+  };
 
   const generatePDF = async () => {
     try {
       setIsGenerating(true);
       toast({
         title: 'Preparing PDF',
-        description: 'Creating your career pathway analysis PDF...',
+        description: 'Creating your career pathway analysis PDF with visualizations...',
       });
+
+      // Capture charts first
+      const radarChartImage = await captureChart(radarChartRef);
+      const barChartImage = await captureChart(barChartRef);
 
       // Create PDF Document with portrait orientation
       const pdf = new jsPDF();
@@ -37,7 +76,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       
       // Title
       pdf.setFontSize(18);
-      pdf.setTextColor(0, 0, 150);
+      pdf.setTextColor(163, 29, 82); // Using the accent color mentioned
       pdf.text("Skillgenix Career Analysis", pageWidth/2, 20, { align: "center" });
       
       // Add date and user name
@@ -49,7 +88,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       
       // Section: Executive Summary
       pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
+      pdf.setTextColor(163, 29, 82);
       pdf.text("1. Executive Summary", 15, 46);
       
       // Executive Summary content
@@ -58,106 +97,165 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       const summaryText = pdf.splitTextToSize(results.executiveSummary, 180);
       pdf.text(summaryText, 15, 54);
       
-      // Add second page
+      // Skill Gap Visualization Page
+      pdf.addPage();
+      
+      // Section: Skill Gap Visualization
+      pdf.setFontSize(14);
+      pdf.setTextColor(163, 29, 82);
+      pdf.text("2. Skill Gap Visualization", 15, 20);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(80, 80, 80);
+      pdf.text("This visualization shows your current skills compared to required skills for your desired role.", 15, 28);
+      
+      // Add the radar chart
+      if (radarChartImage) {
+        const imgWidth = 180;
+        const imgHeight = 120;
+        pdf.addImage(radarChartImage, 'PNG', 15, 35, imgWidth, imgHeight);
+      } else {
+        pdf.setTextColor(255, 0, 0);
+        pdf.text("Chart visualization could not be generated.", 15, 50);
+      }
+      
+      // Add the bar chart on the same page
+      if (barChartImage) {
+        const imgWidth = 180;
+        const imgHeight = 120;
+        pdf.addImage(barChartImage, 'PNG', 15, 160, imgWidth, imgHeight);
+      }
+      
+      // Skill Analysis Page
       pdf.addPage();
       
       // Section: Skill Analysis
       pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("2. Skill Analysis", 15, 20);
+      pdf.setTextColor(163, 29, 82);
+      pdf.text("3. Framework-Based Skill Analysis", 15, 20);
       
       // SFIA 9 Skills
       pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
+      pdf.setTextColor(80, 80, 80);
       pdf.text("SFIA 9 Skills:", 15, 30);
       
       // List SFIA skills
       let yPos = 38;
       pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
       results.skillMapping.sfia9.forEach((skill, index) => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("3. Framework-Based Skill Analysis (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
         pdf.text(`• ${skill.skill} (${skill.level})`, 20, yPos);
         yPos += 7;
       });
       
-      // Add page for DigComp skills
-      pdf.addPage();
-      
       // DigComp Skills
-      pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("3. Digital Competencies", 15, 20);
-      
+      yPos += 5;
       pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text("DigComp 2.2 Framework:", 15, 30);
+      pdf.setTextColor(80, 80, 80);
+      pdf.text("DigComp 2.2 Framework:", 15, yPos);
+      yPos += 8;
       
       // List DigComp skills
-      yPos = 38;
       pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
       results.skillMapping.digcomp22.forEach((comp, index) => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("3. Framework-Based Skill Analysis (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
         pdf.text(`• ${comp.competency} (${comp.level})`, 20, yPos);
         yPos += 7;
       });
       
-      // Add page for Skill Gap
+      // Add page for Skill Gap Analysis
       pdf.addPage();
       
       // Skill Gap Analysis
       pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
+      pdf.setTextColor(163, 29, 82);
       pdf.text("4. Skill Gap Analysis", 15, 20);
       
       // Skill Gaps
       pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
+      pdf.setTextColor(80, 80, 80);
       pdf.text("Skill Gaps to Address:", 15, 30);
       
       // List skill gaps
       yPos = 38;
       pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
       results.skillGapAnalysis.gaps.forEach((gap, index) => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("4. Skill Gap Analysis (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
         pdf.text(`• ${gap.skill} (Importance: ${gap.importance})`, 20, yPos);
-        yPos += 7;
+        const descText = pdf.splitTextToSize(`   ${gap.description}`, 170);
+        yPos += 6;
+        pdf.text(descText, 20, yPos);
+        yPos += (descText.length * 5) + 2;
       });
       
-      // Add page for strengths
-      pdf.addPage();
-      
-      // Strengths
-      pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("5. Skill Strengths", 15, 20);
-      
-      pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text("Your Current Strengths:", 15, 30);
+      // Strengths on same page if space allows
+      if (yPos < 200) {
+        yPos += 10;
+        pdf.setFontSize(12);
+        pdf.setTextColor(80, 80, 80);
+        pdf.text("Your Current Strengths:", 15, yPos);
+        yPos += 8;
+      } else {
+        pdf.addPage();
+        pdf.setFontSize(14);
+        pdf.setTextColor(163, 29, 82);
+        pdf.text("4. Skill Gap Analysis (continued)", 15, 20);
+        yPos = 30;
+        pdf.setFontSize(12);
+        pdf.setTextColor(80, 80, 80);
+        pdf.text("Your Current Strengths:", 15, yPos);
+        yPos += 8;
+      }
       
       // List strengths
-      yPos = 38;
       pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
       results.skillGapAnalysis.strengths.forEach((strength, index) => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("4. Skill Gap Analysis (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
         pdf.text(`• ${strength.skill} (Level: ${strength.level}, Relevance: ${strength.relevance})`, 20, yPos);
-        yPos += 7;
+        const descText = pdf.splitTextToSize(`   ${strength.description}`, 170);
+        yPos += 6;
+        pdf.text(descText, 20, yPos);
+        yPos += (descText.length * 5) + 2;
       });
       
       // Add page for University Pathway
@@ -165,8 +263,8 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       
       // University Pathway
       pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("6. University Pathway", 15, 20);
+      pdf.setTextColor(163, 29, 82);
+      pdf.text("5. University Pathway", 15, 20);
       
       // List university pathway steps
       yPos = 30;
@@ -174,16 +272,13 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       results.careerPathway.withDegree.forEach((step, index) => {
         if (yPos > 240) {
           pdf.addPage();
-          yPos = 20;
           pdf.setFontSize(14);
-          pdf.setTextColor(0, 0, 150);
-          pdf.text("6. University Pathway (continued)", 15, yPos);
-          yPos += 10;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("5. University Pathway (continued)", 15, 20);
+          yPos = 30;
         }
         
-        pdf.setTextColor(0, 0, 150);
+        pdf.setTextColor(163, 29, 82);
         pdf.setFontSize(12);
         pdf.text(`Step ${step.step}: ${step.role}`, 15, yPos);
         yPos += 7;
@@ -198,6 +293,10 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           yPos += 6;
         }
         
+        const descText = pdf.splitTextToSize(step.description, 170);
+        pdf.text(descText, 20, yPos);
+        yPos += (descText.length * 5) + 2;
+        
         pdf.text("Key Skills:", 20, yPos);
         yPos += 6;
         
@@ -206,7 +305,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           yPos += 6;
         });
         
-        yPos += 6;
+        yPos += 10;
       });
       
       // Add page for Vocational Pathway
@@ -214,8 +313,8 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       
       // Vocational Pathway
       pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("7. Vocational Pathway", 15, 20);
+      pdf.setTextColor(46, 139, 87); // Green for vocational
+      pdf.text("6. Vocational Pathway", 15, 20);
       
       // List vocational pathway steps
       yPos = 30;
@@ -223,16 +322,13 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       results.careerPathway.withoutDegree.forEach((step, index) => {
         if (yPos > 240) {
           pdf.addPage();
-          yPos = 20;
           pdf.setFontSize(14);
-          pdf.setTextColor(0, 0, 150);
-          pdf.text("7. Vocational Pathway (continued)", 15, yPos);
-          yPos += 10;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
+          pdf.setTextColor(46, 139, 87);
+          pdf.text("6. Vocational Pathway (continued)", 15, 20);
+          yPos = 30;
         }
         
-        pdf.setTextColor(0, 60, 0);
+        pdf.setTextColor(46, 139, 87);
         pdf.setFontSize(12);
         pdf.text(`Step ${step.step}: ${step.role}`, 15, yPos);
         yPos += 7;
@@ -247,6 +343,10 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           yPos += 6;
         }
         
+        const descText = pdf.splitTextToSize(step.description, 170);
+        pdf.text(descText, 20, yPos);
+        yPos += (descText.length * 5) + 2;
+        
         pdf.text("Key Skills:", 20, yPos);
         yPos += 6;
         
@@ -255,7 +355,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           yPos += 6;
         });
         
-        yPos += 6;
+        yPos += 10;
       });
       
       // Add page for Development Plan
@@ -263,90 +363,117 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       
       // Development Plan
       pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("8. Development Plan", 15, 20);
+      pdf.setTextColor(163, 29, 82);
+      pdf.text("7. Development Plan", 15, 20);
       
       // Skills to Acquire
       pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
+      pdf.setTextColor(80, 80, 80);
       pdf.text("Skills to Acquire:", 15, 30);
       
       // List skills to acquire
       yPos = 38;
       pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
       results.developmentPlan.skillsToAcquire.forEach((skill, index) => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("7. Development Plan (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
         pdf.text(`• ${skill.skill} (Priority: ${skill.priority})`, 20, yPos);
-        yPos += 7;
+        
+        if (Array.isArray(skill.resources) && skill.resources.length > 0) {
+          yPos += 5;
+          pdf.text("  Resources:", 25, yPos);
+          yPos += 5;
+          
+          skill.resources.forEach(resource => {
+            const resourceText = pdf.splitTextToSize(`  - ${resource}`, 165);
+            pdf.text(resourceText, 25, yPos);
+            yPos += (resourceText.length * 5);
+          });
+        }
+        
+        yPos += 5;
       });
       
-      // Add page for Recommended Programs
-      pdf.addPage();
-      
-      // Recommended Programs 
-      pdf.setFontSize(14);
-      pdf.setTextColor(0, 0, 150);
-      pdf.text("9. Recommended Programs", 15, 20);
-      
-      yPos = 30;
-      
-      // University Programs
+      // Recommended Certifications
+      yPos += 5;
       pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text("University Programs:", 15, yPos);
+      pdf.setTextColor(80, 80, 80);
+      pdf.text("Recommended Certifications:", 15, yPos);
       yPos += 8;
       
+      // University Programs
       pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text("University Programs:", 15, yPos);
+      yPos += 6;
+      
       results.developmentPlan.recommendedCertifications.university.forEach(cert => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("7. Development Plan (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
-        pdf.text(`• ${cert}`, 20, yPos);
-        yPos += 7;
+        const certText = pdf.splitTextToSize(`• ${cert}`, 175);
+        pdf.text(certText, 20, yPos);
+        yPos += (certText.length * 5) + 2;
       });
       
-      yPos += 5;
-      
       // Vocational Programs
-      pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text("Vocational Programs:", 15, yPos);
-      yPos += 8;
-      
+      yPos += 5;
       pdf.setFontSize(10);
+      pdf.text("Vocational Programs:", 15, yPos);
+      yPos += 6;
+      
       results.developmentPlan.recommendedCertifications.vocational.forEach(cert => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("7. Development Plan (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
-        pdf.text(`• ${cert}`, 20, yPos);
-        yPos += 7;
+        const certText = pdf.splitTextToSize(`• ${cert}`, 175);
+        pdf.text(certText, 20, yPos);
+        yPos += (certText.length * 5) + 2;
       });
       
-      yPos += 5;
-      
       // Online Programs
-      pdf.setFontSize(12);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text("Online Programs:", 15, yPos);
-      yPos += 8;
-      
+      yPos += 5;
       pdf.setFontSize(10);
+      pdf.text("Online Programs:", 15, yPos);
+      yPos += 6;
+      
       results.developmentPlan.recommendedCertifications.online.forEach(cert => {
         if (yPos > 270) {
           pdf.addPage();
-          yPos = 20;
+          pdf.setFontSize(14);
+          pdf.setTextColor(163, 29, 82);
+          pdf.text("7. Development Plan (continued)", 15, 20);
+          yPos = 30;
+          pdf.setFontSize(10);
+          pdf.setTextColor(0, 0, 0);
         }
         
-        pdf.text(`• ${cert}`, 20, yPos);
-        yPos += 7;
+        const certText = pdf.splitTextToSize(`• ${cert}`, 175);
+        pdf.text(certText, 20, yPos);
+        yPos += (certText.length * 5) + 2;
       });
       
       // Add page numbers to each page
@@ -364,7 +491,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       
       toast({
         title: 'PDF Created Successfully',
-        description: 'Your career pathway analysis PDF has been downloaded.',
+        description: 'Your career pathway analysis PDF has been downloaded with visualizations.',
         variant: 'default',
       });
     } catch (error: any) {
@@ -380,46 +507,58 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
   };
 
   return (
-    <Button 
-      onClick={generatePDF} 
-      size="lg" 
-      className={`${
-        isGenerating 
-          ? 'bg-blue-100 text-blue-800' 
-          : 'bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900'
-      } shadow-lg text-base gap-2 transition-all duration-200`}
-      disabled={isGenerating}
-    >
-      {isGenerating ? (
-        <>
-          <svg 
-            className="h-5 w-5 animate-spin text-blue-600" 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24"
-          >
-            <circle 
-              className="opacity-25" 
-              cx="12" 
-              cy="12" 
-              r="10" 
-              stroke="currentColor" 
-              strokeWidth="4"
-            />
-            <path 
-              className="opacity-75" 
-              fill="currentColor" 
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-          Generating PDF...
-        </>
-      ) : (
-        <>
-          <Download className="h-5 w-5" />
-          Download PDF Analysis
-        </>
-      )}
-    </Button>
+    <>
+      <Button 
+        onClick={generatePDF} 
+        size="lg" 
+        className={`${
+          isGenerating 
+            ? 'bg-blue-100 text-blue-800' 
+            : 'bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900'
+        } shadow-lg text-base gap-2 transition-all duration-200`}
+        disabled={isGenerating || !chartsReady}
+      >
+        {isGenerating ? (
+          <>
+            <svg 
+              className="h-5 w-5 animate-spin text-blue-600" 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24"
+            >
+              <circle 
+                className="opacity-25" 
+                cx="12" 
+                cy="12" 
+                r="10" 
+                stroke="currentColor" 
+                strokeWidth="4"
+              />
+              <path 
+                className="opacity-75" 
+                fill="currentColor" 
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            Generating Visual PDF...
+          </>
+        ) : (
+          <>
+            <Download className="h-5 w-5" />
+            Download PDF Analysis
+          </>
+        )}
+      </Button>
+      
+      {/* Hidden divs for chart rendering - these will be captured for the PDF */}
+      <div style={{ position: 'absolute', left: '-9999px', width: '800px' }}>
+        <div ref={radarChartRef}>
+          <SkillRadarChart results={results} />
+        </div>
+        <div ref={barChartRef}>
+          <ComparativeBarChart results={results} />
+        </div>
+      </div>
+    </>
   );
 }
