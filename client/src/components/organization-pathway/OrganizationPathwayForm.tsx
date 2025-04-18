@@ -123,10 +123,10 @@ interface OrganizationalAnalysisResult {
     }>;
     recommendedCertifications: {
       university: string[];
-      tafe: string[];
+      vocational: string[]; // TAFE in Australia, Community College in USA, Further Education in UK, etc.
       online: string[];
       universityLinks?: Array<{name: string, url: string}>;
-      tafeLinks?: Array<{name: string, url: string}>;
+      vocationalLinks?: Array<{name: string, url: string}>;
     };
     suggestedProjects: string[];
     learningPath: string;
@@ -330,13 +330,13 @@ export function OrganizationPathwayForm() {
           ],
           recommendedCertifications: {
             university: ["Graduate Certificate in Enterprise Architecture", "Master of IT Leadership", "Graduate Diploma in Digital Transformation"],
-            tafe: ["Advanced Diploma in IT Business Analysis", "Diploma in Project Management", "Certificate IV in Cybersecurity"],
+            vocational: ["Advanced Diploma in IT Business Analysis", "Diploma in Project Management", "Certificate IV in Cybersecurity"],
             online: ["Certified ScrumMaster", "AWS Certified Solutions Architect", "Google Project Management Certificate"],
             universityLinks: [
               { name: "Graduate Certificate in Enterprise Architecture - RMIT", url: "https://www.rmit.edu.au/study-with-us/levels-of-study/postgraduate-study/graduate-certificates/gc112" },
               { name: "Master of IT Leadership - University of Technology Sydney", url: "https://www.uts.edu.au/study/find-a-course/master-information-technology-leadership" }
             ],
-            tafeLinks: [
+            vocationalLinks: [
               { name: "Advanced Diploma in IT Business Analysis - TAFE NSW", url: "https://www.tafensw.edu.au/course/-/c/c/ICT60120-01/Advanced-Diploma-of-Information-Technology-(Business-Analysis)" },
               { name: "Diploma in Project Management - TAFE Queensland", url: "https://tafeqld.edu.au/courses/18115/diploma-of-project-management" }
             ]
@@ -1141,7 +1141,7 @@ export function OrganizationPathwayForm() {
                               </CardHeader>
                               <CardContent>
                                 <ul className="space-y-2">
-                                  {results.developmentPlan.recommendedCertifications.tafe.map((cert, index) => (
+                                  {results.developmentPlan.recommendedCertifications.vocational.map((cert, index) => (
                                     <li key={index} className="flex items-start">
                                       <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
                                       <span>{cert}</span>

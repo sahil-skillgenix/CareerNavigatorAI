@@ -1681,7 +1681,7 @@ function CareerAnalysisResults({
                           </div>
                         </li>
                         
-                        {results.developmentPlan.recommendedCertifications.tafe.map((cert: string, index: number) => (
+                        {results.developmentPlan.recommendedCertifications.vocational.map((cert: string, index: number) => (
                           <li key={index} className="text-sm flex items-start gap-2">
                             <div className="min-w-4 mt-1">•</div>
                             <div>{cert}</div>
