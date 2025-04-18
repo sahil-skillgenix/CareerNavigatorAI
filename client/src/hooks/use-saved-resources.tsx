@@ -74,7 +74,13 @@ export const SavedResourcesProvider = ({ children }: { children: ReactNode }) =>
     if (user && isInitialized) {
       try {
         const userId = user.id;
-        localStorage.setItem(`saved_resources_${userId}`, JSON.stringify(savedResources));
+        if (savedResources.length > 0) {
+          console.log(`Saving ${savedResources.length} resources to localStorage for user ${userId}`);
+          localStorage.setItem(`saved_resources_${userId}`, JSON.stringify(savedResources));
+        } else {
+          // If we have no resources, remove the item from localStorage
+          localStorage.removeItem(`saved_resources_${userId}`);
+        }
       } catch (error) {
         console.error("Error saving resources to localStorage:", error);
         toast({
@@ -109,19 +115,36 @@ export const SavedResourcesProvider = ({ children }: { children: ReactNode }) =>
   const saveResource = (resource: any) => {
     if (!resource || typeof resource !== 'object') {
       console.error("Invalid resource object:", resource);
+      toast({
+        title: "Error",
+        description: "Cannot save invalid resource. Resource object is missing.",
+        variant: "destructive"
+      });
       return;
     }
     
     try {
+      console.log("Attempting to save resource:", resource);
+      
+      // Create a validated resource with all required fields
       const validatedResource = validateResource(resource);
+      console.log("Validated resource:", validatedResource);
       
       setSavedResources((prevResources) => {
         // Check if resource with same ID already exists
         if (prevResources.some((r) => r.id === validatedResource.id)) {
+          console.log(`Resource with ID ${validatedResource.id} already exists, not saving duplicate`);
           return prevResources; // Resource already saved
         }
         
+        console.log(`Adding new resource: ${validatedResource.title}`);
         return [...prevResources, validatedResource];
+      });
+      
+      toast({
+        title: "Resource saved",
+        description: `"${resource.title || 'Resource'}" has been added to your saved resources.`,
+        variant: "default"
       });
     } catch (error) {
       console.error("Error saving resource:", error);

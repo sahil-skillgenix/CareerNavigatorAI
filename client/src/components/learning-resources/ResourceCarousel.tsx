@@ -41,9 +41,14 @@ export function ResourceCarousel({ resources = [], skillName = "General Skill" }
 
   const handleSaveResource = (resource: LearningResource) => {
     try {
+      console.log("Resource to save/remove:", resource);
+      
+      // Generate a reliable ID if not present
+      const resourceId = resource.id || `resource-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
       // Ensure all required fields are present
       const safeResource = {
-        id: resource.id || `resource-${Date.now()}`,
+        id: resourceId,
         title: resource.title || "Untitled Resource",
         type: resource.type || "Other",
         provider: resource.provider || "Unknown Provider",
@@ -59,20 +64,21 @@ export function ResourceCarousel({ resources = [], skillName = "General Skill" }
         savedAt: Date.now()
       };
       
-      if (isResourceSaved(safeResource.id)) {
-        removeResource(safeResource.id);
+      console.log("Current saved status:", isResourceSaved(resourceId));
+      console.log("Safe resource to save/remove:", safeResource);
+      
+      if (isResourceSaved(resourceId)) {
+        console.log("Removing resource:", resourceId);
+        removeResource(resourceId);
         toast({
           title: "Resource removed",
           description: `"${safeResource.title}" has been removed from your saved resources.`,
           variant: "default"
         });
       } else {
+        console.log("Saving resource:", safeResource);
         saveResource(safeResource);
-        toast({
-          title: "Resource saved",
-          description: `"${safeResource.title}" has been added to your saved resources.`,
-          variant: "default"
-        });
+        // Toast notification now happens inside saveResource function
       }
     } catch (error) {
       console.error("Error saving/removing resource:", error);
@@ -249,12 +255,12 @@ export function ResourceCarousel({ resources = [], skillName = "General Skill" }
                       )}
                       
                       <Button
-                        variant={isResourceSaved(resource.id) ? "secondary" : "outline"}
-                        className={`${isResourceSaved(resource.id) ? "bg-blue-100 text-blue-800 hover:bg-blue-200" : ""}`}
+                        variant={isResourceSaved(resource.id || '') ? "secondary" : "outline"}
+                        className={`${isResourceSaved(resource.id || '') ? "bg-blue-100 text-blue-800 hover:bg-blue-200" : ""}`}
                         onClick={() => handleSaveResource(resource)}
-                        title={isResourceSaved(resource.id) ? "Remove from saved resources" : "Save this resource"}
+                        title={isResourceSaved(resource.id || '') ? "Remove from saved resources" : "Save this resource"}
                       >
-                        {isResourceSaved(resource.id) ? (
+                        {isResourceSaved(resource.id || '') ? (
                           <BookmarkCheck className="w-5 h-5" />
                         ) : (
                           <Bookmark className="w-5 h-5" />
