@@ -755,7 +755,7 @@ function CareerAnalysisResults({
         </div>
         
         {/* Career Pathway */}
-        <div ref={pathwayRef} className="mb-12">
+        <div ref={pathwayRef} id="university-pathway" className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Career Pathway Options</h2>
           <p className="text-muted-foreground mb-6">
             Below are two distinct career pathway options tailored to your background and aspirations. 
@@ -945,6 +945,7 @@ function CareerAnalysisResults({
             
             {/* Pathway Without Degree */}
             <motion.div 
+              id="tafe-pathway"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
@@ -1037,7 +1038,7 @@ function CareerAnalysisResults({
         </div>
         
         {/* Development Plan */}
-        <div ref={developmentRef} className="mb-12">
+        <div ref={developmentRef} id="development-plan" className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Comprehensive Development Plan</h2>
           <p className="text-muted-foreground mb-6">
             This personalized development plan compares your existing skills against required skills for your target role,
@@ -1200,6 +1201,7 @@ function CareerAnalysisResults({
           
           {/* Social Skills Section */}
           <motion.div
+            id="social-skills"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
