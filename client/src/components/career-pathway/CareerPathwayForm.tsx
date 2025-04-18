@@ -4,10 +4,11 @@ import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, BookCheck, GraduationCap, History, Target, User2 } from "lucide-react";
+import { Loader2, BookCheck, GraduationCap, History, Target, User2, MapPin, Globe } from "lucide-react";
 import { PdfDownloader } from "./PdfDownloader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -52,6 +53,8 @@ interface FormData {
   educationalBackground: string;
   careerHistory: string;
   desiredRole: string;
+  state: string;
+  country: string;
 }
 
 export interface CareerAnalysisResult {
@@ -107,7 +110,9 @@ export function CareerPathwayForm() {
     currentSkills: "",
     educationalBackground: "",
     careerHistory: "",
-    desiredRole: ""
+    desiredRole: "",
+    state: "",
+    country: ""
   });
   
   const handleChange = (
@@ -319,6 +324,48 @@ export function CareerPathwayForm() {
                 <p className="text-xs text-muted-foreground">
                   {formData.desiredRole.length}/250 characters
                 </p>
+              </div>
+              
+              {/* Location Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* State */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <Label htmlFor="state">State/Province</Label>
+                  </div>
+                  <Input
+                    id="state"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    placeholder="e.g., Victoria, NSW, Queensland..."
+                  />
+                </div>
+                
+                {/* Country */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary" />
+                    <Label htmlFor="country">Country</Label>
+                  </div>
+                  <Select 
+                    value={formData.country} 
+                    onValueChange={(value) => handleSelectChange("country", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="australia">Australia</SelectItem>
+                      <SelectItem value="new-zealand">New Zealand</SelectItem>
+                      <SelectItem value="usa">United States</SelectItem>
+                      <SelectItem value="canada">Canada</SelectItem>
+                      <SelectItem value="uk">United Kingdom</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
             
