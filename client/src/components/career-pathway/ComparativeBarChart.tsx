@@ -17,7 +17,20 @@ interface ComparativeBarChartProps {
 }
 
 // Function to convert level string to numeric value (0-5)
-const levelToValue = (level: string): number => {
+const levelToValue = (level: string | number | undefined): number => {
+  // If level is undefined, return default value
+  if (level === undefined) {
+    return 2;
+  }
+  
+  // If level is already a number, just ensure it's in range 1-5
+  if (typeof level === 'number') {
+    return Math.min(5, Math.max(1, level));
+  }
+  
+  // Ensure we have a string for the text operations
+  const levelText = String(level);
+  
   // Common level terms and their numeric values (1-5 scale)
   const levelMap: Record<string, number> = {
     'novice': 1,
@@ -48,13 +61,13 @@ const levelToValue = (level: string): number => {
   };
   
   // Check for numeric strings like "Level 3" or just "3"
-  const numericMatch = level.match(/(\d+)/);
+  const numericMatch = levelText.match(/(\d+)/);
   if (numericMatch) {
     return Math.min(5, Math.max(1, parseInt(numericMatch[1])));
   }
   
   // Convert to lowercase for matching
-  const lowercaseLevel = level.toLowerCase();
+  const lowercaseLevel = levelText.toLowerCase();
   
   // Check each key in the levelMap
   for (const [term, value] of Object.entries(levelMap)) {
