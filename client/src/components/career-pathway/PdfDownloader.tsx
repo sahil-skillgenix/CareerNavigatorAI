@@ -21,8 +21,14 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       setIsGenerating(true);
       toast({
         title: 'Preparing PDF',
-        description: 'We are generating your career pathway analysis PDF...',
+        description: 'We are generating your career pathway analysis PDF. This may take a moment...',
       });
+
+      // Get the content to be printed
+      const contentElement = document.getElementById('career-analysis-results');
+      if (!contentElement) {
+        throw new Error('Content element not found');
+      }
 
       // Create a new jsPDF instance
       const pdf = new jsPDF({
@@ -33,479 +39,144 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
 
       // Set document properties
       pdf.setProperties({
-        title: 'Career Pathway Analysis',
-        subject: 'Career Development Plan',
+        title: 'Skillgenix Career Pathway Analysis',
+        subject: 'Professional Career Development Plan',
         author: 'Skillgenix',
-        creator: 'Skillgenix Platform'
+        creator: 'Skillgenix Career Platform'
       });
 
-      // Get the content to be printed
-      const contentElement = document.getElementById('career-analysis-results');
-      if (!contentElement) {
-        throw new Error('Content element not found');
-      }
+      // Use html2canvas to capture the entire content with styling
+      const scale = 2; // Higher scale for better quality
+      const canvas = await html2canvas(contentElement, {
+        scale: scale,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        windowWidth: 1200, // Fixed width for consistency
+        onclone: (clonedDoc) => {
+          // Add print-specific styling to the cloned document
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            * { box-sizing: border-box; }
+            body { background: white !important; }
+            .pdf-page-break { page-break-after: always; }
+          `;
+          clonedDoc.head.appendChild(style);
+          
+          // Mark page breaks for main sections
+          const sections = clonedDoc.querySelectorAll('.mb-12');
+          sections.forEach(section => {
+            if (section.nextElementSibling && section.nextElementSibling.classList.contains('mb-12')) {
+              section.classList.add('pdf-page-break');
+            }
+          });
+        }
+      });
 
-      // Set starting position
-      let yPosition = 20;
+      // Canvas dimensions
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Add header
+      // Add header to first page
       pdf.setFillColor(65, 82, 179); // Primary blue color
-      pdf.rect(0, 0, pageWidth, 15, 'F');
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(14);
-      pdf.text('Skillgenix - Career Pathway Analysis', pageWidth / 2, 10, { align: 'center' });
+      pdf.rect(0, 0, pageWidth, 20, 'F');
       
-      // Add date
-      pdf.setTextColor(100, 100, 100);
-      pdf.setFontSize(10);
+      // Add Skillgenix text logo
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Skill', 20, 12);
+      pdf.setTextColor(220, 220, 255);
+      pdf.text('genix', 35, 12);
+      
+      // Add title
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('Career Pathway Analysis', pageWidth / 2, 12, { align: 'center' });
+      
+      // Add date and user info
       const today = new Date().toLocaleDateString('en-AU', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
       });
-      pdf.text(`Generated on: ${today}`, pageWidth - margin, yPosition, { align: 'right' });
-      yPosition += 10;
-      
-      // Add user name
-      pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(12);
-      pdf.text(`Prepared for: ${userName}`, margin, yPosition);
-      yPosition += 10;
-      
-      // Add title
-      pdf.setTextColor(65, 82, 179);
-      pdf.setFontSize(16);
-      pdf.text('Career Pathway Analysis', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 10;
-      
-      // Add executive summary
-      pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(14);
-      pdf.text('Executive Summary', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(11);
-      const splitSummary = pdf.splitTextToSize(results.executiveSummary, contentWidth);
-      pdf.text(splitSummary, margin, yPosition);
-      yPosition += splitSummary.length * 6 + 10;
-      
-      // Check if we need a new page
-      if (yPosition > 250) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      // Add skill mapping section
-      pdf.setTextColor(65, 82, 179);
-      pdf.setFontSize(14);
-      pdf.text('Framework-Based Skill Analysis', margin, yPosition);
-      yPosition += 7;
-      
-      // Add SFIA skills
-      pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(12);
-      pdf.text('SFIA 9 Skills', margin, yPosition);
-      yPosition += 7;
       
       pdf.setFontSize(10);
-      results.skillMapping.sfia9.forEach((skill, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const skillText = `• ${skill.skill} (Level: ${skill.level})`;
-        pdf.text(skillText, margin, yPosition);
-        yPosition += 5;
-        
-        const splitDesc = pdf.splitTextToSize(skill.description, contentWidth - 5);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(splitDesc, margin + 5, yPosition);
-        pdf.setTextColor(50, 50, 50);
-        yPosition += splitDesc.length * 5 + 3;
-      });
-      
-      yPosition += 5;
-      
-      // Check if we need a new page
-      if (yPosition > 250) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      // Add DigComp skills
-      pdf.setFontSize(12);
-      pdf.text('DigComp 2.2 Competencies', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      results.skillMapping.digcomp22.forEach((skill, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const skillText = `• ${skill.competency} (Level: ${skill.level})`;
-        pdf.text(skillText, margin, yPosition);
-        yPosition += 5;
-        
-        const splitDesc = pdf.splitTextToSize(skill.description, contentWidth - 5);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(splitDesc, margin + 5, yPosition);
-        pdf.setTextColor(50, 50, 50);
-        yPosition += splitDesc.length * 5 + 3;
-      });
-      
-      yPosition += 5;
-      
-      // Add a new page for Skill Gap Analysis
-      pdf.addPage();
-      yPosition = 20;
-      
-      // Add skill gap analysis
-      pdf.setTextColor(65, 82, 179);
-      pdf.setFontSize(14);
-      pdf.text('Skill Gap Analysis', margin, yPosition);
-      yPosition += 7;
-      
-      // Add gaps
       pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(12);
-      pdf.text('Skills Gaps', margin, yPosition);
-      yPosition += 7;
+      pdf.text(`Generated on: ${today}`, pageWidth - 10, 30, { align: 'right' });
+      pdf.text(`Prepared for: ${userName}`, 10, 30);
       
-      pdf.setFontSize(10);
-      results.skillGapAnalysis.gaps.forEach((gap, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
+      // Calculate dimensions for fitting canvas to PDF
+      const canvasRatio = canvas.height / canvas.width;
+      const usablePageHeight = pageHeight - 40; // Account for header and margins
+      
+      // How many pages we need based on the content height
+      const totalSlices = Math.ceil((canvas.height * (pageWidth / canvas.width)) / usablePageHeight);
+      
+      for (let i = 0; i < totalSlices; i++) {
+        // First page starts after header (40mm from top)
+        const yPos = i === 0 ? 40 : 10;
+        
+        // Height to use from source canvas for this page
+        const sourceY = i * (canvas.width * (usablePageHeight / pageWidth));
+        const sliceHeight = Math.min(
+          canvas.width * (usablePageHeight / pageWidth),
+          canvas.height - sourceY
+        );
+        
+        // Calculate the destination height for this slice
+        const destHeight = (sliceHeight * pageWidth) / canvas.width;
+        
+        // Add this slice of the canvas to the PDF
+        pdf.addImage(
+          imgData,
+          'JPEG',
+          0, // x position - full width
+          yPos, // y position
+          pageWidth, // width (full page width)
+          destHeight, // proportional height
+          '', // alias
+          'MEDIUM', // compression
+          0, // rotation
+          sourceY, // source Y (cropping start)
+          canvas.width, // source width
+          sliceHeight // source height (cropping height)
+        );
+        
+        // Add new page if needed
+        if (i < totalSlices - 1) {
           pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const gapText = `• ${gap.skill} (Importance: ${gap.importance})`;
-        pdf.text(gapText, margin, yPosition);
-        yPosition += 5;
-        
-        const splitDesc = pdf.splitTextToSize(gap.description, contentWidth - 5);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(splitDesc, margin + 5, yPosition);
-        pdf.setTextColor(50, 50, 50);
-        yPosition += splitDesc.length * 5 + 3;
-      });
-      
-      yPosition += 5;
-      
-      // Check if we need a new page
-      if (yPosition > 250) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      
-      // Add strengths
-      pdf.setFontSize(12);
-      pdf.text('Existing Strengths', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      results.skillGapAnalysis.strengths.forEach((strength, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const strengthText = `• ${strength.skill} (Level: ${strength.level}, Relevance: ${strength.relevance})`;
-        pdf.text(strengthText, margin, yPosition);
-        yPosition += 5;
-        
-        const splitDesc = pdf.splitTextToSize(strength.description, contentWidth - 5);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(splitDesc, margin + 5, yPosition);
-        pdf.setTextColor(50, 50, 50);
-        yPosition += splitDesc.length * 5 + 3;
-      });
-      
-      // Add a new page for Career Pathway
-      pdf.addPage();
-      yPosition = 20;
-      
-      // Add career pathway section
-      pdf.setTextColor(65, 82, 179);
-      pdf.setFontSize(14);
-      pdf.text('Career Pathway Options', margin, yPosition);
-      yPosition += 7;
-      
-      // Add with degree pathway
-      pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(12);
-      pdf.text('University Degree Pathway', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      results.careerPathway.withDegree.forEach((step, index) => {
-        // Check if we need a new page
-        if (yPosition > 250) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        pdf.setTextColor(65, 82, 179);
-        const stepTitle = `Step ${step.step}: ${step.role}`;
-        pdf.text(stepTitle, margin, yPosition);
-        yPosition += 5;
-        
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(`Timeframe: ${step.timeframe}`, margin + 5, yPosition);
-        yPosition += 5;
-        
-        if (step.requiredQualification) {
-          pdf.text(`Required Qualification: ${step.requiredQualification}`, margin + 5, yPosition);
-          yPosition += 5;
-        }
-        
-        pdf.text('Key Skills Needed:', margin + 5, yPosition);
-        yPosition += 5;
-        
-        step.keySkillsNeeded.forEach(skill => {
-          pdf.text(`  • ${skill}`, margin + 10, yPosition);
-          yPosition += 5;
-        });
-        
-        const splitDesc = pdf.splitTextToSize(step.description, contentWidth - 5);
-        pdf.text(splitDesc, margin + 5, yPosition);
-        yPosition += splitDesc.length * 5 + 8;
-        
-        pdf.setTextColor(50, 50, 50);
-      });
-      
-      // Add a new page for non-degree pathway
-      pdf.addPage();
-      yPosition = 20;
-      
-      // Add without degree pathway
-      pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(12);
-      pdf.text('TAFE/Industry Certification Pathway', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      results.careerPathway.withoutDegree.forEach((step, index) => {
-        // Check if we need a new page
-        if (yPosition > 250) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        pdf.setTextColor(65, 82, 179);
-        const stepTitle = `Step ${step.step}: ${step.role}`;
-        pdf.text(stepTitle, margin, yPosition);
-        yPosition += 5;
-        
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(`Timeframe: ${step.timeframe}`, margin + 5, yPosition);
-        yPosition += 5;
-        
-        if (step.alternativeQualification) {
-          pdf.text(`Alternative Qualification: ${step.alternativeQualification}`, margin + 5, yPosition);
-          yPosition += 5;
-        }
-        
-        pdf.text('Key Skills Needed:', margin + 5, yPosition);
-        yPosition += 5;
-        
-        step.keySkillsNeeded.forEach(skill => {
-          pdf.text(`  • ${skill}`, margin + 10, yPosition);
-          yPosition += 5;
-        });
-        
-        const splitDesc = pdf.splitTextToSize(step.description, contentWidth - 5);
-        pdf.text(splitDesc, margin + 5, yPosition);
-        yPosition += splitDesc.length * 5 + 8;
-        
-        pdf.setTextColor(50, 50, 50);
-      });
-      
-      // Add a new page for Development Plan
-      pdf.addPage();
-      yPosition = 20;
-      
-      // Add development plan section
-      pdf.setTextColor(65, 82, 179);
-      pdf.setFontSize(14);
-      pdf.text('Development Plan', margin, yPosition);
-      yPosition += 10;
-      
-      // Add skills to acquire
-      pdf.setTextColor(50, 50, 50);
-      pdf.setFontSize(12);
-      pdf.text('Skills To Acquire', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      results.developmentPlan.skillsToAcquire.forEach((skill, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const skillText = `• ${skill.skill} (Priority: ${skill.priority})`;
-        pdf.text(skillText, margin, yPosition);
-        yPosition += 5;
-        
-        pdf.setTextColor(100, 100, 100);
-        pdf.text('Resources:', margin + 5, yPosition);
-        yPosition += 5;
-        
-        skill.resources.forEach(resource => {
-          // Check if we need a new page
-          if (yPosition > 280) {
-            pdf.addPage();
-            yPosition = 20;
-          }
           
-          const splitResource = pdf.splitTextToSize(`- ${resource}`, contentWidth - 10);
-          pdf.text(splitResource, margin + 10, yPosition);
-          yPosition += splitResource.length * 5;
-        });
-        
-        pdf.setTextColor(50, 50, 50);
-        yPosition += 3;
-      });
-      
-      // Check if we need a new page
-      if (yPosition > 220) {
-        pdf.addPage();
-        yPosition = 20;
+          // Add header to subsequent pages
+          pdf.setFillColor(65, 82, 179);
+          pdf.rect(0, 0, pageWidth, 15, 'F');
+          pdf.setTextColor(255, 255, 255);
+          pdf.setFontSize(12);
+          pdf.text('Skillgenix - Career Pathway Analysis', pageWidth / 2, 10, { align: 'center' });
+        }
       }
       
-      // Add recommended certifications
-      pdf.setFontSize(12);
-      pdf.text('Recommended Certifications', margin, yPosition);
-      yPosition += 7;
-      
-      // University certifications
-      pdf.setFontSize(10);
-      pdf.text('University Programs:', margin + 5, yPosition);
-      yPosition += 5;
-      
-      results.developmentPlan.recommendedCertifications.university.forEach(cert => {
-        // Check if we need a new page
-        if (yPosition > 280) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const splitCert = pdf.splitTextToSize(`• ${cert}`, contentWidth - 10);
-        pdf.text(splitCert, margin + 10, yPosition);
-        yPosition += splitCert.length * 5;
-      });
-      
-      yPosition += 3;
-      
-      // TAFE certifications
-      pdf.text('TAFE Programs:', margin + 5, yPosition);
-      yPosition += 5;
-      
-      results.developmentPlan.recommendedCertifications.tafe.forEach(cert => {
-        // Check if we need a new page
-        if (yPosition > 280) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const splitCert = pdf.splitTextToSize(`• ${cert}`, contentWidth - 10);
-        pdf.text(splitCert, margin + 10, yPosition);
-        yPosition += splitCert.length * 5;
-      });
-      
-      yPosition += 3;
-      
-      // Online certifications
-      pdf.text('Online Programs:', margin + 5, yPosition);
-      yPosition += 5;
-      
-      results.developmentPlan.recommendedCertifications.online.forEach(cert => {
-        // Check if we need a new page
-        if (yPosition > 280) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const splitCert = pdf.splitTextToSize(`• ${cert}`, contentWidth - 10);
-        pdf.text(splitCert, margin + 10, yPosition);
-        yPosition += splitCert.length * 5;
-      });
-      
-      // Check if we need a new page
-      if (yPosition > 220) {
-        pdf.addPage();
-        yPosition = 20;
-      } else {
-        yPosition += 10;
-      }
-      
-      // Add suggested projects
-      pdf.setFontSize(12);
-      pdf.text('Suggested Projects', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      results.developmentPlan.suggestedProjects.forEach((project, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-        
-        const splitProject = pdf.splitTextToSize(`• ${project}`, contentWidth - 5);
-        pdf.text(splitProject, margin + 5, yPosition);
-        yPosition += splitProject.length * 5 + 2;
-      });
-      
-      // Add learning path
-      if (yPosition > 220) {
-        pdf.addPage();
-        yPosition = 20;
-      } else {
-        yPosition += 10;
-      }
-      
-      pdf.setFontSize(12);
-      pdf.text('Learning Path', margin, yPosition);
-      yPosition += 7;
-      
-      pdf.setFontSize(10);
-      const splitLearningPath = pdf.splitTextToSize(results.developmentPlan.learningPath, contentWidth - 5);
-      pdf.text(splitLearningPath, margin + 5, yPosition);
-      
-      // Add footer to all pages
-      const pageCount = (pdf as any).internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.setTextColor(150, 150, 150);
-        pdf.text(`Skillgenix Career Analysis - Page ${i} of ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
-      }
-      
+      // Add footer
+      pdf.setFillColor(65, 82, 179);
+      pdf.rect(0, pageHeight - 10, pageWidth, 10, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(8);
+      pdf.text('© Skillgenix - Generated with AI Career Planning Technology', pageWidth / 2, pageHeight - 4, { align: 'center' });
+
       // Save the PDF
-      pdf.save(`Career_Pathway_Analysis_${userName.replace(/\s+/g, '_')}.pdf`);
+      pdf.save(`Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
       
       toast({
-        title: 'PDF Generated',
-        description: 'Your career pathway analysis PDF has been downloaded.',
-        variant: 'default',
+        title: 'PDF Created Successfully',
+        description: 'Your career pathway analysis has been downloaded as a PDF.',
+        variant: 'success',
       });
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('PDF generation error:', error);
       toast({
         title: 'PDF Generation Failed',
-        description: 'There was an error generating your PDF. Please try again.',
+        description: 'There was an error creating your PDF. Please try again later.',
         variant: 'destructive',
       });
     } finally {
