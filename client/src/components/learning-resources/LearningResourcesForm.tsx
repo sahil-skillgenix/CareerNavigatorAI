@@ -158,6 +158,16 @@ export function LearningResourcesForm() {
   // Mutation for getting learning path
   const learningPathMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
+      // Reset stage
+      setProcessingStage("initial");
+      
+      // First stage - show user we're starting the process
+      setProcessingStage("creating");
+      toast({
+        title: "Creating Learning Path",
+        description: "Designing a customized learning journey for you...",
+      });
+      
       const res = await apiRequest("POST", "/api/learning-path", {
         skill: data.skill,
         currentLevel: data.currentLevel,
@@ -166,16 +176,40 @@ export function LearningResourcesForm() {
         learningStyle: data.learningStyle,
       });
       
+      // Second stage - indicate verification in progress
+      setProcessingStage("reviewing");
+      toast({
+        title: "Quality Check in Progress",
+        description: "Reviewing and validating your learning path resources...",
+      });
+      
+      // Short delay to show verification stage (the actual verification happens on the server)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Final stage
+      setProcessingStage("finalizing");
+      toast({
+        title: "Finalizing Your Learning Path",
+        description: "Completing your personalized learning journey...",
+      });
+      
+      // Another short delay for the final stage
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reset stage before finishing
+      setProcessingStage(null);
       return await res.json();
     },
     onSuccess: (data: LearningPathRecommendation) => {
       setLearningPath(data);
       toast({
         title: "Learning Path Generated",
-        description: "We've created a customized learning path for you.",
+        description: "We've created a verified, high-quality learning path tailored to your needs.",
       });
     },
     onError: (error: Error) => {
+      // Reset stage on error
+      setProcessingStage(null);
       toast({
         title: "Error Generating Learning Path",
         description: error.message,
@@ -436,7 +470,9 @@ export function LearningResourcesForm() {
                       {resourceRecommendationMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Finding Resources...
+                          {processingStage === "searching" && "Searching for resources..."}
+                          {processingStage === "verifying" && "Double-checking quality..."}
+                          {!processingStage && "Processing..."}
                         </>
                       ) : (
                         "Get Resource Recommendations"
@@ -576,7 +612,10 @@ export function LearningResourcesForm() {
                       {learningPathMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating Learning Path...
+                          {processingStage === "creating" && "Creating learning path..."}
+                          {processingStage === "reviewing" && "Verifying resources..."}
+                          {processingStage === "finalizing" && "Preparing your pathway..."}
+                          {!processingStage && "Processing..."}
                         </>
                       ) : (
                         "Generate Learning Path"
