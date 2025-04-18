@@ -992,7 +992,7 @@ function CareerAnalysisResults({
             
             {/* Pathway Without Degree */}
             <motion.div 
-              id="tafe-pathway"
+              id="vocational-pathway"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}

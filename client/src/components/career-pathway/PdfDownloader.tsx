@@ -56,42 +56,129 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       throw new Error(`Section not found: ${sectionId}`);
     }
 
+    // Create a temporary clone of the section to avoid modifying the original
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = `${section.offsetWidth}px`;
+    tempContainer.style.backgroundColor = 'white';
+    document.body.appendChild(tempContainer);
+    
+    // Clone the section
+    const clonedSection = section.cloneNode(true) as HTMLElement;
+    clonedSection.id = `${sectionId}-clone`;
+    tempContainer.appendChild(clonedSection);
+    
     // Wait for animations to complete and images to load
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Special handling for sections with charts and graphics
-    const hasCanvas = section.querySelectorAll('canvas').length > 0;
-    const hasSvg = section.querySelectorAll('svg').length > 0;
+    // Prepare SVG elements for better capture
+    // Convert SVGs to images for better compatibility
+    const svgElements = clonedSection.querySelectorAll('svg');
+    const svgPromises: Promise<void>[] = [];
     
-    return html2canvas(section, {
+    svgElements.forEach((svg) => {
+      const svgRect = svg.getBoundingClientRect();
+      
+      // Skip tiny or invalid SVGs
+      if (svgRect.width < 5 || svgRect.height < 5) return;
+      
+      const promise = new Promise<void>((resolve) => {
+        try {
+          // Convert SVG to data URL
+          const svgData = new XMLSerializer().serializeToString(svg);
+          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+          const svgUrl = URL.createObjectURL(svgBlob);
+          
+          // Create image from SVG
+          const img = new Image();
+          img.src = svgUrl;
+          
+          img.onload = () => {
+            try {
+              // Create a canvas and draw the SVG
+              const canvas = document.createElement('canvas');
+              canvas.width = svgRect.width;
+              canvas.height = svgRect.height;
+              canvas.style.width = `${svgRect.width}px`;
+              canvas.style.height = `${svgRect.height}px`;
+              
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Replace SVG with canvas
+                if (svg.parentNode) {
+                  svg.parentNode.replaceChild(canvas, svg);
+                }
+              }
+              
+              URL.revokeObjectURL(svgUrl);
+              resolve();
+            } catch (e) {
+              console.error("Error converting SVG to canvas:", e);
+              resolve();
+            }
+          };
+          
+          img.onerror = () => {
+            console.error("Error loading SVG image");
+            URL.revokeObjectURL(svgUrl);
+            resolve();
+          };
+        } catch (e) {
+          console.error("Error processing SVG:", e);
+          resolve();
+        }
+      });
+      
+      svgPromises.push(promise);
+    });
+    
+    // Handle canvas elements
+    const canvasElements = clonedSection.querySelectorAll('canvas');
+    canvasElements.forEach((canvas) => {
+      try {
+        const originalCanvas = section.querySelector(`canvas[id="${canvas.id}"]`) as HTMLCanvasElement;
+        if (originalCanvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalCanvas, 0, 0);
+          }
+        }
+      } catch (e) {
+        console.error("Error copying canvas:", e);
+      }
+    });
+    
+    // Wait for all SVG conversions to complete
+    await Promise.all(svgPromises);
+    
+    // Process charts and make sure they're visible
+    const chartContainers = clonedSection.querySelectorAll('.recharts-wrapper');
+    chartContainers.forEach((container) => {
+      (container as HTMLElement).style.backgroundColor = 'white';
+    });
+
+    // Use html2canvas to capture the prepared section
+    const canvas = await html2canvas(clonedSection, {
       scale: scale,
       useCORS: true,
       logging: false,
       allowTaint: true,
       backgroundColor: "#ffffff",
-      // Higher quality rendering for sections with graphics
-      imageTimeout: 5000, // increase timeout for image loading
-      // Use foreign objects for SVG elements
-      foreignObjectRendering: hasSvg,
-      // Ensure canvas elements are captured properly
-      onclone: (clonedDoc) => {
-        if (hasCanvas) {
-          const sourceCanvases = section.querySelectorAll('canvas');
-          const clonedCanvases = clonedDoc.getElementById(sectionId)?.querySelectorAll('canvas');
-          
-          if (sourceCanvases && clonedCanvases) {
-            for (let i = 0; i < sourceCanvases.length; i++) {
-              if (i < clonedCanvases.length) {
-                const context = clonedCanvases[i].getContext('2d');
-                if (context) {
-                  context.drawImage(sourceCanvases[i], 0, 0);
-                }
-              }
-            }
-          }
-        }
-      }
+      imageTimeout: 8000, // Increased timeout for complex sections
     });
+    
+    // Clean up the temporary elements
+    document.body.removeChild(tempContainer);
+    
+    return canvas;
   };
 
   const addSectionToPage = (
@@ -101,7 +188,8 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
     startY: number = 40, 
     maxHeight: number = 220
   ): number => {
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    // Use PNG for better quality with charts and diagrams
+    const imgData = canvas.toDataURL('image/png', 0.92);
     
     // Calculate dimensions while preserving aspect ratio
     const aspectRatio = canvas.height / canvas.width;
@@ -116,24 +204,29 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       // Center the image
       const leftMargin = (pageWidth - newWidth) / 2;
       
+      // Use compression for optimized file size
       pdf.addImage(
         imgData, 
-        'JPEG', 
+        'PNG', 
         leftMargin, 
         startY, 
         newWidth, 
-        imgHeight
+        imgHeight,
+        undefined,
+        'FAST'
       );
     } else {
       // Center the image horizontally
       const leftMargin = (pageWidth - imgWidth) / 2;
       pdf.addImage(
         imgData, 
-        'JPEG', 
+        'PNG', 
         leftMargin, 
         startY, 
         imgWidth, 
-        imgHeight
+        imgHeight,
+        undefined,
+        'FAST'
       );
     }
     
@@ -187,7 +280,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         {id: 'framework-analysis', name: 'Framework-Based Skill Analysis'},
         {id: 'skill-gap-analysis', name: 'Skill Gap Analysis'},
         {id: 'university-pathway', name: 'University Pathway'},
-        {id: 'tafe-pathway', name: 'TAFE Pathway'},
+        {id: 'vocational-pathway', name: 'Vocational Pathway'},
         {id: 'development-plan', name: 'Development Plan'},
         {id: 'social-skills', name: 'Social Skills Development'},
         {id: 'similar-roles', name: 'Similar Roles'}
