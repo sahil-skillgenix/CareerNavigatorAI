@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { CareerAnalysisResult } from './CareerPathwayForm';
+import type { jsPDF as jsPDFType } from 'jspdf';
 
 interface PdfDownloaderProps {
   results: CareerAnalysisResult;
@@ -484,7 +485,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       pdf.text(splitLearningPath, margin + 5, yPosition);
       
       // Add footer to all pages
-      const pageCount = pdf.internal.getNumberOfPages();
+      const pageCount = (pdf as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
@@ -498,7 +499,7 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       toast({
         title: 'PDF Generated',
         description: 'Your career pathway analysis PDF has been downloaded.',
-        variant: 'success',
+        variant: 'default',
       });
     } catch (error) {
       console.error('Error generating PDF:', error);

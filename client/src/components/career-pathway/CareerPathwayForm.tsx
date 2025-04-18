@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BookCheck, GraduationCap, History, Target, User2 } from "lucide-react";
+import { PdfDownloader } from "./PdfDownloader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -53,7 +54,7 @@ interface FormData {
   desiredRole: string;
 }
 
-interface CareerAnalysisResult {
+export interface CareerAnalysisResult {
   executiveSummary: string;
   skillMapping: {
     sfia9: Array<{skill: string, level: string, description: string}>;
@@ -356,6 +357,7 @@ function CareerAnalysisResults({
   results: CareerAnalysisResult;
   onRestart: () => void;
 }) {
+  const { user } = useAuth();
   const { toast } = useToast();
   // Create a reference to scroll to specific sections
   const executeRef = useRef<HTMLDivElement>(null);
@@ -510,6 +512,7 @@ function CareerAnalysisResults({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
+        id="career-analysis-results"
       >
         <div className="bg-primary/5 rounded-lg p-6 mb-8">
           <h1 className="text-3xl font-bold mb-4">Your Career Pathway Analysis</h1>
