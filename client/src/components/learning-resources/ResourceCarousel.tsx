@@ -41,44 +41,24 @@ export function ResourceCarousel({ resources = [], skillName = "General Skill" }
 
   const handleSaveResource = (resource: LearningResource) => {
     try {
-      console.log("Resource to save/remove:", resource);
+      // Simple approach - just pass the original resource
+      // saveResource function has internal validation
       
-      // Generate a reliable ID if not present
-      const resourceId = resource.id || `resource-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      
-      // Ensure all required fields are present
-      const safeResource = {
-        id: resourceId,
-        title: resource.title || "Untitled Resource",
-        type: resource.type || "Other",
-        provider: resource.provider || "Unknown Provider",
-        url: resource.url || "",
-        description: resource.description || "No description available",
-        estimatedHours: Number(resource.estimatedHours) || 0,
-        difficulty: resource.difficulty || "Beginner",
-        costType: resource.costType || "Unknown",
-        tags: Array.isArray(resource.tags) ? resource.tags : [],
-        relevanceScore: Number(resource.relevanceScore) || 5,
-        matchReason: resource.matchReason || "",
-        skillName: skillName || "General Skill",
-        savedAt: Date.now()
-      };
-      
-      console.log("Current saved status:", isResourceSaved(resourceId));
-      console.log("Safe resource to save/remove:", safeResource);
-      
-      if (isResourceSaved(resourceId)) {
-        console.log("Removing resource:", resourceId);
-        removeResource(resourceId);
+      if (isResourceSaved(resource.id || '')) {
+        // If resource is already saved, remove it
+        removeResource(resource.id || '');
         toast({
           title: "Resource removed",
-          description: `"${safeResource.title}" has been removed from your saved resources.`,
+          description: `"${resource.title}" has been removed from your saved resources.`,
           variant: "default"
         });
       } else {
-        console.log("Saving resource:", safeResource);
-        saveResource(safeResource);
-        // Toast notification now happens inside saveResource function
+        // If resource is not saved, add with skill context
+        const resourceWithContext = {
+          ...resource,
+          skillName: skillName || "General Skill"
+        };
+        saveResource(resourceWithContext);
       }
     } catch (error) {
       console.error("Error saving/removing resource:", error);
