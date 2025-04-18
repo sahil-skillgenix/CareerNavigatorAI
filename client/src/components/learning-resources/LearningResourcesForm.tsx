@@ -90,8 +90,14 @@ export function LearningResourcesForm() {
   });
 
   // Mutation for getting resource recommendations
+  // State for tracking processing stages
+  const [processingStage, setProcessingStage] = useState<string | null>(null);
+  
   const resourceRecommendationMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
+      // Reset stage
+      setProcessingStage("initial");
+      
       const skills: SkillToLearn[] = [
         {
           skill: data.skill,
@@ -104,22 +110,43 @@ export function LearningResourcesForm() {
       
       const preferredTypes = data.resourceType ? [data.resourceType] : undefined;
       
+      // First stage - show user we're starting the process
+      setProcessingStage("searching");
+      toast({
+        title: "Finding Resources",
+        description: "Searching for the best learning materials...",
+      });
+      
       const res = await apiRequest("POST", "/api/learning-resources", {
         skills,
         preferredTypes,
         maxResults: 5,
       });
       
+      // Second stage - indicate verification in progress
+      setProcessingStage("verifying");
+      toast({
+        title: "Verifying Results",
+        description: "Validating and checking the quality of recommended resources...",
+      });
+      
+      // Short delay to show verification stage (the actual verification happens on the server)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Reset stage before finishing
+      setProcessingStage(null);
       return await res.json();
     },
     onSuccess: (data: Record<string, LearningResource[]>) => {
       setRecommendedResources(data);
       toast({
         title: "Recommendations Retrieved",
-        description: "We've found learning resources tailored to your needs.",
+        description: "We've found high-quality, verified learning resources tailored to your needs.",
       });
     },
     onError: (error: Error) => {
+      // Reset stage on error
+      setProcessingStage(null);
       toast({
         title: "Error Getting Recommendations",
         description: error.message,

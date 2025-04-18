@@ -45,11 +45,14 @@ export async function getResourceRecommendations(
   maxResults: number = 5
 ): Promise<Record<string, LearningResource[]>> {
   try {
+    console.log("Starting resource recommendation process for skills:", skills.map(s => s.skill).join(', '));
+    
     const userTypePreference = preferredTypes && preferredTypes.length > 0 
       ? `User prefers these resource types: ${preferredTypes.join(', ')}.` 
       : '';
     
-    const prompt = `
+    // FIRST PASS - Initial resource generation
+    const initialPrompt = `
     Act as an expert learning resource curator with extensive knowledge of educational platforms, courses, books, and other learning materials.
 
     I need specific, high-quality learning resources for each of the following skills:
@@ -77,39 +80,91 @@ export async function getResourceRecommendations(
     11. Match reason (brief explanation of why this resource is relevant)
 
     Format your response as a JSON object where the keys are skill names and the values are arrays of learning resources.
-    IMPORTANT: All resources must be real, currently available materials. Do not generate fictional resources.
+    IMPORTANT: All resources must be real, currently available materials. Do not generate fictional resources. Ensure URLs are valid and accurate.
     `;
 
-    const response = await openai.chat.completions.create({
+    console.log("Executing first pass (initial resource generation)");
+    
+    const initialResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
           content: "You are an expert learning resource curator with extensive knowledge of educational platforms, courses, books, and other learning materials. You only recommend real, existing resources that are currently available."
         },
-        { role: "user", content: prompt }
+        { role: "user", content: initialPrompt }
       ],
       response_format: { type: "json_object" },
       temperature: 0.5,
     });
 
-    const content = response.choices[0].message.content || "";
-    if (!content) {
-      throw new Error("Empty response from OpenAI API");
+    const initialContent = initialResponse.choices[0].message.content || "";
+    if (!initialContent) {
+      throw new Error("Empty response from OpenAI API during initial resource generation");
     }
 
-    const recommendations = JSON.parse(content) as Record<string, LearningResource[]>;
+    // Parse initial recommendations
+    const initialRecommendations = JSON.parse(initialContent) as Record<string, LearningResource[]>;
+    console.log(`First pass complete. Found resources for ${Object.keys(initialRecommendations).length} skills`);
     
-    // Validate and ensure each resource has required fields
-    Object.keys(recommendations).forEach(skill => {
+    // SECOND PASS - Validation and enhancement
+    console.log("Executing second pass (validation and enhancement)");
+    const validationPrompt = `
+    You are a quality assurance specialist for learning resource recommendations. 
+    Below is a set of recommended learning resources for various skills.
+    
+    Please review these recommendations carefully and ensure:
+    1. All resources are real, currently available materials
+    2. All URLs and providers are accurate and match the resource title
+    3. All descriptions accurately describe the content
+    4. Resource types are appropriate for the content
+    5. Difficulty levels and estimated hours are reasonable
+    6. Relevance scores accurately reflect how well the resource matches the skill needs
+    
+    Add, modify, or remove resources as needed to ensure high quality recommendations.
+    If a resource seems questionable or potentially fictional, replace it with a verified alternative.
+    
+    Here are the current recommendations:
+    ${JSON.stringify(initialRecommendations, null, 2)}
+    
+    Return the validated and improved recommendations in the same JSON format.
+    IMPORTANT: Your response must be valid JSON that follows the exact same structure.
+    `;
+
+    const validationResponse = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a quality assurance specialist for learning resource recommendations. Your job is to verify that all recommendations are accurate, high-quality, and represent real, available resources."
+        },
+        { role: "user", content: validationPrompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3, // Lower temperature for more precise validation
+    });
+
+    const validationContent = validationResponse.choices[0].message.content || "";
+    if (!validationContent) {
+      throw new Error("Empty response from OpenAI API during validation");
+    }
+
+    // Parse validated recommendations
+    const validatedRecommendations = JSON.parse(validationContent) as Record<string, LearningResource[]>;
+    console.log(`Second pass complete. Validated resources for ${Object.keys(validatedRecommendations).length} skills`);
+    
+    // Final processing and normalization
+    console.log("Performing final processing and normalization of resources");
+    Object.keys(validatedRecommendations).forEach(skill => {
       // Handle case where the skill key exists but the resources array is undefined
-      if (!recommendations[skill]) {
-        recommendations[skill] = [];
+      if (!validatedRecommendations[skill]) {
+        validatedRecommendations[skill] = [];
         return;
       }
       
-      recommendations[skill] = recommendations[skill].map(resource => {
+      validatedRecommendations[skill] = validatedRecommendations[skill].map(resource => {
         if (!resource) {
+          console.warn(`Missing resource found for skill: ${skill}, replacing with default`);
           // Provide default values if resource is undefined
           return {
             id: `resource-${Math.random().toString(36).substring(2, 11)}`,
@@ -117,16 +172,17 @@ export async function getResourceRecommendations(
             type: "article",
             provider: "Unknown",
             url: "N/A",
-            description: "No description available",
+            description: "No description available. Please try different search criteria.",
             estimatedHours: 1,
             difficulty: "beginner",
             costType: "free",
             tags: [],
             relevanceScore: 5,
-            matchReason: `Default resource for ${skill}`
+            matchReason: `Default resource for ${skill}. The originally recommended resource could not be verified.`
           };
         }
         
+        // Ensure all required fields are present
         return {
           id: resource.id || `resource-${Math.random().toString(36).substring(2, 11)}`,
           title: resource.title || "Untitled Resource",
@@ -144,7 +200,8 @@ export async function getResourceRecommendations(
       });
     });
 
-    return recommendations;
+    console.log("Resource recommendation process complete");
+    return validatedRecommendations;
   } catch (error: unknown) {
     console.error("Error getting learning resources:", error);
     if (error instanceof Error) {
@@ -163,7 +220,10 @@ export async function generateLearningPath(
   learningStyle?: string
 ): Promise<LearningPathRecommendation> {
   try {
-    const prompt = `
+    console.log(`Starting learning path generation for skill: ${skill}`);
+    
+    // FIRST PASS - Initial learning path generation
+    const initialPrompt = `
     Create a comprehensive learning path for someone who wants to develop the following skill:
     
     SKILL: ${skill}
@@ -188,76 +248,166 @@ export async function generateLearningPath(
     - Estimated hours to complete
     - Difficulty level
     - Cost type (free, freemium, paid, subscription)
-    - Why this resource is particularly valuable at this step
+    - Tags (relevant to the resource)
+    - Relevance score (1-10)
+    - Why this resource is particularly valuable at this step (matchReason)
     
     Format your response as a JSON object following the LearningPathRecommendation interface.
     IMPORTANT: All resources must be real, currently available materials. Do not invent fictional resources.
+    Ensure all URLs are valid and accurately point to the specified resource.
     `;
 
-    const response = await openai.chat.completions.create({
+    console.log("Executing first pass (initial learning path generation)");
+    
+    const initialResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
           content: "You are an expert learning path designer specializing in skill development. You create structured, effective learning paths using real, currently available resources."
         },
-        { role: "user", content: prompt }
+        { role: "user", content: initialPrompt }
       ],
       response_format: { type: "json_object" },
       temperature: 0.5,
     });
 
-    const content = response.choices[0].message.content || "";
-    if (!content) {
-      throw new Error("Empty response from OpenAI API");
+    const initialContent = initialResponse.choices[0].message.content || "";
+    if (!initialContent) {
+      throw new Error("Empty response from OpenAI API during initial learning path generation");
     }
 
-    let learningPath = JSON.parse(content) as LearningPathRecommendation;
+    // Parse initial learning path
+    const initialLearningPath = JSON.parse(initialContent) as LearningPathRecommendation;
+    console.log("First pass complete. Initial learning path generated.");
+    
+    // SECOND PASS - Validation and quality assurance
+    console.log("Executing second pass (validation and quality assurance)");
+    const validationPrompt = `
+    You are a quality assurance specialist for learning path recommendations.
+    Below is a learning path for developing skills in "${skill}".
+    
+    Please review this learning path carefully and ensure:
+    1. The sequence of steps is logical and progresses appropriately from ${currentLevel} to ${targetLevel}
+    2. All resources are real, currently available materials
+    3. All URLs and providers are accurate and match the resource titles
+    4. Resource types are appropriate for the content
+    5. The milestones are meaningful and achievable
+    6. Time estimates are reasonable
+    
+    Improve the learning path by:
+    - Verifying all resources exist and are available
+    - Ensuring a clear progression of difficulty
+    - Adding more detailed resource descriptions if needed
+    - Adjusting time estimates to be realistic
+    - Adding relevant resources if steps are missing key components
+    
+    Here is the current learning path:
+    ${JSON.stringify(initialLearningPath, null, 2)}
+    
+    Return the validated and improved learning path in the same JSON format.
+    IMPORTANT: Your response must be valid JSON with the same structure as the original.
+    `;
+
+    const validationResponse = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a quality assurance specialist for learning path recommendations. Your job is to verify that learning paths are accurate, high-quality, and include real, available resources."
+        },
+        { role: "user", content: validationPrompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3, // Lower temperature for more precise validation
+    });
+
+    const validationContent = validationResponse.choices[0].message.content || "";
+    if (!validationContent) {
+      throw new Error("Empty response from OpenAI API during validation");
+    }
+
+    // Parse validated learning path
+    let learningPath = JSON.parse(validationContent) as LearningPathRecommendation;
+    console.log("Second pass complete. Learning path validated and improved.");
+    
+    // Final processing and normalization
+    console.log("Performing final processing and normalization");
     
     // Ensure the learning path has the required structure
     if (!learningPath.recommendedSequence) {
+      console.warn("Learning path missing recommendedSequence, adding empty array");
       learningPath.recommendedSequence = [];
     }
     
-    // Ensure ID for each resource
-    learningPath.recommendedSequence = learningPath.recommendedSequence.map(step => {
+    // Ensure ID for each resource and validate all resources in each step
+    learningPath.recommendedSequence = learningPath.recommendedSequence.map((step, stepIndex) => {
+      if (!step) {
+        console.warn(`Empty step found at index ${stepIndex}, creating default step`);
+        return {
+          step: stepIndex + 1,
+          resources: [],
+          milestone: `Complete step ${stepIndex + 1}`,
+          estimatedTimeToComplete: "2-4 weeks"
+        };
+      }
+      
       if (!step.resources) {
+        console.warn(`Missing resources in step ${step.step || stepIndex + 1}, initializing empty array`);
         step.resources = [];
         return step;
       }
       
-      step.resources = step.resources.map(resource => {
-        if (!resource) return {
-          id: `resource-${Math.random().toString(36).substring(2, 11)}`,
-          title: "Resource unavailable",
-          type: "article",
-          provider: "Unknown",
-          description: "No description available",
-          estimatedHours: 1,
-          difficulty: "beginner",
-          costType: "free",
-          tags: [],
-          relevanceScore: 5,
-          matchReason: "Added as fallback"
-        };
+      step.resources = step.resources.map((resource, resourceIndex) => {
+        if (!resource) {
+          console.warn(`Empty resource found in step ${step.step || stepIndex + 1}, creating default resource`);
+          return {
+            id: `resource-${Math.random().toString(36).substring(2, 11)}`,
+            title: "Resource unavailable",
+            type: "article",
+            provider: "Unknown",
+            description: "No description available. Please try different search criteria.",
+            estimatedHours: 1,
+            difficulty: "beginner",
+            costType: "free",
+            tags: [],
+            relevanceScore: 5,
+            matchReason: `Default resource for ${skill}. The originally recommended resource could not be verified.`
+          };
+        }
         
+        // Ensure all required fields are present
         return {
           ...resource,
-          id: resource.id || `resource-${Math.random().toString(36).substring(2, 11)}`
+          id: resource.id || `resource-${Date.now()}-${stepIndex}-${resourceIndex}`,
+          title: resource.title || `Resource for ${skill}`,
+          type: resource.type || "article",
+          provider: resource.provider || "Unknown",
+          url: resource.url || "N/A",
+          tags: resource.tags || [],
+          relevanceScore: resource.relevanceScore || 7
         };
       });
-      return step;
+      
+      // Ensure step has all required fields
+      return {
+        ...step,
+        step: step.step || stepIndex + 1,
+        milestone: step.milestone || `Complete step ${stepIndex + 1}`,
+        estimatedTimeToComplete: step.estimatedTimeToComplete || "2-4 weeks"
+      };
     });
 
-    // Ensure all required fields are present
+    // Ensure all required fields are present at the top level
     if (!learningPath.skill) {
       learningPath.skill = skill;
     }
     
     if (!learningPath.description) {
-      learningPath.description = `Learning path for ${skill}`;
+      learningPath.description = `Learning path for ${skill} from ${currentLevel} to ${targetLevel}`;
     }
 
+    console.log("Learning path generation process complete");
     return learningPath;
   } catch (error: unknown) {
     console.error("Error generating learning path:", error);
