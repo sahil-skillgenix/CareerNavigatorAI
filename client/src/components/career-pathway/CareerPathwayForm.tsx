@@ -655,11 +655,31 @@ function CareerAnalysisResults({
             This analysis is based on the <span className="font-medium">SFIA 9 Framework</span> (Skills Framework for the Information Age) and <span className="font-medium">DigComp 2.2 Framework</span> (European Digital Competence Framework), providing a comprehensive assessment of your technical and digital competencies.
           </p>
           
+          {/* New Radar Chart Visualization */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-8 bg-white rounded-lg border shadow-sm p-6"
+          >
+            <SkillRadarChart results={results} />
+          </motion.div>
+          
+          {/* New Bar Chart Visualization */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-8 bg-white rounded-lg border shadow-sm p-6"
+          >
+            <ComparativeBarChart results={results} />
+          </motion.div>
+          
           {/* Combined Framework Skill Charts */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="mb-8"
           >
             <CombinedFrameworkCharts 
