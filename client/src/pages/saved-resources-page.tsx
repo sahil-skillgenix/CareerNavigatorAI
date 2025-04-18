@@ -171,7 +171,7 @@ export default function SavedResourcesPage() {
   const { savedResources, removeResource, clearAllResources } = useSavedResources();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -184,7 +184,7 @@ export default function SavedResourcesPage() {
       resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesType = selectedType === "" || resource.type.toLowerCase() === selectedType.toLowerCase();
+    const matchesType = selectedType === "all" || resource.type.toLowerCase() === selectedType.toLowerCase();
     
     return matchesSearch && matchesType;
   });
@@ -274,10 +274,10 @@ export default function SavedResourcesPage() {
                     <SelectValue placeholder="Filter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     {resourceTypes.map((type) => (
-                      <SelectItem key={type} value={type.toLowerCase()}>
-                        {type}
+                      <SelectItem key={type} value={type.toLowerCase() || "unknown"}>
+                        {type || "Unknown"}
                       </SelectItem>
                     ))}
                   </SelectContent>
