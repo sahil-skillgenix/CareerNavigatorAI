@@ -2060,8 +2060,8 @@ function CareerAnalysisResults({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          {/* Save to Dashboard button */}
-          <div className="flex justify-center w-full">
+          {/* Save to Dashboard and PDF Download buttons */}
+          <div className="flex justify-center w-full gap-4">
             <div className="bg-gradient-to-r from-green-600 to-teal-600 p-0.5 rounded-lg">
               <Button 
                 onClick={() => {
@@ -2082,6 +2082,10 @@ function CareerAnalysisResults({
                 </svg>
                 Save Analysis to Dashboard
               </Button>
+            </div>
+            
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-0.5 rounded-lg">
+              <PdfDownloader results={results} userName={user?.fullName || 'User'} />
             </div>
           </div>
           

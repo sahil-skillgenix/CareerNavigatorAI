@@ -516,13 +516,12 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
   return (
     <Button 
       onClick={generatePDF} 
-      variant="outline" 
-      size="sm" 
-      className="flex items-center gap-1"
+      size="lg" 
+      className="bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900 shadow-lg text-base gap-2"
       disabled={isGenerating}
     >
-      <Download className="h-4 w-4" />
-      {isGenerating ? 'Generating...' : 'Download PDF'}
+      <Download className="h-5 w-5" />
+      {isGenerating ? 'Generating PDF...' : 'Download PDF Analysis'}
     </Button>
   );
 }
