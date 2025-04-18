@@ -1149,11 +1149,11 @@ export function OrganizationPathwayForm() {
                                   ))}
                                 </ul>
                                 
-                                {results.developmentPlan.recommendedCertifications.tafeLinks && (
+                                {results.developmentPlan.recommendedCertifications.vocationalLinks && (
                                   <div className="mt-4 pt-3 border-t">
                                     <h5 className="text-sm font-medium mb-2">Featured Programs:</h5>
                                     <ul className="space-y-2">
-                                      {results.developmentPlan.recommendedCertifications.tafeLinks.map((link, index) => (
+                                      {results.developmentPlan.recommendedCertifications.vocationalLinks.map((link, index) => (
                                         <li key={index}>
                                           <a 
                                             href={link.url} 
