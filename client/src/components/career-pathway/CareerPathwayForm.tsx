@@ -89,7 +89,7 @@ export interface CareerAnalysisResult {
     skillsToAcquire: Array<{skill: string, priority: string, resources: string[]}>;
     recommendedCertifications: {
       university: string[];
-      tafe: string[];
+      vocational: string[]; // TAFE in Australia, Community College in USA, Further Education in UK, etc.
       online: string[];
     };
     suggestedProjects: string[];
