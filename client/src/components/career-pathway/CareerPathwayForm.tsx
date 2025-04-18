@@ -1537,9 +1537,13 @@ function CareerAnalysisResults({
                       <div className="text-sm">
                         <div className="font-medium mb-1">Recommended Resources:</div>
                         <ul className="list-disc list-inside space-y-1">
-                          {skill.resources.map((resource: string, resourceIndex: number) => (
-                            <li key={resourceIndex} className="text-gray-700">{resource}</li>
-                          ))}
+                          {Array.isArray(skill.resources) ? (
+                            skill.resources.map((resource: string, resourceIndex: number) => (
+                              <li key={resourceIndex} className="text-gray-700">{resource}</li>
+                            ))
+                          ) : (
+                            <li className="text-gray-700">{skill.resources}</li>
+                          )}
                         </ul>
                       </div>
                     </motion.div>
@@ -1625,21 +1629,21 @@ function CareerAnalysisResults({
                     </CardContent>
                   </Card>
                   
-                  {/* TAFE Courses */}
+                  {/* Vocational Courses */}
                   <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-emerald-700 flex items-center gap-2">
                         <BookCheck className="h-5 w-5" />
-                        TAFE Courses
+                        Vocational Courses
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {/* Top TAFE institutions in Australia with links */}
+                        {/* Top vocational institutions with links */}
                         <li className="text-sm flex items-start gap-2 mb-4 pb-3 border-b border-emerald-100">
                           <div className="min-w-4 mt-1">🏫</div>
                           <div className="w-full">
-                            <span className="font-medium block mb-1">Major TAFE Institutions</span>
+                            <span className="font-medium block mb-1">Major Vocational Institutions</span>
                             <div className="grid grid-cols-1 gap-2 mt-2">
                               <a 
                                 href="https://www.tafensw.edu.au/" 
@@ -1648,34 +1652,34 @@ function CareerAnalysisResults({
                                 className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
                               >
                                 <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                TAFE NSW
+                                TAFE NSW (Australia)
                               </a>
                               <a 
-                                href="https://www.tafe.qld.gov.au/" 
+                                href="https://www.cityandguilds.com/" 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
                               >
                                 <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                TAFE Queensland
+                                City & Guilds (UK)
                               </a>
                               <a 
-                                href="https://www.swtafe.edu.au/" 
+                                href="https://www.ed2go.com/" 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
                               >
                                 <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                South West TAFE
+                                Ed2Go (USA)
                               </a>
                               <a 
-                                href="https://www.boxhill.edu.au/" 
+                                href="https://www.btec.co.uk/" 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1"
                               >
                                 <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                Box Hill Institute
+                                BTEC (UK)
                               </a>
                             </div>
                           </div>
