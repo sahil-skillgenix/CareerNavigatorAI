@@ -999,7 +999,7 @@ function CareerAnalysisResults({
               className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-xl border border-emerald-100"
             >
               <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-emerald-700">TAFE & Skills Pathway</h3>
+                <h3 className="text-xl font-bold text-emerald-700">Vocational & Skills Pathway</h3>
                 <p className="text-sm text-emerald-600">Progression through practical qualifications & experience</p>
               </div>
               
@@ -1573,12 +1573,30 @@ function CareerAnalysisResults({
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {/* Sample Australian Universities with links */}
+                        {/* Sample Global Universities with links */}
                         <li className="text-sm flex items-start gap-2 mb-4 pb-3 border-b border-blue-100">
                           <div className="min-w-4 mt-1">🏫</div>
                           <div className="w-full">
-                            <span className="font-medium block mb-1">Top Australian Universities</span>
+                            <span className="font-medium block mb-1">Top Global Universities</span>
                             <div className="grid grid-cols-1 gap-2 mt-2">
+                              <a 
+                                href="https://www.harvard.edu/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                Harvard University (USA)
+                              </a>
+                              <a 
+                                href="https://www.cam.ac.uk/" 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                              >
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                University of Cambridge (UK)
+                              </a>
                               <a 
                                 href="https://www.sydney.edu.au/" 
                                 target="_blank"
@@ -1586,34 +1604,16 @@ function CareerAnalysisResults({
                                 className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
                               >
                                 <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                                University of Sydney
+                                University of Sydney (Australia)
                               </a>
                               <a 
-                                href="https://www.unimelb.edu.au/" 
+                                href="https://www.u-tokyo.ac.jp/en/" 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
                               >
                                 <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                                University of Melbourne
-                              </a>
-                              <a 
-                                href="https://www.anu.edu.au/" 
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                              >
-                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                                Australian National University
-                              </a>
-                              <a 
-                                href="https://www.unsw.edu.au/" 
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                              >
-                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                                UNSW Sydney
+                                University of Tokyo (Japan)
                               </a>
                             </div>
                           </div>
