@@ -1,0 +1,62 @@
+export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<CareerAnalysisOutput> {
+  try {
+    const prompt = `
+    You are an expert career analyst specialized in SFIA 9 and DigComp 2.2 frameworks. Analyze the provided career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights.
+
+    Provide structured, actionable career guidance as follows:
+
+    1. INPUT ANALYSIS:
+    - Clearly assess all provided inputs, explicitly noting any assumptions or ambiguities.
+    - Explicitly consider geographic location (state and country), personal interests, passions, lifestyle preferences, and desired work-life balance.
+
+    2. SKILL MAPPING & GAP ANALYSIS:
+    - Map provided skills distinctly against both SFIA 9 and DigComp 2.2 frameworks.
+    - Clearly identify skill strengths and gaps, prioritizing them (high, medium, low).
+
+    3. CAREER PATHWAY RECOMMENDATIONS:
+    - Create two clearly defined pathways:
+      a. With formal degree qualifications
+      b. Without formal degree qualifications
+    - Detail clear sequential steps in each pathway, including timeframes, key actionable tasks, essential skills, and qualifications or viable alternatives.
+
+    4. DEVELOPMENT AND LEARNING PLAN:
+    - Provide a prioritized (high-medium-low) roadmap for skill acquisition.
+    - Recommend targeted certifications (university, vocational, online) relevant to the user's geographic and professional context.
+    - Suggest realistic and beneficial projects aligned with stated career goals.
+
+    5. SIMILAR ROLES ANALYSIS:
+    - Identify alternative roles closely related, scored by similarity.
+    - Clearly outline actionable comparisons covering skill overlap, unique role-specific requirements, salary ranges, and geographic demand.
+
+    6. SOCIAL AND SOFT SKILLS RECOMMENDATIONS:
+    - Highlight critical interpersonal skills with tailored development strategies.
+    - Provide specific strategies for leadership improvement, effective communication, and teamwork.
+    - Suggest geographically relevant networking opportunities.
+
+    7. PERSONALIZED CONSIDERATIONS:
+    - Address risk tolerance and stability preferences.
+    - Discuss relevant market and industry trends impacting the desired role.
+    - Provide financial planning advice, including salary expectations and negotiation strategies.
+    - Identify potential obstacles and provide clear mitigation strategies.
+    - Offer insights on navigating diversity, equity, and inclusion (DEI) considerations.
+    - Recommend strategies for maintaining mental health and overall well-being during career transitions.
+    - Suggest mentorship and coaching opportunities, including influential industry figures or programs.
+    - Provide specific guidance on career pivots, transitions, or lateral moves.
+    - Recommend continuing professional development (CPD) and lifelong learning strategies tailored to the user.
+
+    8. REVIEW AND INTERACTIVE RECOMMENDATIONS:
+    - Clearly state all assumptions made and provide explicit questions to further clarify or enhance the analysis.
+
+    Perform a two-step thorough review of all analysis and recommendations for accuracy, relevance, and completeness before presenting results clearly and concisely.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    return JSON.parse(response.choices[0].message.content);
+  } catch (error) {
+    console.error("Error generating career analysis:", error);
+    throw error;
+  }
+}

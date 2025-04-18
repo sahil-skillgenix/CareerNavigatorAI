@@ -77,8 +77,8 @@ export interface CareerAnalysisOutput {
 export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<CareerAnalysisOutput> {
   try {
     const prompt = `
-    You are an expert career analyst with deep knowledge of SFIA 9 and DigComp 2.2 frameworks. 
-    Analyze this career information and provide a comprehensive career pathway:
+    You are an expert career analyst specialized in SFIA 9 and DigComp 2.2 frameworks. 
+    Analyze this career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights:
     
     Current Professional Level: ${input.professionalLevel}
     Current Skills: ${input.currentSkills}
@@ -88,44 +88,49 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     State/Province: ${input.state || 'Not specified'}
     Country: ${input.country || 'Not specified'}
     
-    STRICTLY follow this 8-step process in order:
+    STRICTLY follow this enhanced 8-step process in order:
     
-    1. ANALYZE INPUT USING FRAMEWORKS:
+    1. INPUT ANALYSIS USING FRAMEWORKS:
+    - Clearly assess all provided inputs, explicitly noting any assumptions or ambiguities
     - Thoroughly analyze the user's input using both SFIA 9 and DigComp 2.2 frameworks
     - Identify specific competency areas and levels from both frameworks that apply to the user
     - Create a comprehensive assessment of the user's current position within these frameworks
+    - Explicitly consider location (state and country), personal interests, passions, and lifestyle preferences
     
     2. MAP EXISTING SKILLS:
     - For SFIA 9: Map each skill to the appropriate category and assign a level (1-7), with detailed descriptions
     - For DigComp 2.2: Map skills to the appropriate competence area and proficiency level with detailed explanations
     - Be specific about which competencies and levels are already met, with justification
+    - Clearly identify skill strengths, rating them (high, medium, low) based on evidence provided
     
     3. PERFORM SKILL GAP ANALYSIS:
     - Compare current skills against requirements for desired role using both frameworks
-    - Identify specific skill gaps with importance ratings and detailed descriptions
+    - Identify specific skill gaps with importance ratings (high, medium, low) and detailed descriptions
     - Highlight existing strengths with relevance to desired role and detailed explanations
     - Provide comprehensive analysis of missing competencies and levels across both frameworks
+    - Prioritize gaps based on criticality for the desired role
     
     4. GENERATE CAREER PATHWAY:
     - Create TWO distinct pathway options:
       a) WITH Degree + Skills + Experience: Traditional pathway assuming university education
       b) WITHOUT Degree, using Skills + TAFE courses + Experience: Alternative pathway for non-university route
     - For each pathway option, create a logical progression of roles/steps toward the goal
-    - Include timeframe estimates for each step
-    - List key skills needed for each step
+    - Include realistic timeframe estimates for each step
+    - List specific key skills needed for each step
     - Provide detailed descriptions of each role/step
-    - For the degree pathway, include specific qualification requirements
-    - For the non-degree pathway, include alternative qualifications like TAFE courses
+    - For the degree pathway, include specific qualification requirements from institutions in the user's location
+    - For the non-degree pathway, include alternative qualifications like TAFE courses available in the user's location
     
     5. IDENTIFY SIMILAR ROLES:
-    - Analyze the job market in the user's specified location (state/province and country)
+    - Analyze the job market specifically in the user's location (state/province and country)
     - Identify 4-6 alternative roles that share significant skill overlap with the desired role
     - For each similar role, provide:
       a) A similarity score (percentage of skill overlap)
       b) List of overlapping key skills
       c) Unique requirements not shared with the desired role
-      d) Location-specific salary information based on state/province and country
-      e) Assessment of local job market demand (high/medium/low with explanation)
+      d) Location-specific salary information based on state/province and country (include currency and ranges)
+      e) Assessment of local job market demand (high/medium/low with explanation specific to the location)
+      f) Transition difficulty assessment (easy, moderate, challenging)
     
     6. DEVELOP SOCIAL & SOFT SKILLS PLAN:
     - Identify critical soft skills needed for success in the desired role and industry
@@ -133,22 +138,26 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     - Include location-specific communication recommendations (accounting for regional business culture)
     - Provide tailored leadership development advice relevant to the industry and career level
     - Suggest teamwork strategies specific to the role
-    - Recommend networking opportunities that are specific to the user's location (state/province and country)
+    - Recommend networking opportunities that are specific to the user's location, naming actual organizations, events, or meetups
+    - Address risk tolerance, emotional intelligence, and work-life balance considerations
     
     7. CREATE PERSONALIZED DEVELOPMENT PLAN:
-    - List specific skills to acquire or improve with priority levels
+    - List specific skills to acquire or improve with priority levels (high, medium, low)
     - Recommend multiple types of learning resources:
-      a) Location-specific university courses and programs (based on state/province and country)
-      b) Location-specific technical/vocational education (TAFE in Australia, or equivalent)
+      a) Location-specific university courses and programs - ONLY from institutions in the user's state/province
+      b) Location-specific technical/vocational education - ONLY from institutions in the user's state/province
       c) Online learning platforms and courses accessible in the user's location
-    - Suggest specific experiences or projects to pursue
-    - Outline a clear learning path with milestones
-    - Consider multiple ways to reach the career goal
+    - Suggest specific experiences or projects to pursue with actionable steps
+    - Outline a clear learning path with milestones and timeframes
+    - Include strategies for maintaining mental health and well-being during career transitions
+    - Recommend mentorship and coaching opportunities available in the user's location
+    - Provide specific guidance on career pivots, transitions, or lateral moves
     
     8. QUALITY ASSURANCE (Two Review Stages):
     - First Review: Validate input data and interpretations for accuracy and consistency
     - Second Review: Re-check all sections for completeness, coherence, and alignment with the frameworks
     - Ensure all location-specific recommendations are accurate and relevant to the provided state/province and country
+    - Verify that all pathways and recommendations are realistic and achievable
     
     Return the result as a JSON object with these EXACT sections:
     - executiveSummary: A concise overview of the analysis
@@ -194,23 +203,38 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
         secondReview
       }
     
-    IMPORTANT: 
-    - Only return the final output AFTER both review stages are passed
-    - The output must follow the exact format specified above
-    - STRONGLY prioritize the user's location (state/province and country) in ALL recommendations
-    - For Educational Programs:
-      * In Australia: ONLY recommend universities and TAFE institutions from the specified state (e.g., Victoria = Melbourne Uni, RMIT, Victoria Uni, Box Hill TAFE)
-      * In other countries: ONLY recommend institutions specific to that country and region
-      * Include the institution's location directly in the recommendation text
-    - For Similar Roles:
-      * Provide salary ranges SPECIFIC to the user's location (e.g., "AUD 90,000-110,000 in Victoria, Australia")
-      * Indicate demand levels specific to the location (e.g., "High demand in Sydney region")
-    - For Social Skills & Networking:
-      * Recommend networking events in the user's specific city/state
-      * Include location-specific professional associations
-    - For non-specified locations, default to Australian options but clearly indicate this
-    - ALL sections must contain explicit location-specific information where applicable
-    `;
+    CRITICAL LOCATION-SPECIFIC INSTRUCTIONS (HIGHEST PRIORITY): 
+    - Every section must contain explicit location-specific information directly mentioning the user's state/province and country
+    - ALL educational program recommendations MUST ONLY come from the user's exact location (state/province)
+    
+    For Educational Programs:
+    - In Australia: ONLY recommend universities and TAFE institutions from the user's specific state:
+      * Victoria: ONLY Melbourne University, RMIT, Monash, Victoria University, Deakin, Swinburne, La Trobe, Box Hill TAFE, Holmesglen TAFE
+      * New South Wales: ONLY UNSW, Sydney University, UTS, Macquarie, Western Sydney University, TAFE NSW
+      * Queensland: ONLY UQ, QUT, Griffith, James Cook, TAFE Queensland
+      * Western Australia: ONLY UWA, Curtin, Murdoch, Edith Cowan, North Metropolitan TAFE
+      * South Australia: ONLY Adelaide University, UniSA, Flinders, TAFE SA
+      * Tasmania: ONLY University of Tasmania, TasTAFE
+      * Northern Territory: ONLY Charles Darwin University, CDU VET
+      * ACT: ONLY ANU, University of Canberra, CIT
+    
+    - For other countries: ONLY recommend institutions from that specific country and region/city
+    - Always include the full location name in the recommendation (e.g., "RMIT University, Melbourne, Victoria")
+    
+    For Similar Roles:
+    - Provide salary ranges with the EXACT local currency and format:
+      * Australia: "AUD 90,000-110,000 in Melbourne, Victoria"
+      * US: "USD 80,000-95,000 in San Francisco, California"
+    - Specify demand levels with the exact location name:
+      * "High demand in Sydney metropolitan area, NSW"
+      * "Moderate demand in Brisbane CBD, Queensland"
+    
+    For Social Skills & Networking:
+    - Name actual professional organizations that exist in the user's location
+    - Recommend real networking events or meetup types in the user's city/state
+    - Include location-specific cultural context for communication style
+    
+    For non-specified locations, default to Australian national options, but CLEARLY indicate this is due to unspecified location.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -270,20 +294,27 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Validate all recommendations against education standards for the user's location
           - Ensure pathways are realistic and achievable in the specified location
           
-          Only return output that follows the specified JSON format after both review stages are passed. 
+          MANDATORY LOCATION-SPECIFIC REQUIREMENTS:
+          - NEVER provide generic location recommendations - all must be specific to the user's state/province and country
+          - For educational institution recommendations:
+            * In Victoria: ONLY recommend Melbourne-based institutions (Melbourne Uni, RMIT, Monash, Victoria Uni, Deakin, Swinburne)
+            * In New South Wales: ONLY recommend NSW-based institutions (UNSW, Sydney Uni, UTS, Macquarie, Western Sydney)
+            * In Queensland: ONLY recommend QLD institutions (UQ, QUT, Griffith, etc.)
+            * For all other locations: strictly limit to institutions physically located in that region
           
-          LOCATION-SPECIFIC GUIDANCE (HIGHEST PRIORITY):
-          - All educational recommendations MUST be filtered by the user's exact location (state/province)
-          - For users in Victoria, Australia: ONLY recommend Melbourne-based universities (Melbourne Uni, RMIT, Monash, Victoria Uni, Deakin, Swinburne, La Trobe) and Melbourne-based TAFE institutes
-          - For users in New South Wales, Australia: ONLY recommend Sydney-based universities (UNSW, Sydney Uni, UTS, Macquarie, Western Sydney) and NSW-based TAFE institutes
-          - For users in Queensland, Australia: ONLY recommend QLD universities (UQ, QUT, Griffith, etc.) and Queensland-based TAFE institutes
-          - For other Australian states/territories: Similarly restrict recommendations to that specific state/territory
-          - For international locations: Only suggest institutions within that specific country and region
-          - Salary information MUST include the local currency and typical ranges for that exact location
-          - Networking recommendations should name actual professional organizations and events in the exact location
-          - Every location-specific recommendation should explicitly mention the location by name
+          - For similar roles analysis:
+            * ALL salary information must include the local currency and format (e.g., "AUD 85,000-95,000 in Melbourne")
+            * ALL demand assessments must specify exact locations (e.g., "High demand in Sydney CBD" not just "High demand")
           
-          If the user does not specify a location, default to Australian national options, but clearly indicate this in your response.` 
+          - For networking recommendations:
+            * Name ACTUAL professional organizations that exist in the user's location
+            * Suggest SPECIFIC events, meetups or communities in the user's exact city/region
+
+          EVERY recommendation MUST explicitly mention the user's location by name (e.g., "in Melbourne, Victoria" not just "local programs")
+
+          If location is not specified, CLEARLY state this limitation in your recommendations.
+          
+          Only return output that follows the specified JSON format after both review stages are passed.`
         },
         { role: "user", content: prompt }
       ],
