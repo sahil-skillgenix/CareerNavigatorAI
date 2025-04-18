@@ -53,6 +53,21 @@ export interface CareerAnalysisOutput {
     suggestedProjects: string[];
     learningPath: string;
   };
+  similarRoles: Array<{
+    role: string;
+    similarityScore: number;
+    keySkillsOverlap: string[];
+    uniqueRequirements: string[];
+    potentialSalaryRange: string;
+    locationSpecificDemand: string;
+  }>;
+  socialSkills: {
+    criticalSoftSkills: Array<{skill: string, importance: string, developmentStrategies: string[]}>;
+    communicationRecommendations: string;
+    leadershipDevelopment: string;
+    teamworkStrategies: string;
+    networkingOpportunities: Array<{type: string, specificRecommendation: string, location: string}>;
+  };
   reviewNotes: {
     firstReview: string;
     secondReview: string;
@@ -73,7 +88,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     State/Province: ${input.state || 'Not specified'}
     Country: ${input.country || 'Not specified'}
     
-    STRICTLY follow this 6-step process in order:
+    STRICTLY follow this 8-step process in order:
     
     1. ANALYZE INPUT USING FRAMEWORKS:
     - Thoroughly analyze the user's input using both SFIA 9 and DigComp 2.2 frameworks
@@ -102,19 +117,38 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
     - For the degree pathway, include specific qualification requirements
     - For the non-degree pathway, include alternative qualifications like TAFE courses
     
-    5. CREATE PERSONALIZED DEVELOPMENT PLAN:
+    5. IDENTIFY SIMILAR ROLES:
+    - Analyze the job market in the user's specified location (state/province and country)
+    - Identify 4-6 alternative roles that share significant skill overlap with the desired role
+    - For each similar role, provide:
+      a) A similarity score (percentage of skill overlap)
+      b) List of overlapping key skills
+      c) Unique requirements not shared with the desired role
+      d) Location-specific salary information based on state/province and country
+      e) Assessment of local job market demand (high/medium/low with explanation)
+    
+    6. DEVELOP SOCIAL & SOFT SKILLS PLAN:
+    - Identify critical soft skills needed for success in the desired role and industry
+    - Provide specific, actionable strategies for developing each skill
+    - Include location-specific communication recommendations (accounting for regional business culture)
+    - Provide tailored leadership development advice relevant to the industry and career level
+    - Suggest teamwork strategies specific to the role
+    - Recommend networking opportunities that are specific to the user's location (state/province and country)
+    
+    7. CREATE PERSONALIZED DEVELOPMENT PLAN:
     - List specific skills to acquire or improve with priority levels
     - Recommend multiple types of learning resources:
-      a) Australian University courses and programs
-      b) TAFE courses and certificates
-      c) Online learning platforms and courses
+      a) Location-specific university courses and programs (based on state/province and country)
+      b) Location-specific technical/vocational education (TAFE in Australia, or equivalent)
+      c) Online learning platforms and courses accessible in the user's location
     - Suggest specific experiences or projects to pursue
     - Outline a clear learning path with milestones
     - Consider multiple ways to reach the career goal
     
-    6. QUALITY ASSURANCE (Two Review Stages):
+    8. QUALITY ASSURANCE (Two Review Stages):
     - First Review: Validate input data and interpretations for accuracy and consistency
-    - Second Review: Re-check the pathway options, gap analysis, and development plan for completeness, coherence, and alignment with the frameworks
+    - Second Review: Re-check all sections for completeness, coherence, and alignment with the frameworks
+    - Ensure all location-specific recommendations are accurate and relevant to the provided state/province and country
     
     Return the result as a JSON object with these EXACT sections:
     - executiveSummary: A concise overview of the analysis
@@ -139,6 +173,21 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
         },
         suggestedProjects: [],
         learningPath
+      }
+    - similarRoles: [{
+        role,
+        similarityScore,
+        keySkillsOverlap,
+        uniqueRequirements,
+        potentialSalaryRange,
+        locationSpecificDemand
+      }]
+    - socialSkills: {
+        criticalSoftSkills: [{skill, importance, developmentStrategies}],
+        communicationRecommendations,
+        leadershipDevelopment,
+        teamworkStrategies,
+        networkingOpportunities: [{type, specificRecommendation, location}]
       }
     - reviewNotes: {
         firstReview,
@@ -166,7 +215,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           
           DigComp 2.2 (European Digital Competence Framework) covers 5 competence areas: Information and data literacy, Communication and collaboration, Digital content creation, Safety, and Problem solving. Each area has proficiency levels from foundation to highly specialized.
           
-          Your task is to analyze career information using both frameworks and provide comprehensive, structured career guidance following this exact 6-step process:
+          Your task is to analyze career information using both frameworks and provide comprehensive, structured career guidance following this exact 8-step process:
           
           1. ANALYZE INPUT USING FRAMEWORKS:
           - Thoroughly analyze the user's skills against both SFIA 9 and DigComp 2.2
@@ -190,17 +239,28 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Design logical progression steps for each pathway
           - Include role descriptions, timeframes, and required skills for each step
           
-          5. CREATE PERSONALIZED DEVELOPMENT PLAN:
+          5. IDENTIFY SIMILAR ROLES:
+          - Analyze the job market in the user's specified location (state/province and country)
+          - Identify 4-6 alternative roles that share significant skill overlap with the desired role
+          - For each similar role, provide similarity score, key skill overlap, unique requirements, and location-specific demand
+          
+          6. DEVELOP SOCIAL & SOFT SKILLS PLAN:
+          - Identify critical soft skills needed for success in the desired role and industry
+          - Provide specific, actionable strategies for developing each skill
+          - Include location-specific communication and leadership development recommendations
+          - Suggest networking opportunities specific to the user's location
+          
+          7. CREATE PERSONALIZED DEVELOPMENT PLAN:
           - Consider the user's location (state/province and country) when making recommendations
           - For Australia: Recommend specific university courses and TAFE programs relevant to the state
           - For other countries: Recommend appropriate local educational institutions and programs
           - Include quality online learning resources that are accessible globally
           - Provide a structured learning roadmap with clear milestones tailored to location
           
-          6. CONDUCT QUALITY ASSURANCE:
+          8. CONDUCT QUALITY ASSURANCE:
           - Perform two-stage review to ensure accuracy and completeness
-          - Validate all recommendations against Australian education standards
-          - Ensure pathways are realistic and achievable
+          - Validate all recommendations against education standards for the user's location
+          - Ensure pathways are realistic and achievable in the specified location
           
           Only return output that follows the specified JSON format after both review stages are passed. Focus on providing detailed, accurate, and actionable information that is location-specific based on the provided state/province and country information. If the location is in Australia, give priority to Australian education and career contexts.` 
         },
