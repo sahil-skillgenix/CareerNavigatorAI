@@ -37,7 +37,7 @@ export default function ProfessionalSearchSection() {
   } | null>(null);
   
   // Use keyboard enter key to search
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
@@ -143,7 +143,7 @@ export default function ProfessionalSearchSection() {
                 className="pl-12 py-6 rounded-md border-[#e4e9f2] text-base"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
               />
               <Button 
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#1c3b82] hover:bg-[#152d63] text-white"
