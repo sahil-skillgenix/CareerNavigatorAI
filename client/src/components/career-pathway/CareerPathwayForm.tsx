@@ -1911,7 +1911,7 @@ function CareerAnalysisResults({
                 <Card className="bg-gradient-to-br from-purple-50 to-fuchsia-50 border-purple-100">
                   <CardContent className="pt-6">
                     <ul className="space-y-3">
-                      {results.developmentPlan.suggestedProjects.map((project: string, index: number) => (
+                      {results.developmentPlan.suggestedProjects.map((project: any, index: number) => (
                         <li key={index} className="flex items-start gap-2">
                           <div className="bg-purple-100 text-purple-800 p-1 rounded-full flex items-center justify-center mt-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1919,7 +1919,26 @@ function CareerAnalysisResults({
                               <polyline points="8 6 2 12 8 18" />
                             </svg>
                           </div>
-                          <div className="text-sm">{project}</div>
+                          <div className="text-sm">
+                            {typeof project === 'string' ? project : 
+                             (project.name ? 
+                              <div>
+                                <div className="font-medium">{project.name}</div>
+                                {project.description && <div className="mt-1">{project.description}</div>}
+                                {project.skillsGained && project.skillsGained.length > 0 && (
+                                  <div className="mt-1 flex flex-wrap gap-1">
+                                    {project.skillsGained.map((skill: string, sIdx: number) => (
+                                      <span key={sIdx} className="inline-flex bg-purple-100 text-purple-700 text-2xs px-1.5 py-0.5 rounded">
+                                        {skill}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              : JSON.stringify(project)
+                             )
+                            }
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -1951,7 +1970,7 @@ function CareerAnalysisResults({
                       <div className="absolute left-0 right-0 top-10 h-1 bg-indigo-200 rounded-full" />
                       
                       <div className="flex justify-between relative">
-                        {results.developmentPlan.roadmapStages.map((stage: any, index: number) => (
+                        {results.developmentPlan.roadmapStages?.map((stage: any, index: number) => (
                           <div key={index} className="flex flex-col items-center relative z-10" style={{ width: `${100/results.developmentPlan.roadmapStages.length}%` }}>
                             <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
                               {stage.stage}
