@@ -143,6 +143,7 @@ export default function ProfessionalSearchSection() {
                 className="pl-12 py-6 rounded-md border-[#e4e9f2] text-base"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
               />
               <Button 
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#1c3b82] hover:bg-[#152d63] text-white"
