@@ -18,6 +18,10 @@ import SavedResourcesPage from "@/pages/saved-resources-page";
 import OrganizationPathwayPage from "@/pages/organization-pathway-page";
 import SkillDetailPage from "@/pages/skill-detail-page";
 import SkillsPage from "@/pages/skills-page";
+import RolesPage from "@/pages/roles-page";
+import RoleDetailPage from "@/pages/role-detail-page";
+import IndustriesPage from "@/pages/industries-page";
+import IndustryDetailPage from "@/pages/industry-detail-page";
 
 function Router() {
   return (
@@ -33,10 +37,23 @@ function Router() {
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       */}
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
+      
+      {/* Skills routes */}
       <Route path="/skills" component={SkillsPage} />
       <Route path="/skills/:id" component={SkillDetailPage} />
       <Route path="/skills/:id/profile" component={SkillDetailPage} />
       <Route path="/skills/:id/learning-path" component={SkillDetailPage} />
+      
+      {/* Roles routes */}
+      <Route path="/roles" component={RolesPage} />
+      <Route path="/roles/:id" component={RoleDetailPage} />
+      <Route path="/roles/:id/profile" component={RoleDetailPage} />
+      
+      {/* Industries routes */}
+      <Route path="/industries" component={IndustriesPage} />
+      <Route path="/industries/:id" component={IndustryDetailPage} />
+      <Route path="/industries/:id/profile" component={IndustryDetailPage} />
+      
       <Route component={NotFound} />
     </Switch>
   );
