@@ -10,7 +10,10 @@ import {
   type UserBadge,
   type InsertUserBadge,
   type UserProgress,
-  type InsertUserProgress
+  type InsertUserProgress,
+  type CareerAnalysisWithStringDates,
+  type UserBadgeWithStringDates,
+  type UserProgressWithStringDates
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -27,20 +30,20 @@ export interface IStorage {
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
   
   // Career analysis management
-  saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis>;
-  getCareerAnalysisById(id: number): Promise<CareerAnalysis | undefined>;
-  getUserCareerAnalyses(userId: number): Promise<CareerAnalysis[]>;
-  updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysis>;
+  saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysisWithStringDates>;
+  getCareerAnalysisById(id: number): Promise<CareerAnalysisWithStringDates | undefined>;
+  getUserCareerAnalyses(userId: number): Promise<CareerAnalysisWithStringDates[]>;
+  updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysisWithStringDates>;
   
   // Badge management
-  getUserBadges(userId: number): Promise<UserBadge[]>;
-  createUserBadge(badge: InsertUserBadge): Promise<UserBadge>;
+  getUserBadges(userId: number): Promise<UserBadgeWithStringDates[]>;
+  createUserBadge(badge: InsertUserBadge): Promise<UserBadgeWithStringDates>;
   
   // Progress tracking
-  getUserProgress(userId: number): Promise<UserProgress[]>;
-  getProgressItemById(id: number): Promise<UserProgress | undefined>;
-  updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgress>;
-  createUserProgress(progressItem: InsertUserProgress): Promise<UserProgress>;
+  getUserProgress(userId: number): Promise<UserProgressWithStringDates[]>;
+  getProgressItemById(id: number): Promise<UserProgressWithStringDates | undefined>;
+  updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgressWithStringDates>;
+  createUserProgress(progressItem: InsertUserProgress): Promise<UserProgressWithStringDates>;
   
   // Session management
   sessionStore: any; // Using any to avoid type conflicts between different session store implementations
@@ -122,107 +125,109 @@ export class MemStorage implements IStorage {
   }
   
   // Career Analysis Management
-  async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis> {
+  async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysisWithStringDates> {
     const id = this.analysisId++;
-    const now = new Date();
+    const now = new Date().toISOString();
     
-    const newAnalysis: CareerAnalysis = {
+    const newAnalysis: CareerAnalysisWithStringDates = {
       ...analysis,
       id,
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString()
+      createdAt: now,
+      updatedAt: now
     };
     
-    this.careerAnalyses.set(id, newAnalysis);
+    this.careerAnalyses.set(id, newAnalysis as any);
     return newAnalysis;
   }
   
-  async getCareerAnalysisById(id: number): Promise<CareerAnalysis | undefined> {
-    return this.careerAnalyses.get(id);
+  async getCareerAnalysisById(id: number): Promise<CareerAnalysisWithStringDates | undefined> {
+    const analysis = this.careerAnalyses.get(id);
+    return analysis as unknown as CareerAnalysisWithStringDates;
   }
   
-  async getUserCareerAnalyses(userId: number): Promise<CareerAnalysis[]> {
+  async getUserCareerAnalyses(userId: number): Promise<CareerAnalysisWithStringDates[]> {
     return Array.from(this.careerAnalyses.values())
       .filter(analysis => analysis.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Most recent first
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as unknown as CareerAnalysisWithStringDates[]; // Most recent first
   }
   
-  async updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysis> {
+  async updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysisWithStringDates> {
     const analysis = this.careerAnalyses.get(id);
     
     if (!analysis) {
       throw new Error(`Analysis with ID ${id} not found`);
     }
     
-    const updatedAnalysis: CareerAnalysis = {
-      ...analysis,
+    const updatedAnalysis: CareerAnalysisWithStringDates = {
+      ...analysis as unknown as CareerAnalysisWithStringDates,
       progress,
       updatedAt: new Date().toISOString()
     };
     
-    this.careerAnalyses.set(id, updatedAnalysis);
+    this.careerAnalyses.set(id, updatedAnalysis as any);
     return updatedAnalysis;
   }
   
   // Badge Management
-  async getUserBadges(userId: number): Promise<UserBadge[]> {
+  async getUserBadges(userId: number): Promise<UserBadgeWithStringDates[]> {
     return Array.from(this.userBadges.values())
       .filter(badge => badge.userId === userId)
-      .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime()); // Most recent first
+      .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime()) as unknown as UserBadgeWithStringDates[]; // Most recent first
   }
   
-  async createUserBadge(badge: InsertUserBadge): Promise<UserBadge> {
+  async createUserBadge(badge: InsertUserBadge): Promise<UserBadgeWithStringDates> {
     const id = this.badgeId++;
     
-    const newBadge: UserBadge = {
+    const newBadge: UserBadgeWithStringDates = {
       ...badge,
       id,
       earnedAt: new Date().toISOString()
     };
     
-    this.userBadges.set(id, newBadge);
+    this.userBadges.set(id, newBadge as any);
     return newBadge;
   }
   
   // Progress Tracking
-  async getUserProgress(userId: number): Promise<UserProgress[]> {
+  async getUserProgress(userId: number): Promise<UserProgressWithStringDates[]> {
     return Array.from(this.userProgress.values())
       .filter(progress => progress.userId === userId)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()); // Most recent first
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) as unknown as UserProgressWithStringDates[]; // Most recent first
   }
   
-  async getProgressItemById(id: number): Promise<UserProgress | undefined> {
-    return this.userProgress.get(id);
+  async getProgressItemById(id: number): Promise<UserProgressWithStringDates | undefined> {
+    const item = this.userProgress.get(id);
+    return item as unknown as UserProgressWithStringDates;
   }
   
-  async updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgress> {
+  async updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgressWithStringDates> {
     const progressItem = this.userProgress.get(id);
     
     if (!progressItem) {
       throw new Error(`Progress item with ID ${id} not found`);
     }
     
-    const updatedProgress: UserProgress = {
-      ...progressItem,
+    const updatedProgress: UserProgressWithStringDates = {
+      ...progressItem as unknown as UserProgressWithStringDates,
       progress,
       notes: notes || progressItem.notes,
       updatedAt: new Date().toISOString()
     };
     
-    this.userProgress.set(id, updatedProgress);
+    this.userProgress.set(id, updatedProgress as any);
     return updatedProgress;
   }
   
-  async createUserProgress(progressItem: InsertUserProgress): Promise<UserProgress> {
+  async createUserProgress(progressItem: InsertUserProgress): Promise<UserProgressWithStringDates> {
     const id = this.progressId++;
     
-    const newProgressItem: UserProgress = {
+    const newProgressItem: UserProgressWithStringDates = {
       ...progressItem,
       id,
       updatedAt: new Date().toISOString()
     };
     
-    this.userProgress.set(id, newProgressItem);
+    this.userProgress.set(id, newProgressItem as any);
     return newProgressItem;
   }
 }

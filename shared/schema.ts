@@ -384,6 +384,20 @@ export type CareerAnalysis = typeof careerAnalyses.$inferSelect;
 export type UserBadge = typeof userBadges.$inferSelect;
 export type UserProgress = typeof userProgress.$inferSelect;
 
+// Define custom types with string timestamps
+export type CareerAnalysisWithStringDates = Omit<CareerAnalysis, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UserBadgeWithStringDates = Omit<UserBadge, 'earnedAt'> & {
+  earnedAt: string;
+};
+
+export type UserProgressWithStringDates = Omit<UserProgress, 'updatedAt'> & {
+  updatedAt: string;
+};
+
 // Create insert schemas for new tables
 export const insertCareerAnalysisSchema = createInsertSchema(careerAnalyses).omit({ 
   id: true, 
