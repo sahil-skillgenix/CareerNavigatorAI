@@ -12,7 +12,7 @@ import {
   LearningPathRecommendation
 } from "./learning-resources-service";
 import { seedDatabase } from "./seed-data";
-import * as CareerDataService from "./career-data-service";
+import * as CareerDataService from "./mongodb-career-data-service";
 
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
   // Use provided storage or fallback to in-memory storage
