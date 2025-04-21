@@ -266,112 +266,112 @@ export default function SkillDetailPage() {
             <TabsTrigger value="resources">Resources</TabsTrigger>
           </TabsList>
         
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          {/* Skill levels */}
-          {skillProfile.levelingCriteria && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Medal className="mr-2 h-5 w-5" />
-                  Proficiency Levels
-                </CardTitle>
-                <CardDescription>
-                  Understanding the different levels of expertise for this skill
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(skillProfile.levelingCriteria).map(([level, description]) => (
-                    <div key={level} className="flex flex-col">
-                      <div className="flex items-center mb-2">
-                        {renderLevelBadge(level)}
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Skill levels */}
+            {skillProfile.levelingCriteria && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Medal className="mr-2 h-5 w-5" />
+                    Proficiency Levels
+                  </CardTitle>
+                  <CardDescription>
+                    Understanding the different levels of expertise for this skill
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Object.entries(skillProfile.levelingCriteria).map(([level, description]) => (
+                      <div key={level} className="flex flex-col">
+                        <div className="flex items-center mb-2">
+                          {renderLevelBadge(level)}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{description}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
           )}
           
-          {/* Related Skills */}
-          {skillProfile.relatedSkills && skillProfile.relatedSkills.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Code className="mr-2 h-5 w-5" />
-                  Related Skills
-                </CardTitle>
-                <CardDescription>
-                  Skills that are commonly used alongside {skillProfile.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {skillProfile.relatedSkills.map((skill, index) => (
-                    <Badge key={index} variant="secondary">{skill}</Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Related Skills */}
+            {skillProfile.relatedSkills && skillProfile.relatedSkills.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Code className="mr-2 h-5 w-5" />
+                    Related Skills
+                  </CardTitle>
+                  <CardDescription>
+                    Skills that are commonly used alongside {skillProfile.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {skillProfile.relatedSkills.map((skill, index) => (
+                      <Badge key={index} variant="secondary">{skill}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
           )}
           
-          {/* Industry Relevance */}
-          {skillProfile.industryRelevance && skillProfile.industryRelevance.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building className="mr-2 h-5 w-5" />
-                  Industry Relevance
-                </CardTitle>
-                <CardDescription>
-                  Industries where this skill is particularly valuable
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {skillProfile.industryRelevance.map((industry, index) => (
-                    <Badge key={index} variant="outline">{industry}</Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Dependent Skills */}
-          {skillProfile.dependentSkills && skillProfile.dependentSkills.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Lightbulb className="mr-2 h-5 w-5" />
-                  Used For
-                </CardTitle>
-                <CardDescription>
-                  Skills that require {skillProfile.name} as a prerequisite
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {skillProfile.dependentSkills.map((skill) => (
-                    <div key={skill.id} className="flex items-center justify-between border rounded p-3">
-                      <div className="flex items-center">
-                        <Link href={`/skills/${skill.id}`}>
-                          <span className="font-medium hover:text-primary hover:underline">{skill.name}</span>
-                        </Link>
-                        <Badge variant="outline" className="ml-2">{skill.category}</Badge>
+            {/* Industry Relevance */}
+            {skillProfile.industryRelevance && skillProfile.industryRelevance.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Building className="mr-2 h-5 w-5" />
+                    Industry Relevance
+                  </CardTitle>
+                  <CardDescription>
+                    Industries where this skill is particularly valuable
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {skillProfile.industryRelevance.map((industry, index) => (
+                      <Badge key={index} variant="outline">{industry}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Dependent Skills */}
+            {skillProfile.dependentSkills && skillProfile.dependentSkills.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Lightbulb className="mr-2 h-5 w-5" />
+                    Used For
+                  </CardTitle>
+                  <CardDescription>
+                    Skills that require {skillProfile.name} as a prerequisite
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {skillProfile.dependentSkills.map((skill) => (
+                      <div key={skill.id} className="flex items-center justify-between border rounded p-3">
+                        <div className="flex items-center">
+                          <Link href={`/skills/${skill.id}`}>
+                            <span className="font-medium hover:text-primary hover:underline">{skill.name}</span>
+                          </Link>
+                          <Badge variant="outline" className="ml-2">{skill.category}</Badge>
+                        </div>
+                        {renderImportanceBadge(skill.importance)}
                       </div>
-                      {renderImportanceBadge(skill.importance)}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <p className="text-sm text-muted-foreground">
-                  Mastering {skillProfile.name} will make it easier to learn these advanced skills.
-                </p>
-              </CardFooter>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <p className="text-sm text-muted-foreground">
+                    Mastering {skillProfile.name} will make it easier to learn these advanced skills.
+                  </p>
+                </CardFooter>
+              </Card>
           )}
         </TabsContent>
         
