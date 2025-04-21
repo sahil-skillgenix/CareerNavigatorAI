@@ -137,10 +137,10 @@ const prepareTrendsData = (industry: IndustryData) => {
   // Here we're creating mock data based on growth rate
   const growthRateValue = (() => {
     if (!industry.growthRate) return 5;
-    if (industry.growthRate.includes('10%') || industry.growthRate.includes('fast')) return 10;
-    if (industry.growthRate.includes('5%') || industry.growthRate.includes('moderate')) return 5;
-    if (industry.growthRate.includes('2%') || industry.growthRate.includes('slow')) return 2;
-    if (industry.growthRate.includes('-') || industry.growthRate.includes('decline')) return -3;
+    if (industry.growthRate.includes && (industry.growthRate.includes('10%') || industry.growthRate.includes('fast'))) return 10;
+    if (industry.growthRate.includes && (industry.growthRate.includes('5%') || industry.growthRate.includes('moderate'))) return 5;
+    if (industry.growthRate.includes && (industry.growthRate.includes('2%') || industry.growthRate.includes('slow'))) return 2;
+    if (industry.growthRate.includes && (industry.growthRate.includes('-') || industry.growthRate.includes('decline'))) return -3;
     return 5;
   })();
 
@@ -235,8 +235,8 @@ export const IndustryRolesChart = ({ roles }: { roles: IndustryRole[] }) => {
                 tick={{fontSize: 12}}
               />
               <Tooltip 
-                formatter={(value, name, props) => [
-                  ['Very Low', 'Low', 'Medium', 'High', 'Very High'][value - 1], 
+                formatter={(value: any, name: string, props: any) => [
+                  ['Very Low', 'Low', 'Medium', 'High', 'Very High'][Number(value) - 1], 
                   props.payload.fullTitle
                 ]}
               />
@@ -304,8 +304,8 @@ export const IndustrySkillsChart = ({ skills }: { skills: IndustrySkill[] }) => 
                 tick={{fontSize: 12}}
               />
               <Tooltip 
-                formatter={(value, name, props) => [
-                  ['Very Low', 'Low', 'Medium', 'High', 'Critical'][value - 1], 
+                formatter={(value: any, name: string, props: any) => [
+                  ['Very Low', 'Low', 'Medium', 'High', 'Critical'][Number(value) - 1], 
                   props.payload.fullName
                 ]}
               />

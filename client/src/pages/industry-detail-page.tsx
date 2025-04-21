@@ -555,6 +555,7 @@ export default function IndustryDetailPage() {
             
             {/* Market Trends Tab */}
             <TabsContent value="trends" className="space-y-6">
+              <IndustryVisualizations industry={industryProfile} />
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
