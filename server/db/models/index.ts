@@ -19,6 +19,12 @@ import LearningResourceModel from './learningResource';
 import type { LearningResourceDocument } from './learningResource';
 import CareerPathwayModel from './careerPathway';
 import type { CareerPathwayDocument } from './careerPathway';
+import CareerAnalysisModel from './careerAnalysis';
+import type { CareerAnalysisDocument } from './careerAnalysis';
+import UserBadgeModel from './userBadge';
+import type { UserBadgeDocument } from './userBadge';
+import UserProgressModel from './userProgress';
+import type { UserProgressDocument } from './userProgress';
 
 export {
   UserModel,
@@ -31,6 +37,9 @@ export {
   SkillPrerequisiteModel,
   LearningResourceModel,
   CareerPathwayModel,
+  CareerAnalysisModel,
+  UserBadgeModel,
+  UserProgressModel,
   UserDocument,
   IndustryDocument,
   SkillDocument,
@@ -40,5 +49,8 @@ export {
   SkillIndustryDocument,
   SkillPrerequisiteDocument,
   LearningResourceDocument,
-  CareerPathwayDocument
+  CareerPathwayDocument,
+  CareerAnalysisDocument,
+  UserBadgeDocument,
+  UserProgressDocument
 };
