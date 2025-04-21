@@ -50,7 +50,7 @@ interface Skill {
 
 export default function SkillsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('all');
   const [, setLocation] = useLocation();
 
   // Fetch skills data
@@ -64,7 +64,7 @@ export default function SkillsPage() {
         params.append('query', searchQuery);
       }
       
-      if (category) {
+      if (category && category !== 'all') {
         params.append('category', category);
       }
       
@@ -147,7 +147,7 @@ export default function SkillsPage() {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem key="all" value="all">All Categories</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
