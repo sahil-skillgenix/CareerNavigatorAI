@@ -203,35 +203,35 @@ export default function SkillDetailPage() {
         {/* Skill Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <Link href="/skills" className="hover:underline">Skills</Link>
               <span>/</span>
               <Badge variant="outline">{skillProfile.category}</Badge>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#1c3b82]">{skillProfile.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-[#1c3b82]">{skillProfile.name}</h1>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-              <Link href={learningPathUrl}>
-                <GraduationCap className="mr-2 h-4 w-4" />
-                Learning Path
-              </Link>
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                // Add to saved skills/resources functionality
-                toast({
-                  title: "Skill saved",
-                  description: `${skillProfile.name} has been added to your saved items.`,
-                });
-              }}
-            >
-              <Star className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-          </div>
+              <Button asChild variant="outline">
+                <Link href={learningPathUrl}>
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  Learning Path
+                </Link>
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  // Add to saved skills/resources functionality
+                  toast({
+                    title: "Skill saved",
+                    description: `${skillProfile.name} has been added to your saved items.`,
+                  });
+                }}
+              >
+                <Star className="mr-2 h-4 w-4" />
+                Save
+              </Button>
+            </div>
         </div>
         
           {/* Skill description */}
@@ -254,17 +254,17 @@ export default function SkillDetailPage() {
               )}
             </div>
           )}
-      </div>
+        </div>
       
-      {/* Main content */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-8 grid w-full grid-cols-5 md:grid-cols-5 lg:max-w-3xl mx-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="prerequisites">Prerequisites</TabsTrigger>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
-          <TabsTrigger value="industries">Industries</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
-        </TabsList>
+        {/* Main content */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-8 grid w-full grid-cols-5 md:grid-cols-5 lg:max-w-3xl mx-auto">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="prerequisites">Prerequisites</TabsTrigger>
+            <TabsTrigger value="roles">Roles</TabsTrigger>
+            <TabsTrigger value="industries">Industries</TabsTrigger>
+            <TabsTrigger value="resources">Resources</TabsTrigger>
+          </TabsList>
         
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
