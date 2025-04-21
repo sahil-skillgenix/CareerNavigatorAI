@@ -1971,7 +1971,7 @@ function CareerAnalysisResults({
                       
                       <div className="flex justify-between relative">
                         {results.developmentPlan.roadmapStages?.map((stage: any, index: number) => (
-                          <div key={index} className="flex flex-col items-center relative z-10" style={{ width: `${100/results.developmentPlan.roadmapStages.length}%` }}>
+                          <div key={index} className="flex flex-col items-center relative z-10" style={{ width: `${100/(results.developmentPlan.roadmapStages?.length || 1)}%` }}>
                             <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
                               {stage.stage}
                             </div>
@@ -1985,7 +1985,7 @@ function CareerAnalysisResults({
                     </div>
                     
                     <div className="mt-8 grid gap-6">
-                      {results.developmentPlan.roadmapStages.map((stage: any, index: number) => (
+                      {results.developmentPlan.roadmapStages?.map((stage: any, index: number) => (
                         <div key={index} className="bg-white rounded-lg p-4 border border-indigo-100 shadow-sm">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
