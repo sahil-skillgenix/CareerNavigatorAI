@@ -4,7 +4,24 @@ import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, BookCheck, GraduationCap, History, Target, User2, MapPin, Globe } from "lucide-react";
+import { 
+  Loader2, 
+  BookCheck, 
+  GraduationCap, 
+  History, 
+  Target, 
+  User2, 
+  MapPin, 
+  Globe, 
+  Sparkles 
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 import { PdfDownloader } from "./PdfDownloader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -704,6 +721,52 @@ function CareerAnalysisResults({
           >
             <ComparativeBarChart results={results} />
           </motion.div>
+          
+          {/* GenAI Enhanced Analysis */}
+          {results.skillGapAnalysis.aiAnalysis && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mb-8 bg-gradient-to-br from-primary-50 to-secondary-50 rounded-lg border border-primary-100 shadow-sm p-6"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h3 className="text-xl font-semibold text-primary-900">AI-Enhanced Analysis</h3>
+              </div>
+              <div className="prose prose-slate max-w-none mb-6">
+                <p className="text-slate-700">{results.skillGapAnalysis.aiAnalysis}</p>
+              </div>
+              
+              {results.skillGapAnalysis.recommendations && results.skillGapAnalysis.recommendations.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold mb-4 text-primary-800">Strategic Recommendations</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {results.skillGapAnalysis.recommendations.map((rec, idx) => (
+                      <div key={idx} className="bg-white/80 rounded-lg border border-primary-100 p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="font-medium text-primary-900 flex items-center gap-2">
+                            <span className={`h-2 w-2 rounded-full ${
+                              rec.impactLevel === 'High' ? 'bg-red-500' : 
+                              rec.impactLevel === 'Medium' ? 'bg-amber-500' : 'bg-green-500'
+                            }`}></span>
+                            {rec.area}
+                          </h5>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            rec.impactLevel === 'High' ? 'bg-red-100 text-red-800' : 
+                            rec.impactLevel === 'Medium' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {rec.impactLevel} Impact
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-700">{rec.suggestion}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
                     
           <div className="grid gap-8 md:grid-cols-2">
             <motion.div
