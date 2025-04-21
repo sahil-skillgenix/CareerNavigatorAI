@@ -1,8 +1,8 @@
 import Navbar from '@/components/navbar';
-import HeroSection from '@/components/hero-section';
-import FeaturesSection from '@/components/features-section';
-import HowItWorksSection from '@/components/how-it-works-section';
-import BenefitsSection from '@/components/benefits-section';
+import NewHeroSection from '@/components/new-hero-section';
+import AnimatedJourneySection from '@/components/animated-journey-section';
+import CareerSearchSection from '@/components/career-search-section';
+import AiFeaturesSection from '@/components/ai-features-section';
 import TestimonialsSection from '@/components/testimonials-section';
 import CtaSection from '@/components/cta-section';
 import Footer from '@/components/footer';
@@ -18,10 +18,10 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <main>
-        <HeroSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <BenefitsSection />
+        <NewHeroSection />
+        <AiFeaturesSection />
+        <AnimatedJourneySection />
+        <CareerSearchSection />
         <TestimonialsSection />
         <CtaSection />
       </main>
