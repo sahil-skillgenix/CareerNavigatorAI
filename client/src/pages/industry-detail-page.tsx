@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import IndustryVisualizations from '@/components/industry/industry-visualizations';
 import { Skeleton } from '@/components/ui/skeleton';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
