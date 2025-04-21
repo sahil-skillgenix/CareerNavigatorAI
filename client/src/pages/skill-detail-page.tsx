@@ -375,170 +375,170 @@ export default function SkillDetailPage() {
           )}
         </TabsContent>
         
-        {/* Prerequisites Tab */}
-        <TabsContent value="prerequisites" className="space-y-6">
-          {skillProfile.prerequisiteSkills && skillProfile.prerequisiteSkills.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <GraduationCap className="mr-2 h-5 w-5" />
-                  Prerequisite Skills
-                </CardTitle>
-                <CardDescription>
-                  Skills you should learn before mastering {skillProfile.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  {skillProfile.prerequisiteSkills.map((skill) => (
-                    <div key={skill.id} className="border rounded-lg p-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/skills/${skill.id}`}>
-                              <h3 className="text-lg font-semibold hover:text-primary hover:underline">{skill.name}</h3>
-                            </Link>
-                            <Badge variant="outline">{skill.category}</Badge>
-                            {renderImportanceBadge(skill.importance)}
+          {/* Prerequisites Tab */}
+          <TabsContent value="prerequisites" className="space-y-6">
+            {skillProfile.prerequisiteSkills && skillProfile.prerequisiteSkills.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <GraduationCap className="mr-2 h-5 w-5" />
+                    Prerequisite Skills
+                  </CardTitle>
+                  <CardDescription>
+                    Skills you should learn before mastering {skillProfile.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4">
+                    {skillProfile.prerequisiteSkills.map((skill) => (
+                      <div key={skill.id} className="border rounded-lg p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/skills/${skill.id}`}>
+                                <h3 className="text-lg font-semibold hover:text-primary hover:underline">{skill.name}</h3>
+                              </Link>
+                              <Badge variant="outline">{skill.category}</Badge>
+                              {renderImportanceBadge(skill.importance)}
+                            </div>
                           </div>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/skills/${skill.id}/learning-path`}>
+                              <GraduationCap className="mr-2 h-3 w-3" />
+                              Learning Path
+                            </Link>
+                          </Button>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/skills/${skill.id}/learning-path`}>
-                            <GraduationCap className="mr-2 h-3 w-3" />
-                            Learning Path
-                          </Link>
-                        </Button>
+                        <p className="text-sm text-muted-foreground">{skill.description}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{skill.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <p className="text-sm text-muted-foreground">
-                  Learning these skills first will create a strong foundation for mastering {skillProfile.name}.
-                </p>
-              </CardFooter>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <p className="text-sm text-muted-foreground">
+                    Learning these skills first will create a strong foundation for mastering {skillProfile.name}.
+                  </p>
+                </CardFooter>
+              </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>No Prerequisites</CardTitle>
-                <CardDescription>
-                  This skill doesn't have any specific prerequisites in our database.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  {skillProfile.name} is a foundational skill that doesn't require prior knowledge of other specific skills. 
-                  However, basic knowledge in the {skillProfile.category} category is always helpful.
-                </p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>No Prerequisites</CardTitle>
+                  <CardDescription>
+                    This skill doesn't have any specific prerequisites in our database.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    {skillProfile.name} is a foundational skill that doesn't require prior knowledge of other specific skills. 
+                    However, basic knowledge in the {skillProfile.category} category is always helpful.
+                  </p>
+                </CardContent>
+              </Card>
           )}
         </TabsContent>
         
-        {/* Roles Tab */}
-        <TabsContent value="roles" className="space-y-6">
-          {skillProfile.roles && skillProfile.roles.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Briefcase className="mr-2 h-5 w-5" />
-                  Roles Requiring This Skill
-                </CardTitle>
-                <CardDescription>
-                  Professional roles where {skillProfile.name} is a valuable or essential skill
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  {skillProfile.roles.map((role) => (
-                    <div key={role.id} className="border rounded-lg p-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
+          {/* Roles Tab */}
+          <TabsContent value="roles" className="space-y-6">
+            {skillProfile.roles && skillProfile.roles.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Briefcase className="mr-2 h-5 w-5" />
+                    Roles Requiring This Skill
+                  </CardTitle>
+                  <CardDescription>
+                    Professional roles where {skillProfile.name} is a valuable or essential skill
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4">
+                    {skillProfile.roles.map((role) => (
+                      <div key={role.id} className="border rounded-lg p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Link href={`/roles/${role.id}`}>
+                                <h3 className="text-lg font-semibold hover:text-primary hover:underline">{role.title}</h3>
+                              </Link>
+                              <Badge variant="outline">{role.category}</Badge>
+                              {renderImportanceBadge(role.importance)}
+                              {renderLevelBadge(role.levelRequired)}
+                            </div>
+                          </div>
+                          <Button asChild variant="outline" size="sm">
                             <Link href={`/roles/${role.id}`}>
-                              <h3 className="text-lg font-semibold hover:text-primary hover:underline">{role.title}</h3>
+                              View Role Profile
                             </Link>
-                            <Badge variant="outline">{role.category}</Badge>
-                            {renderImportanceBadge(role.importance)}
-                            {renderLevelBadge(role.levelRequired)}
-                          </div>
+                          </Button>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/roles/${role.id}`}>
-                            View Role Profile
-                          </Link>
-                        </Button>
+                        <p className="text-sm text-muted-foreground">{role.description}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{role.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>No Roles Found</CardTitle>
-                <CardDescription>
-                  We couldn't find any specific roles requiring this skill in our database.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  While {skillProfile.name} might be valuable in various professional contexts, 
-                  we don't have specific role associations in our current database.
-                </p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>No Roles Found</CardTitle>
+                  <CardDescription>
+                    We couldn't find any specific roles requiring this skill in our database.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    While {skillProfile.name} might be valuable in various professional contexts, 
+                    we don't have specific role associations in our current database.
+                  </p>
+                </CardContent>
+              </Card>
           )}
         </TabsContent>
         
-        {/* Industries Tab */}
-        <TabsContent value="industries" className="space-y-6">
-          {skillProfile.industries && skillProfile.industries.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building className="mr-2 h-5 w-5" />
-                  Industries Where This Skill Is Valued
-                </CardTitle>
-                <CardDescription>
-                  Industries and sectors where {skillProfile.name} is particularly relevant
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  {skillProfile.industries.map((industry) => (
-                    <div key={industry.id} className="border rounded-lg p-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Link href={`/industries/${industry.id}`}>
-                              <h3 className="text-lg font-semibold hover:text-primary hover:underline">{industry.name}</h3>
-                            </Link>
-                            <Badge variant="outline">{industry.category}</Badge>
-                            {renderImportanceBadge(industry.importance)}
-                            <Badge variant={industry.trendDirection === 'Growing' ? 'default' : 
-                                          industry.trendDirection === 'Stable' ? 'secondary' : 'outline'}>
-                              {industry.trendDirection}
-                            </Badge>
+          {/* Industries Tab */}
+          <TabsContent value="industries" className="space-y-6">
+            {skillProfile.industries && skillProfile.industries.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Building className="mr-2 h-5 w-5" />
+                    Industries Where This Skill Is Valued
+                  </CardTitle>
+                  <CardDescription>
+                    Industries and sectors where {skillProfile.name} is particularly relevant
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4">
+                    {skillProfile.industries.map((industry) => (
+                      <div key={industry.id} className="border rounded-lg p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Link href={`/industries/${industry.id}`}>
+                                <h3 className="text-lg font-semibold hover:text-primary hover:underline">{industry.name}</h3>
+                              </Link>
+                              <Badge variant="outline">{industry.category}</Badge>
+                              {renderImportanceBadge(industry.importance)}
+                              <Badge variant={industry.trendDirection === 'Growing' ? 'default' : 
+                                            industry.trendDirection === 'Stable' ? 'secondary' : 'outline'}>
+                                {industry.trendDirection}
+                              </Badge>
+                            </div>
                           </div>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/industries/${industry.id}`}>
+                              View Industry Profile
+                            </Link>
+                          </Button>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/industries/${industry.id}`}>
-                            View Industry Profile
-                          </Link>
-                        </Button>
+                        <p className="text-sm text-muted-foreground">{industry.description}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{industry.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
           ) : (
             <Card>
               <CardHeader>
