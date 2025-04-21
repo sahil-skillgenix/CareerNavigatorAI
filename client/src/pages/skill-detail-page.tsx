@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRoute, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 import { 
   Tabs, 
   TabsContent, 
@@ -100,10 +102,6 @@ interface SkillProfile {
     Expert: string;
   };
   relatedSkills?: string[];
-  learningResources?: {
-    courses: string[];
-    books: string[];
-  };
   industryRelevance?: string[];
   prerequisiteSkills: PrerequisiteSkill[];
   dependentSkills: PrerequisiteSkill[];
@@ -199,9 +197,11 @@ export default function SkillDetailPage() {
   };
   
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4 sm:px-6">
-      {/* Skill Header */}
-      <div className="mb-8">
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <main className="container max-w-7xl mx-auto py-8 px-4 sm:px-6">
+        {/* Skill Header */}
+        <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -670,6 +670,8 @@ export default function SkillDetailPage() {
           )}
         </TabsContent>
       </Tabs>
+      </main>
+      <Footer />
     </div>
   );
 }
