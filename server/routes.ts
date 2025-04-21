@@ -133,6 +133,29 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         });
       }
       
+      // Save the analysis result to the database
+      try {
+        // Create a new entry in the careerAnalyses table
+        await storageInstance.saveCareerAnalysis({
+          userId: req.user!.id,
+          professionalLevel,
+          currentSkills,
+          educationalBackground,
+          careerHistory,
+          desiredRole,
+          state: state || null,
+          country: country || null,
+          result: analysisResult,
+          progress: 0, // Initial progress is 0%
+          badges: [] // No badges yet
+        });
+        
+        console.log(`Career analysis saved for user ${req.user!.id}`);
+      } catch (saveError) {
+        console.error('Error saving career analysis:', saveError);
+        // Continue even if saving fails - don't block the user from seeing their results
+      }
+      
       res.json(analysisResult);
     } catch (error) {
       console.error('Error in career analysis:', error);

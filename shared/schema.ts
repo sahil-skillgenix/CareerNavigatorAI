@@ -194,9 +194,55 @@ export const careerPathways = pgTable("career_pathways", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Career Analyses - Store user career analysis results
+export const careerAnalyses = pgTable("career_analyses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  professionalLevel: text("professional_level").notNull(),
+  currentSkills: text("current_skills").notNull(),
+  educationalBackground: text("educational_background").notNull(),
+  careerHistory: text("career_history").notNull(),
+  desiredRole: text("desired_role").notNull(),
+  state: text("state"),
+  country: text("country"),
+  result: json("result").notNull(), // Stores the complete analysis result
+  progress: integer("progress").default(0), // Track user's progress as percentage
+  badges: text("badges").array(), // Store badges earned through this analysis
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User Badges
+export const userBadges = pgTable("user_badges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // e.g., "Skills", "Learning", "Career Path"
+  level: integer("level").default(1), // Badge level (1, 2, 3, etc.)
+  icon: text("icon"), // Icon identifier or path
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+});
+
+// User Progress Tracking
+export const userProgress = pgTable("user_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  analysisId: integer("analysis_id").references(() => careerAnalyses.id, { onDelete: 'set null' }),
+  skillId: integer("skill_id").references(() => skills.id, { onDelete: 'set null' }),
+  currentLevel: text("current_level"),
+  targetLevel: text("target_level"),
+  progress: integer("progress").default(0), // 0-100 percentage
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   savedPathways: many(careerPathways),
+  careerAnalyses: many(careerAnalyses),
+  badges: many(userBadges),
+  progressItems: many(userProgress),
 }));
 
 export const industriesRelations = relations(industries, ({ many }) => ({
@@ -270,6 +316,36 @@ export const learningResourcesRelations = relations(learningResources, ({ one })
   }),
 }));
 
+export const careerAnalysesRelations = relations(careerAnalyses, ({ one, many }) => ({
+  user: one(users, {
+    fields: [careerAnalyses.userId],
+    references: [users.id],
+  }),
+  progressItems: many(userProgress),
+}));
+
+export const userBadgesRelations = relations(userBadges, ({ one }) => ({
+  user: one(users, {
+    fields: [userBadges.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userProgressRelations = relations(userProgress, ({ one }) => ({
+  user: one(users, {
+    fields: [userProgress.userId],
+    references: [users.id],
+  }),
+  analysis: one(careerAnalyses, {
+    fields: [userProgress.analysisId],
+    references: [careerAnalyses.id],
+  }),
+  skill: one(skills, {
+    fields: [userProgress.skillId],
+    references: [skills.id],
+  }),
+}));
+
 // Authentication schemas
 export const loginUserSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -304,3 +380,28 @@ export type SkillIndustry = typeof skillIndustries.$inferSelect;
 export type SkillPrerequisite = typeof skillPrerequisites.$inferSelect;
 export type LearningResource = typeof learningResources.$inferSelect;
 export type CareerPathway = typeof careerPathways.$inferSelect;
+export type CareerAnalysis = typeof careerAnalyses.$inferSelect;
+export type UserBadge = typeof userBadges.$inferSelect;
+export type UserProgress = typeof userProgress.$inferSelect;
+
+// Create insert schemas for new tables
+export const insertCareerAnalysisSchema = createInsertSchema(careerAnalyses).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertUserBadgeSchema = createInsertSchema(userBadges).omit({ 
+  id: true, 
+  earnedAt: true 
+});
+
+export const insertUserProgressSchema = createInsertSchema(userProgress).omit({ 
+  id: true, 
+  updatedAt: true 
+});
+
+// Insert types
+export type InsertCareerAnalysis = z.infer<typeof insertCareerAnalysisSchema>;
+export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
+export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
