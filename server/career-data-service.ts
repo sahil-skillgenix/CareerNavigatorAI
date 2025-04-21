@@ -35,7 +35,7 @@ export async function searchIndustries(query: string): Promise<Industry[]> {
   return db
     .select()
     .from(industries)
-    .where(like(industries.name, `%${query}%`))
+    .where(like(sql`LOWER(${industries.name})`, `%${query.toLowerCase()}%`))
     .orderBy(industries.name);
 }
 
@@ -61,7 +61,7 @@ export async function searchSkills(query: string): Promise<Skill[]> {
   return db
     .select()
     .from(skills)
-    .where(like(skills.name, `%${query}%`))
+    .where(like(sql`LOWER(${skills.name})`, `%${query.toLowerCase()}%`))
     .orderBy(skills.name);
 }
 
@@ -132,7 +132,7 @@ export async function searchRoles(query: string): Promise<Role[]> {
   return db
     .select()
     .from(roles)
-    .where(like(roles.title, `%${query}%`))
+    .where(like(sql`LOWER(${roles.title})`, `%${query.toLowerCase()}%`))
     .orderBy(roles.title);
 }
 
