@@ -199,7 +199,7 @@ export default function SkillDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="container max-w-7xl mx-auto py-8 px-4 sm:px-6">
+      <main className="mt-20 container max-w-7xl mx-auto py-8 px-4 sm:px-6">
         {/* Skill Header */}
         <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">

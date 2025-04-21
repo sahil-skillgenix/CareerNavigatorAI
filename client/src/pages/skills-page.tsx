@@ -114,7 +114,7 @@ export default function SkillsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="container max-w-7xl mx-auto py-8 px-4 sm:px-6">
+      <main className="mt-20 container max-w-7xl mx-auto py-8 px-4 sm:px-6">
         <div className="space-y-6">
           {/* Header section */}
           <div className="flex flex-col gap-2">

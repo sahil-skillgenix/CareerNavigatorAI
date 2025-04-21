@@ -1,41 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Briefcase, Code, Book, Building, ChevronRight } from 'lucide-react';
+import { Search, Briefcase, Code, Book, Building, ChevronRight, Loader2 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useQuery } from '@tanstack/react-query';
 
-// Sample data for demonstration
-const popularSkills = [
-  { id: 1, name: "Data Analysis", category: "Technical" },
-  { id: 2, name: "Project Management", category: "Management" },
-  { id: 3, name: "User Experience Design", category: "Design" },
-  { id: 4, name: "Machine Learning", category: "Technical" },
-  { id: 5, name: "Digital Marketing", category: "Marketing" },
-  { id: 6, name: "Leadership", category: "Soft Skills" },
-];
+interface Skill {
+  id: number;
+  name: string;
+  category: string;
+  description?: string;
+}
 
-const popularRoles = [
-  { id: 1, name: "Software Engineer", category: "Technology" },
-  { id: 2, name: "Product Manager", category: "Management" },
-  { id: 3, name: "UX Designer", category: "Design" },
-  { id: 4, name: "Data Scientist", category: "Technology" },
-  { id: 5, name: "Marketing Specialist", category: "Marketing" },
-  { id: 6, name: "Team Lead", category: "Management" },
-];
+interface Role {
+  id: number;
+  title: string;
+  category: string;
+  description?: string;
+}
 
-const popularIndustries = [
-  { id: 1, name: "Technology", category: "Private Sector" },
-  { id: 2, name: "Healthcare", category: "Public/Private" },
-  { id: 3, name: "Finance", category: "Private Sector" },
-  { id: 4, name: "Education", category: "Public Sector" },
-  { id: 5, name: "Government", category: "Public Sector" },
-  { id: 6, name: "Creative Arts", category: "Various" },
-];
+interface Industry {
+  id: number;
+  name: string;
+  category: string;
+  description?: string;
+}
 
 export default function ProfessionalSearchSection() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<{
+    skills: Skill[];
+    roles: Role[];
+    industries: Industry[];
+  } | null>(null);
+  
+  // Use keyboard enter key to search
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+  const [activeTab, setActiveTab] = useState("skills");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Fetch popular skills
+  const { 
+    data: popularSkills, 
+    isLoading: isLoadingSkills 
+  } = useQuery<Skill[]>({
+    queryKey: ['/api/skills/popular'],
+    queryFn: async () => {
+      const response = await fetch('/api/skills/popular?limit=6');
+      if (!response.ok) {
+        throw new Error('Failed to fetch popular skills');
+      }
+      return response.json();
+    },
+  });
+
+  // Fetch popular roles (using empty query because we don't have a dedicated endpoint yet)
+  const { 
+    data: popularRoles, 
+    isLoading: isLoadingRoles 
+  } = useQuery<Role[]>({
+    queryKey: ['/api/roles/popular'],
+    queryFn: async () => {
+      const response = await fetch('/api/roles/popular?limit=6');
+      if (!response.ok) {
+        throw new Error('Failed to fetch popular roles');
+      }
+      return response.json();
+    },
+  });
+
+  // Fetch popular industries (using empty query because we don't have a dedicated endpoint yet)
+  const { 
+    data: popularIndustries, 
+    isLoading: isLoadingIndustries 
+  } = useQuery<Industry[]>({
+    queryKey: ['/api/industries/popular'],
+    queryFn: async () => {
+      const response = await fetch('/api/industries/popular?limit=6');
+      if (!response.ok) {
+        throw new Error('Failed to fetch popular industries');
+      }
+      return response.json();
+    },
+  });
+  
+  // Handle search
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/search?query=${encodeURIComponent(searchTerm)}`);
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#f5f7fa]">
@@ -74,97 +146,230 @@ export default function ProfessionalSearchSection() {
               />
               <Button 
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-[#1c3b82] hover:bg-[#152d63] text-white"
+                onClick={handleSearch}
+                disabled={!searchTerm.trim() || isSearching}
               >
-                Search
+                {isSearching ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  'Search'
+                )}
               </Button>
             </div>
             
-            <Tabs defaultValue="skills" className="mt-8">
+            <Tabs 
+              defaultValue="skills" 
+              className="mt-8"
+              value={activeTab} 
+              onValueChange={setActiveTab}
+            >
               <TabsList className="grid w-full grid-cols-3 bg-[#f5f7fa]">
                 <TabsTrigger value="skills" className="data-[state=active]:bg-white data-[state=active]:text-[#1c3b82] data-[state=active]:shadow-sm">Skills</TabsTrigger>
                 <TabsTrigger value="roles" className="data-[state=active]:bg-white data-[state=active]:text-[#1c3b82] data-[state=active]:shadow-sm">Roles</TabsTrigger>
                 <TabsTrigger value="industries" className="data-[state=active]:bg-white data-[state=active]:text-[#1c3b82] data-[state=active]:shadow-sm">Industries</TabsTrigger>
               </TabsList>
               
+              {/* Skills Tab */}
               <TabsContent value="skills" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {popularSkills.map((skill) => (
-                    <Link key={skill.id} href={`/skills/${skill.id}`}>
-                      <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
-                        <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
-                          <Code className="h-5 w-5" />
-                        </div>
-                        <div className="flex-grow">
-                          <h4 className="font-medium text-gray-900">{skill.name}</h4>
-                          <p className="text-sm text-gray-500">{skill.category}</p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                {/* Loading State */}
+                {isLoadingSkills ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#1c3b82]" />
+                    <span className="ml-2">Loading skills...</span>
+                  </div>
+                ) : searchResults && activeTab === "skills" ? (
+                  <>
+                    {/* Search Results */}
+                    <h3 className="text-lg font-medium mb-4">Search Results for "{searchTerm}"</h3>
+                    {searchResults.skills.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {searchResults.skills.map((skill) => (
+                          <Link key={skill.id} href={`/skills/${skill.id}`}>
+                            <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
+                              <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
+                                <Code className="h-5 w-5" />
+                              </div>
+                              <div className="flex-grow">
+                                <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                                <p className="text-sm text-gray-500">{skill.category}</p>
+                              </div>
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    </Link>
-                  ))}
-                </div>
-                
-                <div className="mt-6 flex justify-center">
-                  <Link href="/skills">
-                    <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
-                      View All Skills
-                    </Button>
-                  </Link>
-                </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No skills found matching "{searchTerm}".</p>
+                      </div>
+                    )}
+                  </>
+                ) : popularSkills && popularSkills.length > 0 ? (
+                  <>
+                    {/* Popular Skills */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {popularSkills.map((skill) => (
+                        <Link key={skill.id} href={`/skills/${skill.id}`}>
+                          <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
+                            <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
+                              <Code className="h-5 w-5" />
+                            </div>
+                            <div className="flex-grow">
+                              <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                              <p className="text-sm text-gray-500">{skill.category}</p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 flex justify-center">
+                      <Link href="/skills">
+                        <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
+                          View All Skills
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No skills available at the moment.</p>
+                  </div>
+                )}
               </TabsContent>
               
+              {/* Roles Tab */}
               <TabsContent value="roles" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {popularRoles.map((role) => (
-                    <Link key={role.id} href="/auth">
-                      <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
-                        <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
-                          <Briefcase className="h-5 w-5" />
-                        </div>
-                        <div className="flex-grow">
-                          <h4 className="font-medium text-gray-900">{role.name}</h4>
-                          <p className="text-sm text-gray-500">{role.category}</p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                {isLoadingRoles ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#1c3b82]" />
+                    <span className="ml-2">Loading roles...</span>
+                  </div>
+                ) : searchResults && activeTab === "roles" ? (
+                  <>
+                    <h3 className="text-lg font-medium mb-4">Search Results for "{searchTerm}"</h3>
+                    {searchResults.roles.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {searchResults.roles.map((role) => (
+                          <Link key={role.id} href={`/roles/${role.id}`}>
+                            <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
+                              <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
+                                <Briefcase className="h-5 w-5" />
+                              </div>
+                              <div className="flex-grow">
+                                <h4 className="font-medium text-gray-900">{role.title}</h4>
+                                <p className="text-sm text-gray-500">{role.category}</p>
+                              </div>
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    </Link>
-                  ))}
-                </div>
-                
-                <div className="mt-6 flex justify-center">
-                  <Link href="/auth">
-                    <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
-                      View All Roles
-                    </Button>
-                  </Link>
-                </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No roles found matching "{searchTerm}".</p>
+                      </div>
+                    )}
+                  </>
+                ) : popularRoles && popularRoles.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {popularRoles.map((role) => (
+                        <Link key={role.id} href={`/roles/${role.id}`}>
+                          <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
+                            <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
+                              <Briefcase className="h-5 w-5" />
+                            </div>
+                            <div className="flex-grow">
+                              <h4 className="font-medium text-gray-900">{role.title}</h4>
+                              <p className="text-sm text-gray-500">{role.category}</p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 flex justify-center">
+                      <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
+                        View All Roles
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No roles available at the moment.</p>
+                  </div>
+                )}
               </TabsContent>
               
+              {/* Industries Tab */}
               <TabsContent value="industries" className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {popularIndustries.map((industry) => (
-                    <Link key={industry.id} href="/auth">
-                      <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
-                        <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
-                          <Building className="h-5 w-5" />
-                        </div>
-                        <div className="flex-grow">
-                          <h4 className="font-medium text-gray-900">{industry.name}</h4>
-                          <p className="text-sm text-gray-500">{industry.category}</p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                {isLoadingIndustries ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#1c3b82]" />
+                    <span className="ml-2">Loading industries...</span>
+                  </div>
+                ) : searchResults && activeTab === "industries" ? (
+                  <>
+                    <h3 className="text-lg font-medium mb-4">Search Results for "{searchTerm}"</h3>
+                    {searchResults.industries.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {searchResults.industries.map((industry) => (
+                          <Link key={industry.id} href={`/industries/${industry.id}`}>
+                            <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
+                              <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
+                                <Building className="h-5 w-5" />
+                              </div>
+                              <div className="flex-grow">
+                                <h4 className="font-medium text-gray-900">{industry.name}</h4>
+                                <p className="text-sm text-gray-500">{industry.category}</p>
+                              </div>
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    </Link>
-                  ))}
-                </div>
-                
-                <div className="mt-6 flex justify-center">
-                  <Link href="/auth">
-                    <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
-                      View All Industries
-                    </Button>
-                  </Link>
-                </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No industries found matching "{searchTerm}".</p>
+                      </div>
+                    )}
+                  </>
+                ) : popularIndustries && popularIndustries.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {popularIndustries.map((industry) => (
+                        <Link key={industry.id} href={`/industries/${industry.id}`}>
+                          <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
+                            <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
+                              <Building className="h-5 w-5" />
+                            </div>
+                            <div className="flex-grow">
+                              <h4 className="font-medium text-gray-900">{industry.name}</h4>
+                              <p className="text-sm text-gray-500">{industry.category}</p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-6 flex justify-center">
+                      <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
+                        View All Industries
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No industries available at the moment.</p>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
