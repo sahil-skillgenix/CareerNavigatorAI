@@ -1,4 +1,17 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { 
+  users, 
+  careerAnalyses, 
+  userBadges, 
+  userProgress,
+  type User, 
+  type InsertUser, 
+  type CareerAnalysis, 
+  type InsertCareerAnalysis,
+  type UserBadge,
+  type InsertUserBadge,
+  type UserProgress,
+  type InsertUserProgress
+} from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes } from "crypto";
@@ -8,9 +21,28 @@ import { promisify } from "util";
 // you might need
 
 export interface IStorage {
+  // User management
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
+  
+  // Career analysis management
+  saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis>;
+  getCareerAnalysisById(id: number): Promise<CareerAnalysis | undefined>;
+  getUserCareerAnalyses(userId: number): Promise<CareerAnalysis[]>;
+  updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysis>;
+  
+  // Badge management
+  getUserBadges(userId: number): Promise<UserBadge[]>;
+  createUserBadge(badge: InsertUserBadge): Promise<UserBadge>;
+  
+  // Progress tracking
+  getUserProgress(userId: number): Promise<UserProgress[]>;
+  getProgressItemById(id: number): Promise<UserProgress | undefined>;
+  updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgress>;
+  createUserProgress(progressItem: InsertUserProgress): Promise<UserProgress>;
+  
+  // Session management
   sessionStore: any; // Using any to avoid type conflicts between different session store implementations
 }
 
@@ -25,12 +57,23 @@ async function hashPassword(password: string) {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
-  currentId: number;
+  private careerAnalyses: Map<number, CareerAnalysis>;
+  private userBadges: Map<number, UserBadge>;
+  private userProgress: Map<number, UserProgress>;
+  
+  private userId: number = 1;
+  private analysisId: number = 1;
+  private badgeId: number = 1;
+  private progressId: number = 1;
+  
   sessionStore: any; // Using any to avoid type conflicts
 
   constructor() {
     this.users = new Map();
-    this.currentId = 1;
+    this.careerAnalyses = new Map();
+    this.userBadges = new Map();
+    this.userProgress = new Map();
+    
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     });
@@ -46,7 +89,7 @@ export class MemStorage implements IStorage {
       password: await hashPassword("demo123456")
     };
     
-    const id = this.currentId++;
+    const id = this.userId++;
     const user: User = { 
       ...demoUser, 
       id,
@@ -56,6 +99,7 @@ export class MemStorage implements IStorage {
     console.log("Demo user created:", user.email);
   }
 
+  // User Management
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -67,7 +111,7 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: Omit<InsertUser, "confirmPassword">): Promise<User> {
-    const id = this.currentId++;
+    const id = this.userId++;
     const user: User = { 
       ...insertUser, 
       id, 
@@ -75,6 +119,111 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+  
+  // Career Analysis Management
+  async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis> {
+    const id = this.analysisId++;
+    const now = new Date().toISOString();
+    
+    const newAnalysis: CareerAnalysis = {
+      ...analysis,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.careerAnalyses.set(id, newAnalysis);
+    return newAnalysis;
+  }
+  
+  async getCareerAnalysisById(id: number): Promise<CareerAnalysis | undefined> {
+    return this.careerAnalyses.get(id);
+  }
+  
+  async getUserCareerAnalyses(userId: number): Promise<CareerAnalysis[]> {
+    return Array.from(this.careerAnalyses.values())
+      .filter(analysis => analysis.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Most recent first
+  }
+  
+  async updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysis> {
+    const analysis = this.careerAnalyses.get(id);
+    
+    if (!analysis) {
+      throw new Error(`Analysis with ID ${id} not found`);
+    }
+    
+    const updatedAnalysis: CareerAnalysis = {
+      ...analysis,
+      progress,
+      updatedAt: new Date().toISOString()
+    };
+    
+    this.careerAnalyses.set(id, updatedAnalysis);
+    return updatedAnalysis;
+  }
+  
+  // Badge Management
+  async getUserBadges(userId: number): Promise<UserBadge[]> {
+    return Array.from(this.userBadges.values())
+      .filter(badge => badge.userId === userId)
+      .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime()); // Most recent first
+  }
+  
+  async createUserBadge(badge: InsertUserBadge): Promise<UserBadge> {
+    const id = this.badgeId++;
+    
+    const newBadge: UserBadge = {
+      ...badge,
+      id,
+      earnedAt: new Date().toISOString()
+    };
+    
+    this.userBadges.set(id, newBadge);
+    return newBadge;
+  }
+  
+  // Progress Tracking
+  async getUserProgress(userId: number): Promise<UserProgress[]> {
+    return Array.from(this.userProgress.values())
+      .filter(progress => progress.userId === userId)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()); // Most recent first
+  }
+  
+  async getProgressItemById(id: number): Promise<UserProgress | undefined> {
+    return this.userProgress.get(id);
+  }
+  
+  async updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgress> {
+    const progressItem = this.userProgress.get(id);
+    
+    if (!progressItem) {
+      throw new Error(`Progress item with ID ${id} not found`);
+    }
+    
+    const updatedProgress: UserProgress = {
+      ...progressItem,
+      progress,
+      notes: notes || progressItem.notes,
+      updatedAt: new Date().toISOString()
+    };
+    
+    this.userProgress.set(id, updatedProgress);
+    return updatedProgress;
+  }
+  
+  async createUserProgress(progressItem: InsertUserProgress): Promise<UserProgress> {
+    const id = this.progressId++;
+    
+    const newProgressItem: UserProgress = {
+      ...progressItem,
+      id,
+      updatedAt: new Date().toISOString()
+    };
+    
+    this.userProgress.set(id, newProgressItem);
+    return newProgressItem;
   }
 }
 

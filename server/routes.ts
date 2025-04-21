@@ -666,6 +666,194 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     }
   });
 
+  // Career Analysis - User History & Progress Endpoints
+  
+  // Get all analyses for current user
+  app.get('/api/career-analyses', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const analyses = await storageInstance.getUserCareerAnalyses(req.user!.id);
+      res.json(analyses);
+    } catch (error) {
+      console.error('Error fetching user career analyses:', error);
+      res.status(500).json({
+        error: 'Failed to fetch career analyses',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Get specific analysis by ID
+  app.get('/api/career-analyses/:id', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const analysisId = parseInt(req.params.id);
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storageInstance.getCareerAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Verify this analysis belongs to the current user
+      if (analysis.userId !== req.user!.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error fetching career analysis:', error);
+      res.status(500).json({
+        error: 'Failed to fetch career analysis',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Update analysis progress
+  app.patch('/api/career-analyses/:id/progress', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const analysisId = parseInt(req.params.id);
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const { progress } = req.body;
+      
+      if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+        return res.status(400).json({ 
+          error: 'Invalid progress value',
+          message: 'Progress must be a number between 0 and 100'
+        });
+      }
+      
+      const analysis = await storageInstance.getCareerAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Verify this analysis belongs to the current user
+      if (analysis.userId !== req.user!.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      const updatedAnalysis = await storageInstance.updateCareerAnalysisProgress(
+        analysisId, 
+        progress
+      );
+      
+      res.json(updatedAnalysis);
+    } catch (error) {
+      console.error('Error updating career analysis progress:', error);
+      res.status(500).json({
+        error: 'Failed to update progress',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // User Badges Endpoints
+  
+  // Get all badges for current user
+  app.get('/api/badges', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const badges = await storageInstance.getUserBadges(req.user!.id);
+      res.json(badges);
+    } catch (error) {
+      console.error('Error fetching user badges:', error);
+      res.status(500).json({
+        error: 'Failed to fetch badges',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // User Progress Tracking Endpoints
+  
+  // Get all progress items for current user
+  app.get('/api/progress', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const progressItems = await storageInstance.getUserProgress(req.user!.id);
+      res.json(progressItems);
+    } catch (error) {
+      console.error('Error fetching user progress:', error);
+      res.status(500).json({
+        error: 'Failed to fetch progress',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Update user skill progress
+  app.patch('/api/progress/:id', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const progressId = parseInt(req.params.id);
+      if (isNaN(progressId)) {
+        return res.status(400).json({ error: 'Invalid progress ID' });
+      }
+      
+      const { progress, notes } = req.body;
+      
+      if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+        return res.status(400).json({ 
+          error: 'Invalid progress value',
+          message: 'Progress must be a number between 0 and 100'
+        });
+      }
+      
+      const progressItem = await storageInstance.getProgressItemById(progressId);
+      
+      if (!progressItem) {
+        return res.status(404).json({ error: 'Progress item not found' });
+      }
+      
+      // Verify this progress item belongs to the current user
+      if (progressItem.userId !== req.user!.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      const updatedProgress = await storageInstance.updateUserProgress(
+        progressId, 
+        progress,
+        notes
+      );
+      
+      res.json(updatedProgress);
+    } catch (error) {
+      console.error('Error updating user progress:', error);
+      res.status(500).json({
+        error: 'Failed to update progress',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
