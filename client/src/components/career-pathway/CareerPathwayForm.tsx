@@ -128,6 +128,20 @@ export interface CareerAnalysisResult {
       milestones: string[];
       description: string;
     }>;
+    microLearningTips?: Array<{
+      skillArea: string;
+      tip: string;
+      estimatedTimeMinutes: number;
+      impactLevel: "high" | "medium" | "low";
+      source?: string;
+    }>;
+    platformSpecificCourses?: {
+      microsoft: Array<{title: string, url: string, level: string, duration: string}>;
+      udemy: Array<{title: string, url: string, instructorName: string, rating: string, studentsCount: string}>;
+      linkedinLearning: Array<{title: string, url: string, author: string, level: string, duration: string}>;
+      coursera: Array<{title: string, url: string, partner: string, certificationType: string, duration: string}>;
+    };
+    personalizedGrowthInsights?: string;
   };
   similarRoles?: Array<{
     role: string;

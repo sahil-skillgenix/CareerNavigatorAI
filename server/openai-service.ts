@@ -67,6 +67,20 @@ export interface CareerAnalysisOutput {
       milestones: string[];
       description: string;
     }>;
+    microLearningTips: Array<{
+      skillArea: string;
+      tip: string;
+      estimatedTimeMinutes: number;
+      impactLevel: "high" | "medium" | "low";
+      source?: string;
+    }>;
+    platformSpecificCourses: {
+      microsoft: Array<{title: string, url: string, level: string, duration: string}>;
+      udemy: Array<{title: string, url: string, instructorName: string, rating: string, studentsCount: string}>;
+      linkedinLearning: Array<{title: string, url: string, author: string, level: string, duration: string}>;
+      coursera: Array<{title: string, url: string, partner: string, certificationType: string, duration: string}>;
+    };
+    personalizedGrowthInsights: string;
   };
   similarRoles: Array<{
     role: string;
@@ -225,7 +239,21 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           focusAreas, 
           milestones, 
           description
-        }]
+        }],
+        microLearningTips: [{
+          skillArea,
+          tip,
+          estimatedTimeMinutes,
+          impactLevel,
+          source
+        }],
+        platformSpecificCourses: {
+          microsoft: [{title, url, level, duration}],
+          udemy: [{title, url, instructorName, rating, studentsCount}],
+          linkedinLearning: [{title, url, author, level, duration}],
+          coursera: [{title, url, partner, certificationType, duration}]
+        },
+        personalizedGrowthInsights
       }
     - similarRoles: [{
         role,
@@ -338,6 +366,9 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Provide a structured learning roadmap with clear milestones tailored to location
           - Create a detailed, multi-stage career development roadmap with specific milestones, focus areas and timeframes
           - Include visual-friendly structure for roadmap stages that can be animated in a timeline visualization
+          - Create 5-7 concise micro-learning tips (2-5 minute activities) for rapid skill development
+          - Provide personalized growth insights that highlight expected skill progression trajectory and milestones
+          - Include platform-specific course recommendations from Microsoft Learning, Udemy, LinkedIn Learning, and Coursera with accurate URLs
           
           8. CONDUCT QUALITY ASSURANCE:
           - Perform two-stage review to ensure accuracy and completeness
