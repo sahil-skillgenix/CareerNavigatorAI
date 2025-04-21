@@ -7,11 +7,19 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from './ui/button';
 
-const navLinks = [
+// Links for homepage sections (anchor links)
+const homeSectionLinks = [
   { href: "#features", label: "Features" },
   { href: "#how-it-works", label: "How It Works" },
   { href: "#benefits", label: "Benefits" },
   { href: "#testimonials", label: "Testimonials" },
+];
+
+// Links for main navigation
+const mainNavLinks = [
+  { href: "/skills", label: "Skills" },
+  { href: "/roles", label: "Roles" },
+  { href: "/industries", label: "Industries" },
 ];
 
 export default function Navbar() {
@@ -50,23 +58,33 @@ export default function Navbar() {
             <Link href="/" className="flex items-center flex-shrink-0">
               <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
             </Link>
-            {isHomePage && (
-              <nav className="hidden md:flex space-x-8 ml-10">
-                {navLinks.map((link) => (
-                  <a 
-                    key={link.href} 
-                    href={link.href}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      scrollToSection(link.href.substring(1));
-                    }}
-                    className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
-                  >
-                    {link.label}
-                  </a>
-                ))}
-              </nav>
-            )}
+            <nav className="hidden md:flex space-x-8 ml-10">
+              {/* Main navigation links - always visible */}
+              {mainNavLinks.map((link) => (
+                <Link 
+                  key={link.href} 
+                  href={link.href}
+                  className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              
+              {/* Home section links - only visible on homepage */}
+              {isHomePage && homeSectionLinks.map((link) => (
+                <a 
+                  key={link.href} 
+                  href={link.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(link.href.substring(1));
+                  }}
+                  className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
           </motion.div>
           
           <motion.div 
@@ -122,7 +140,19 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-6 mt-6">
-                  {isHomePage && navLinks.map((link) => (
+                  {/* Main navigation links */}
+                  {mainNavLinks.map((link) => (
+                    <Link 
+                      key={link.href} 
+                      href={link.href}
+                      className="text-neutral-700 hover:text-primary-dark transition-colors font-medium text-lg"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  
+                  {/* Home section links - only visible on homepage */}
+                  {isHomePage && homeSectionLinks.map((link) => (
                     <a 
                       key={link.href} 
                       href={link.href}
