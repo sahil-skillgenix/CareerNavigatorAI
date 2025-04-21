@@ -124,13 +124,13 @@ export class MemStorage implements IStorage {
   // Career Analysis Management
   async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis> {
     const id = this.analysisId++;
-    const now = new Date().toISOString();
+    const now = new Date();
     
     const newAnalysis: CareerAnalysis = {
       ...analysis,
       id,
-      createdAt: now,
-      updatedAt: now
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
     };
     
     this.careerAnalyses.set(id, newAnalysis);
