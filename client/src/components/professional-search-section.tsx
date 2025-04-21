@@ -96,12 +96,41 @@ export default function ProfessionalSearchSection() {
     
     setIsSearching(true);
     try {
-      const response = await fetch(`/api/search?query=${encodeURIComponent(searchTerm)}`);
+      console.log('Searching for:', searchTerm);
+      const encodedTerm = encodeURIComponent(searchTerm.trim());
+      console.log('Search URL:', `/api/search?query=${encodedTerm}`);
+      
+      const response = await fetch(`/api/search?query=${encodedTerm}`);
       if (!response.ok) {
         throw new Error('Search failed');
       }
+      
       const data = await response.json();
+      console.log('Search results received:', data);
       setSearchResults(data);
+      
+      // Auto-select a tab with results if current tab has no results
+      if (data) {
+        if (activeTab === 'skills' && data.skills.length === 0) {
+          if (data.roles.length > 0) {
+            setActiveTab('roles');
+          } else if (data.industries.length > 0) {
+            setActiveTab('industries');
+          }
+        } else if (activeTab === 'roles' && data.roles.length === 0) {
+          if (data.skills.length > 0) {
+            setActiveTab('skills');
+          } else if (data.industries.length > 0) {
+            setActiveTab('industries');
+          }
+        } else if (activeTab === 'industries' && data.industries.length === 0) {
+          if (data.skills.length > 0) {
+            setActiveTab('skills');
+          } else if (data.roles.length > 0) {
+            setActiveTab('roles');
+          }
+        }
+      }
     } catch (error) {
       console.error('Search error:', error);
     } finally {

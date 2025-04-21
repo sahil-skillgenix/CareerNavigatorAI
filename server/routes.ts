@@ -625,11 +625,14 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     try {
       const { query } = req.query;
       
+      console.log('Search query received:', query);
+      
       if (!query || typeof query !== 'string' || query.trim() === '') {
         return res.status(400).json({ error: 'Query parameter is required' });
       }
       
       const results = await CareerDataService.searchAll(query as string);
+      console.log('Search results:', JSON.stringify(results));
       res.json(results);
     } catch (error) {
       console.error('Error performing search:', error);

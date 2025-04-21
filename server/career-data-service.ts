@@ -413,12 +413,22 @@ export async function getCareerTransitionPathway(fromRoleId: number, toRoleId: n
 
 // Search across all entities (skills, roles, industries)
 export async function searchAll(query: string) {
+  console.log('searchAll function called with query:', query);
+  
+  // Log all existing skills for debugging
+  const allSkills = await getAllSkills();
+  console.log('All skills in database:', allSkills.map(s => s.name));
+  
   // Perform searches in parallel for better performance
   const [skillResults, roleResults, industryResults] = await Promise.all([
     searchSkills(query),
     searchRoles(query),
     searchIndustries(query)
   ]);
+  
+  console.log('Skill results:', skillResults);
+  console.log('Role results:', roleResults);
+  console.log('Industry results:', industryResults);
   
   return {
     skills: skillResults,
