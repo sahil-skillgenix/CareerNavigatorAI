@@ -1,19 +1,7 @@
-import { pgTable, text, serial, integer, boolean, varchar, timestamp, json, pgEnum, uniqueIndex, foreignKey } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
 
-// Users Table
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  fullName: text("full_name").notNull(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  createdAt: text("created_at").notNull().default(new Date().toISOString()),
-});
-
-// Industry Fields
-export const industryCategories = pgEnum("industry_category", [
+// Industry categories enum
+export const INDUSTRY_CATEGORIES = [
   "Technology",
   "Healthcare",
   "Finance",
@@ -32,32 +20,18 @@ export const industryCategories = pgEnum("industry_category", [
   "Creative Arts",
   "Sports & Recreation",
   "Other"
-]);
+] as const;
 
-// Industries Table
-export const industries = pgTable("industries", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  category: industryCategories("category").notNull(),
-  description: text("description").notNull(),
-  trends: text("trends"),
-  growthOutlook: text("growth_outlook"),
-  keySkillsDescription: text("key_skills_description"),
-  averageSalaryRange: text("average_salary_range"),
-  entryRequirements: text("entry_requirements"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Skills Table - with Comprehensive Fields
-export const skillLevels = pgEnum("skill_level", [
+// Skill levels enum
+export const SKILL_LEVELS = [
   "Beginner",
   "Intermediate",
   "Advanced",
   "Expert"
-]);
+] as const;
 
-export const skillCategories = pgEnum("skill_category", [
+// Skill categories enum
+export const SKILL_CATEGORIES = [
   "Technical",
   "Soft Skills",
   "Management",
@@ -67,298 +41,194 @@ export const skillCategories = pgEnum("skill_category", [
   "Leadership",
   "Domain-Specific",
   "Certifications"
-]);
+] as const;
 
-export const skills = pgTable("skills", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  category: skillCategories("category").notNull(),
-  description: text("description").notNull(),
-  sfiaMapping: text("sfia_mapping"), // SFIA 9 Framework mapping
-  digCompMapping: text("digcomp_mapping"), // DigComp 2.2 Framework mapping
-  levelingCriteria: json("leveling_criteria"), // JSON structure defining criteria for different proficiency levels
-  relatedSkills: text("related_skills").array(), // Array of related skills
-  learningResources: json("learning_resources"), // JSON structure with recommended resources
-  industryRelevance: text("industry_relevance").array(), // Industries where this skill is particularly relevant
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// User schema
+export const userSchema = z.object({
+  id: z.string().optional(),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  createdAt: z.string().optional(),
 });
 
-// Roles Table - with Comprehensive Fields
-export const roles = pgTable("roles", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  category: text("category").notNull(),
-  description: text("description").notNull(),
-  responsibilities: text("responsibilities").array(),
-  careerPathways: json("career_pathways"), // JSON structure defining possible career progressions
-  educationRequirements: text("education_requirements"),
-  experienceRequirements: text("experience_requirements"),
-  salaryRange: text("salary_range"),
-  growthOutlook: text("growth_outlook"),
-  workEnvironment: text("work_environment"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// Industry schema
+export const industrySchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  category: z.enum(INDUSTRY_CATEGORIES),
+  description: z.string().min(1, "Description is required"),
+  trends: z.string().optional().nullable(),
+  growthOutlook: z.string().optional().nullable(),
+  keySkillsDescription: z.string().optional().nullable(),
+  averageSalaryRange: z.string().optional().nullable(),
+  entryRequirements: z.string().optional().nullable(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
-// Role to Industry Relationship
-export const roleIndustries = pgTable("role_industries", {
-  id: serial("id").primaryKey(),
-  roleId: integer("role_id").notNull().references(() => roles.id, { onDelete: 'cascade' }),
-  industryId: integer("industry_id").notNull().references(() => industries.id, { onDelete: 'cascade' }),
-  prevalence: text("prevalence"), // How common this role is in the industry (e.g., "High", "Medium", "Low")
-  notes: text("notes"), // Additional context about this role in this specific industry
-  specializations: text("specializations"), // Industry-specific specializations of this role
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    roleIndustryUnique: uniqueIndex("role_industry_unique").on(table.roleId, table.industryId)
-  };
+// Skill schema
+export const skillSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  category: z.enum(SKILL_CATEGORIES),
+  description: z.string().min(1, "Description is required"),
+  sfiaMapping: z.string().optional().nullable(),
+  digCompMapping: z.string().optional().nullable(),
+  levelingCriteria: z.record(z.any()).optional().nullable(),
+  relatedSkills: z.array(z.string()).optional().nullable(),
+  learningResources: z.record(z.any()).optional().nullable(),
+  industryRelevance: z.array(z.string()).optional().nullable(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
-// Role to Skill Relationship
-export const roleSkills = pgTable("role_skills", {
-  id: serial("id").primaryKey(),
-  roleId: integer("role_id").notNull().references(() => roles.id, { onDelete: 'cascade' }),
-  skillId: integer("skill_id").notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  importance: text("importance").notNull(), // "Essential", "Important", "Beneficial"
-  levelRequired: skillLevels("level_required").notNull(),
-  context: text("context"), // How this skill is applied in this role
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    roleSkillUnique: uniqueIndex("role_skill_unique").on(table.roleId, table.skillId)
-  };
+// Role schema
+export const roleSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  category: z.string().min(1, "Category is required"),
+  description: z.string().min(1, "Description is required"),
+  responsibilities: z.array(z.string()).optional().nullable(),
+  careerPathways: z.record(z.any()).optional().nullable(),
+  educationRequirements: z.string().optional().nullable(),
+  experienceRequirements: z.string().optional().nullable(),
+  salaryRange: z.string().optional().nullable(),
+  growthOutlook: z.string().optional().nullable(),
+  workEnvironment: z.string().optional().nullable(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
-// Skill to Industry Relationship
-export const skillIndustries = pgTable("skill_industries", {
-  id: serial("id").primaryKey(),
-  skillId: integer("skill_id").notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  industryId: integer("industry_id").notNull().references(() => industries.id, { onDelete: 'cascade' }),
-  importance: text("importance").notNull(), // "Essential", "Important", "Beneficial"
-  trendDirection: text("trend_direction"), // "Growing", "Stable", "Declining"
-  contextualApplication: text("contextual_application"), // How the skill is specifically applied in this industry
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    skillIndustryUnique: uniqueIndex("skill_industry_unique").on(table.skillId, table.industryId)
-  };
+// Role-Industry relationship schema
+export const roleIndustrySchema = z.object({
+  id: z.string().optional(),
+  roleId: z.string(),
+  industryId: z.string(),
+  prevalence: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  specializations: z.string().optional().nullable(),
+  createdAt: z.string().optional(),
 });
 
-// Skill to Skill Prerequisite Relationship
-export const skillPrerequisites = pgTable("skill_prerequisites", {
-  id: serial("id").primaryKey(),
-  skillId: integer("skill_id").notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  prerequisiteId: integer("prerequisite_id").notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  importance: text("importance").notNull(), // "Essential", "Helpful", "Optional"
-  notes: text("notes"), // Additional context about this relationship
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    skillPrereqUnique: uniqueIndex("skill_prereq_unique").on(table.skillId, table.prerequisiteId)
-  };
+// Role-Skill relationship schema
+export const roleSkillSchema = z.object({
+  id: z.string().optional(),
+  roleId: z.string(),
+  skillId: z.string(),
+  importance: z.string(),
+  levelRequired: z.enum(SKILL_LEVELS),
+  context: z.string().optional().nullable(),
+  createdAt: z.string().optional(),
 });
 
-// Learning Resources for Skills
-export const learningResources = pgTable("learning_resources", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  type: text("type").notNull(), // "Course", "Book", "Tutorial", "Certification", etc.
-  provider: text("provider"),
-  url: text("url"),
-  description: text("description").notNull(),
-  skillId: integer("skill_id").notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  difficulty: skillLevels("difficulty").notNull(),
-  estimatedHours: integer("estimated_hours"),
-  costType: text("cost_type"), // "Free", "Paid", "Subscription"
-  cost: text("cost"),
-  tags: text("tags").array(),
-  rating: integer("rating"), // 1-5 scale
-  reviewCount: integer("review_count"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// Skill-Industry relationship schema
+export const skillIndustrySchema = z.object({
+  id: z.string().optional(),
+  skillId: z.string(),
+  industryId: z.string(),
+  importance: z.string(),
+  trendDirection: z.string().optional().nullable(),
+  contextualApplication: z.string().optional().nullable(),
+  createdAt: z.string().optional(),
 });
 
-// Career Pathways
-export const careerPathways = pgTable("career_pathways", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  startingRoleId: integer("starting_role_id").references(() => roles.id, { onDelete: 'set null' }),
-  targetRoleId: integer("target_role_id").references(() => roles.id, { onDelete: 'set null' }),
-  estimatedTimeYears: integer("estimated_time_years"),
-  steps: json("steps"), // JSON array with progression steps
-  alternativeRoutes: json("alternative_routes"), // JSON structure with alternative paths
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// Skill-Prerequisite relationship schema
+export const skillPrerequisiteSchema = z.object({
+  id: z.string().optional(),
+  skillId: z.string(),
+  prerequisiteId: z.string(),
+  importance: z.string(),
+  notes: z.string().optional().nullable(),
+  createdAt: z.string().optional(),
 });
 
-// Career Analyses - Store user career analysis results
-export const careerAnalyses = pgTable("career_analyses", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  professionalLevel: text("professional_level").notNull(),
-  currentSkills: text("current_skills").notNull(),
-  educationalBackground: text("educational_background").notNull(),
-  careerHistory: text("career_history").notNull(),
-  desiredRole: text("desired_role").notNull(),
-  state: text("state"),
-  country: text("country"),
-  result: json("result").notNull(), // Stores the complete analysis result
-  progress: integer("progress").default(0), // Track user's progress as percentage
-  badges: text("badges").array(), // Store badges earned through this analysis
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// Learning Resource schema
+export const learningResourceSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  type: z.string().min(1, "Type is required"),
+  provider: z.string().optional().nullable(),
+  url: z.string().optional().nullable(),
+  description: z.string().min(1, "Description is required"),
+  skillId: z.string(),
+  difficulty: z.enum(SKILL_LEVELS),
+  estimatedHours: z.number().optional().nullable(),
+  costType: z.string().optional().nullable(),
+  cost: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional().nullable(),
+  rating: z.number().optional().nullable(),
+  reviewCount: z.number().optional().nullable(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
-// User Badges
-export const userBadges = pgTable("user_badges", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  category: text("category").notNull(), // e.g., "Skills", "Learning", "Career Path"
-  level: integer("level").default(1), // Badge level (1, 2, 3, etc.)
-  icon: text("icon"), // Icon identifier or path
-  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+// Career Pathway schema
+export const careerPathwaySchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  startingRoleId: z.string().optional().nullable(),
+  targetRoleId: z.string().optional().nullable(),
+  estimatedTimeYears: z.number().optional().nullable(),
+  steps: z.record(z.any()).optional().nullable(),
+  alternativeRoutes: z.record(z.any()).optional().nullable(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
-// User Progress Tracking
-export const userProgress = pgTable("user_progress", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  analysisId: integer("analysis_id").references(() => careerAnalyses.id, { onDelete: 'set null' }),
-  skillId: integer("skill_id").references(() => skills.id, { onDelete: 'set null' }),
-  currentLevel: text("current_level"),
-  targetLevel: text("target_level"),
-  progress: integer("progress").default(0), // 0-100 percentage
-  notes: text("notes"),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+// Career Analysis schema
+export const careerAnalysisSchema = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  professionalLevel: z.string().min(1, "Professional level is required"),
+  currentSkills: z.string().min(1, "Current skills are required"),
+  educationalBackground: z.string().min(1, "Educational background is required"),
+  careerHistory: z.string().min(1, "Career history is required"),
+  desiredRole: z.string().min(1, "Desired role is required"),
+  state: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  result: z.record(z.any()).optional(),
+  progress: z.number().default(0),
+  badges: z.array(z.string()).optional().nullable(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
-// Relations
-export const usersRelations = relations(users, ({ many }) => ({
-  savedPathways: many(careerPathways),
-  careerAnalyses: many(careerAnalyses),
-  badges: many(userBadges),
-  progressItems: many(userProgress),
-}));
+// User Badge schema
+export const userBadgeSchema = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().min(1, "Category is required"),
+  level: z.number().default(1),
+  icon: z.string().optional().nullable(),
+  earnedAt: z.string().optional(),
+});
 
-export const industriesRelations = relations(industries, ({ many }) => ({
-  roles: many(roleIndustries),
-  skills: many(skillIndustries),
-}));
+// User Progress schema
+export const userProgressSchema = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  analysisId: z.string().optional().nullable(),
+  skillId: z.string().optional().nullable(),
+  currentLevel: z.string().optional().nullable(),
+  targetLevel: z.string().optional().nullable(),
+  progress: z.number().default(0),
+  notes: z.string().optional().nullable(),
+  updatedAt: z.string().optional(),
+});
 
-export const skillsRelations = relations(skills, ({ many }) => ({
-  roles: many(roleSkills),
-  industries: many(skillIndustries),
-  prerequisites: many(skillPrerequisites, { relationName: "skillToPrerequisites" }),
-  dependentSkills: many(skillPrerequisites, { relationName: "prerequisiteToSkills" }),
-  learningResources: many(learningResources),
-}));
-
-export const rolesRelations = relations(roles, ({ many }) => ({
-  skills: many(roleSkills),
-  industries: many(roleIndustries),
-}));
-
-export const roleIndustriesRelations = relations(roleIndustries, ({ one }) => ({
-  role: one(roles, {
-    fields: [roleIndustries.roleId],
-    references: [roles.id],
-  }),
-  industry: one(industries, {
-    fields: [roleIndustries.industryId],
-    references: [industries.id],
-  }),
-}));
-
-export const roleSkillsRelations = relations(roleSkills, ({ one }) => ({
-  role: one(roles, {
-    fields: [roleSkills.roleId],
-    references: [roles.id],
-  }),
-  skill: one(skills, {
-    fields: [roleSkills.skillId],
-    references: [skills.id],
-  }),
-}));
-
-export const skillIndustriesRelations = relations(skillIndustries, ({ one }) => ({
-  skill: one(skills, {
-    fields: [skillIndustries.skillId],
-    references: [skills.id],
-  }),
-  industry: one(industries, {
-    fields: [skillIndustries.industryId],
-    references: [industries.id],
-  }),
-}));
-
-export const skillPrerequisitesRelations = relations(skillPrerequisites, ({ one }) => ({
-  skill: one(skills, {
-    fields: [skillPrerequisites.skillId],
-    references: [skills.id],
-    relationName: "skillToPrerequisites",
-  }),
-  prerequisite: one(skills, {
-    fields: [skillPrerequisites.prerequisiteId],
-    references: [skills.id],
-    relationName: "prerequisiteToSkills",
-  }),
-}));
-
-export const learningResourcesRelations = relations(learningResources, ({ one }) => ({
-  skill: one(skills, {
-    fields: [learningResources.skillId],
-    references: [skills.id],
-  }),
-}));
-
-export const careerAnalysesRelations = relations(careerAnalyses, ({ one, many }) => ({
-  user: one(users, {
-    fields: [careerAnalyses.userId],
-    references: [users.id],
-  }),
-  progressItems: many(userProgress),
-}));
-
-export const userBadgesRelations = relations(userBadges, ({ one }) => ({
-  user: one(users, {
-    fields: [userBadges.userId],
-    references: [users.id],
-  }),
-}));
-
-export const userProgressRelations = relations(userProgress, ({ one }) => ({
-  user: one(users, {
-    fields: [userProgress.userId],
-    references: [users.id],
-  }),
-  analysis: one(careerAnalyses, {
-    fields: [userProgress.analysisId],
-    references: [careerAnalyses.id],
-  }),
-  skill: one(skills, {
-    fields: [userProgress.skillId],
-    references: [skills.id],
-  }),
-}));
-
-// Authentication schemas
+// Authentication schema
 export const loginUserSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export const insertUserSchema = createInsertSchema(users)
-  .pick({
-    fullName: true,
-    email: true,
-    password: true,
-    createdAt: true,
-  })
+// User registration schema
+export const insertUserSchema = userSchema
+  .omit({ id: true, createdAt: true })
   .extend({
     confirmPassword: z.string(),
   })
@@ -367,55 +237,41 @@ export const insertUserSchema = createInsertSchema(users)
     path: ["confirmPassword"],
   });
 
-// Export types
-export type LoginUser = z.infer<typeof loginUserSchema>;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type Industry = typeof industries.$inferSelect;
-export type Skill = typeof skills.$inferSelect;
-export type Role = typeof roles.$inferSelect;
-export type RoleIndustry = typeof roleIndustries.$inferSelect;
-export type RoleSkill = typeof roleSkills.$inferSelect;
-export type SkillIndustry = typeof skillIndustries.$inferSelect;
-export type SkillPrerequisite = typeof skillPrerequisites.$inferSelect;
-export type LearningResource = typeof learningResources.$inferSelect;
-export type CareerPathway = typeof careerPathways.$inferSelect;
-export type CareerAnalysis = typeof careerAnalyses.$inferSelect;
-export type UserBadge = typeof userBadges.$inferSelect;
-export type UserProgress = typeof userProgress.$inferSelect;
-
-// Define custom types with string timestamps
-export type CareerAnalysisWithStringDates = Omit<CareerAnalysis, 'createdAt' | 'updatedAt'> & {
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type UserBadgeWithStringDates = Omit<UserBadge, 'earnedAt'> & {
-  earnedAt: string;
-};
-
-export type UserProgressWithStringDates = Omit<UserProgress, 'updatedAt'> & {
-  updatedAt: string;
-};
-
-// Create insert schemas for new tables
-export const insertCareerAnalysisSchema = createInsertSchema(careerAnalyses).omit({ 
+// Career analysis input schema
+export const insertCareerAnalysisSchema = careerAnalysisSchema.omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 });
 
-export const insertUserBadgeSchema = createInsertSchema(userBadges).omit({ 
+// User badge input schema
+export const insertUserBadgeSchema = userBadgeSchema.omit({ 
   id: true, 
   earnedAt: true 
 });
 
-export const insertUserProgressSchema = createInsertSchema(userProgress).omit({ 
+// User progress input schema
+export const insertUserProgressSchema = userProgressSchema.omit({ 
   id: true, 
   updatedAt: true 
 });
 
-// Insert types
+// Export types
+export type User = z.infer<typeof userSchema>;
+export type Industry = z.infer<typeof industrySchema>;
+export type Skill = z.infer<typeof skillSchema>;
+export type Role = z.infer<typeof roleSchema>;
+export type RoleIndustry = z.infer<typeof roleIndustrySchema>;
+export type RoleSkill = z.infer<typeof roleSkillSchema>;
+export type SkillIndustry = z.infer<typeof skillIndustrySchema>;
+export type SkillPrerequisite = z.infer<typeof skillPrerequisiteSchema>;
+export type LearningResource = z.infer<typeof learningResourceSchema>;
+export type CareerPathway = z.infer<typeof careerPathwaySchema>;
+export type CareerAnalysis = z.infer<typeof careerAnalysisSchema>;
+export type UserBadge = z.infer<typeof userBadgeSchema>;
+export type UserProgress = z.infer<typeof userProgressSchema>;
+export type LoginUser = z.infer<typeof loginUserSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCareerAnalysis = z.infer<typeof insertCareerAnalysisSchema>;
 export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
