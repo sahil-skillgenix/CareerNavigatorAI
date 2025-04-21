@@ -199,10 +199,10 @@ export default function SkillDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="mt-20 container max-w-7xl mx-auto py-8 px-4 sm:px-6">
+      <main className="mt-20 container max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Skill Header */}
         <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <Link href="/skills" className="hover:underline">Skills</Link>
@@ -234,26 +234,26 @@ export default function SkillDetailPage() {
           </div>
         </div>
         
-        {/* Skill description */}
-        <p className="text-lg text-muted-foreground mb-4">{skillProfile.description}</p>
-        
-        {/* Framework mappings */}
-        {(skillProfile.sfiaMapping || skillProfile.digCompMapping) && (
-          <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
-            {skillProfile.sfiaMapping && (
-              <div className="flex items-center">
-                <Badge variant="secondary" className="mr-2">SFIA 9</Badge>
-                <span className="text-sm">{skillProfile.sfiaMapping}</span>
-              </div>
-            )}
-            {skillProfile.digCompMapping && (
-              <div className="flex items-center">
-                <Badge variant="secondary" className="mr-2">DigComp 2.2</Badge>
-                <span className="text-sm">{skillProfile.digCompMapping}</span>
-              </div>
-            )}
-          </div>
-        )}
+          {/* Skill description */}
+          <p className="text-lg text-muted-foreground mb-4">{skillProfile.description}</p>
+          
+          {/* Framework mappings */}
+          {(skillProfile.sfiaMapping || skillProfile.digCompMapping) && (
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
+              {skillProfile.sfiaMapping && (
+                <div className="flex items-center">
+                  <Badge variant="secondary" className="mr-2">SFIA 9</Badge>
+                  <span className="text-sm">{skillProfile.sfiaMapping}</span>
+                </div>
+              )}
+              {skillProfile.digCompMapping && (
+                <div className="flex items-center">
+                  <Badge variant="secondary" className="mr-2">DigComp 2.2</Badge>
+                  <span className="text-sm">{skillProfile.digCompMapping}</span>
+                </div>
+              )}
+            </div>
+          )}
       </div>
       
       {/* Main content */}
