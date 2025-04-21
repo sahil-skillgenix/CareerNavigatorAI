@@ -13,7 +13,10 @@ import {
   User2, 
   MapPin, 
   Globe, 
-  Sparkles 
+  Sparkles,
+  LineChart as LineChartIcon,
+  Laptop,
+  Clock
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -2317,6 +2320,313 @@ function CareerAnalysisResults({
                 </div>
               </div>
             </motion.div>
+            
+            {/* Micro-Learning Quick Tips */}
+            {results.developmentPlan.microLearningTips && results.developmentPlan.microLearningTips.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8"
+              >
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-rose-500" />
+                  Micro-Learning Quick Tips by GenAI
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {results.developmentPlan.microLearningTips.map((tip, index) => (
+                    <Card key={index} className={
+                      tip.impactLevel === "high" 
+                        ? "bg-gradient-to-br from-rose-50 to-orange-50 border-rose-100" 
+                        : tip.impactLevel === "medium" 
+                          ? "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-100"
+                          : "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100"
+                    }>
+                      <CardContent className="pt-4">
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className={
+                            tip.impactLevel === "high" 
+                              ? "bg-rose-100 text-rose-800 p-1 rounded-full flex items-center justify-center" 
+                              : tip.impactLevel === "medium" 
+                                ? "bg-amber-100 text-amber-800 p-1 rounded-full flex items-center justify-center"
+                                : "bg-emerald-100 text-emerald-800 p-1 rounded-full flex items-center justify-center"
+                          }>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M10.83 5H13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2.17" />
+                              <path d="M10 10h4" />
+                              <path d="M10 14h4" />
+                            </svg>
+                          </div>
+                          <div className="font-semibold text-sm">{tip.skillArea}</div>
+                        </div>
+                        <div className="ml-6">
+                          <p className="text-sm mb-2">{tip.tip}</p>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={
+                              tip.impactLevel === "high" 
+                                ? "bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full" 
+                                : tip.impactLevel === "medium" 
+                                  ? "bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full"
+                                  : "bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full"
+                            }>
+                              {tip.impactLevel.charAt(0).toUpperCase() + tip.impactLevel.slice(1)} Impact
+                            </span>
+                            <span className="text-slate-500">
+                              <Clock className="h-3 w-3 inline mr-1" />
+                              {tip.estimatedTimeMinutes} min
+                            </span>
+                          </div>
+                          {tip.source && (
+                            <div className="text-xs text-slate-500 mt-2">
+                              Source: {tip.source}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+            
+            {/* Personalized Skill Growth Animation */}
+            {results.developmentPlan.personalizedGrowthInsights && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8"
+              >
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                  <LineChartIcon className="h-5 w-5 text-purple-600" />
+                  Personalized Skill Growth Trajectory
+                </h3>
+                <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
+                  <CardContent className="pt-4">
+                    <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm relative overflow-hidden">
+                      {/* Animated background decoration */}
+                      <div className="absolute top-0 left-0 w-full h-full opacity-10 overflow-hidden">
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full blur-3xl animate-pulse"></div>
+                      </div>
+                      <p className="whitespace-pre-line text-sm leading-relaxed relative z-10">{results.developmentPlan.personalizedGrowthInsights}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+            
+            {/* Platform-Specific Courses */}
+            {results.developmentPlan.platformSpecificCourses && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8"
+              >
+                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                  <Laptop className="h-5 w-5 text-blue-600" />
+                  Recommended Platform Courses
+                </h3>
+                <Tabs defaultValue="microsoft" className="mb-8">
+                  <TabsList className="grid grid-cols-4 mb-4">
+                    <TabsTrigger value="microsoft" className="text-xs">Microsoft Learning</TabsTrigger>
+                    <TabsTrigger value="udemy" className="text-xs">Udemy</TabsTrigger>
+                    <TabsTrigger value="linkedin" className="text-xs">LinkedIn Learning</TabsTrigger>
+                    <TabsTrigger value="coursera" className="text-xs">Coursera</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="microsoft">
+                    <div className="grid grid-cols-1 gap-3">
+                      {results.developmentPlan.platformSpecificCourses.microsoft.map((course, index) => (
+                        <Card key={index} className="bg-gradient-to-r from-slate-50 to-blue-50 border-blue-100 overflow-hidden">
+                          <CardContent className="pt-4">
+                            <div className="flex items-start gap-3">
+                              <div className="bg-blue-600 text-white p-2 rounded-md flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M0 0h11.5v11.5H0V0zm12.5 0H24v11.5H12.5V0zM0 12.5h11.5V24H0V12.5zm12.5 0H24V24H12.5V12.5z"/>
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold">
+                                  <a href={course.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
+                                    {course.title}
+                                  </a>
+                                </h4>
+                                <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 20h9"/>
+                                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                    </svg>
+                                    {course.level}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    {course.duration}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="udemy">
+                    <div className="grid grid-cols-1 gap-3">
+                      {results.developmentPlan.platformSpecificCourses.udemy.map((course, index) => (
+                        <Card key={index} className="bg-gradient-to-r from-slate-50 to-purple-50 border-purple-100 overflow-hidden">
+                          <CardContent className="pt-4">
+                            <div className="flex items-start gap-3">
+                              <div className="bg-violet-600 text-white p-2 rounded-md flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M18 6h-5c-1.1 0-2 .9-2 2v10"/>
+                                  <path d="M18 16v-3a2 2 0 0 0-2-2h-6"/>
+                                  <path d="M12 19h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold">
+                                  <a href={course.url} target="_blank" rel="noopener noreferrer" className="hover:text-violet-600 transition-colors">
+                                    {course.title}
+                                  </a>
+                                </h4>
+                                <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                      <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    {course.instructorName}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                    {course.rating}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                      <circle cx="9" cy="7" r="4"/>
+                                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                    {course.studentsCount}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="linkedin">
+                    <div className="grid grid-cols-1 gap-3">
+                      {results.developmentPlan.platformSpecificCourses.linkedinLearning.map((course, index) => (
+                        <Card key={index} className="bg-gradient-to-r from-slate-50 to-sky-50 border-sky-100 overflow-hidden">
+                          <CardContent className="pt-4">
+                            <div className="flex items-start gap-3">
+                              <div className="bg-sky-600 text-white p-2 rounded-md flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/>
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold">
+                                  <a href={course.url} target="_blank" rel="noopener noreferrer" className="hover:text-sky-600 transition-colors">
+                                    {course.title}
+                                  </a>
+                                </h4>
+                                <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                      <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                    {course.author}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M12 20h9"/>
+                                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                    </svg>
+                                    {course.level}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    {course.duration}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="coursera">
+                    <div className="grid grid-cols-1 gap-3">
+                      {results.developmentPlan.platformSpecificCourses.coursera.map((course, index) => (
+                        <Card key={index} className="bg-gradient-to-r from-slate-50 to-blue-50 border-blue-100 overflow-hidden">
+                          <CardContent className="pt-4">
+                            <div className="flex items-start gap-3">
+                              <div className="bg-blue-700 text-white p-2 rounded-md flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-semibold">
+                                  <a href={course.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-700 transition-colors">
+                                    {course.title}
+                                  </a>
+                                </h4>
+                                <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                      <path d="M8 21h8"/>
+                                      <path d="M12 17v4"/>
+                                    </svg>
+                                    {course.partner}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                    {course.certificationType}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    {course.duration}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </motion.div>
+            )}
             
             <motion.div
               initial={{ opacity: 0, y: 20 }}
