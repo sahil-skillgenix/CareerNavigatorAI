@@ -7,27 +7,12 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from './ui/button';
 
-// Links for homepage sections (anchor links)
-const homeSectionLinks = [
-  { href: "#features", label: "Features" },
-  { href: "#how-it-works", label: "How It Works" },
-  { href: "#benefits", label: "Benefits" },
-  { href: "#testimonials", label: "Testimonials" },
-];
-
-// Links for main navigation
-const mainNavLinks = [
-  { href: "/skills", label: "Skills" },
-  { href: "/roles", label: "Roles" },
-  { href: "/industries", label: "Industries" },
-];
-
+// Simple navbar with only Skillgenix logo, Sign In, and Get Started buttons
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
-  const isHomePage = location === '/';
 
+  // Handle scroll effect for navbar background
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -36,11 +21,9 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      section.scrollIntoView({ behavior: 'smooth' });
-    }
+  // Scroll to top of page when Skillgenix logo is clicked
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -49,44 +32,23 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
+          {/* Logo */}
           <motion.div 
             className="flex items-center"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Link href="/" className="flex items-center flex-shrink-0">
+            <Link 
+              href="/" 
+              className="flex items-center flex-shrink-0"
+              onClick={scrollToTop}
+            >
               <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
             </Link>
-            <nav className="hidden md:flex space-x-8 ml-10">
-              {/* Main navigation links - always visible */}
-              {mainNavLinks.map((link) => (
-                <Link 
-                  key={link.href} 
-                  href={link.href}
-                  className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              
-              {/* Home section links - only visible on homepage */}
-              {isHomePage && homeSectionLinks.map((link) => (
-                <a 
-                  key={link.href} 
-                  href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(link.href.substring(1));
-                  }}
-                  className="text-neutral-700 hover:text-primary-dark transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
           </motion.div>
           
+          {/* Right side buttons */}
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -95,6 +57,7 @@ export default function Navbar() {
           >
             {user ? (
               <>
+                {/* Logged in state */}
                 <div className="hidden md:block text-sm text-muted-foreground">
                   Welcome, <span className="font-medium">{user.fullName}</span>
                 </div>
@@ -117,6 +80,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
+                {/* Logged out state */}
                 <Link href="/auth" className="hidden md:block">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
@@ -128,6 +92,7 @@ export default function Navbar() {
               </>
             )}
             
+            {/* Mobile menu */}
             <Sheet>
               <SheetTrigger asChild>
                 <button 
@@ -140,34 +105,16 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-6 mt-6">
-                  {/* Main navigation links */}
-                  {mainNavLinks.map((link) => (
-                    <Link 
-                      key={link.href} 
-                      href={link.href}
-                      className="text-neutral-700 hover:text-primary-dark transition-colors font-medium text-lg"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                  
-                  {/* Home section links - only visible on homepage */}
-                  {isHomePage && homeSectionLinks.map((link) => (
-                    <a 
-                      key={link.href} 
-                      href={link.href}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        scrollToSection(link.href.substring(1));
-                      }}
-                      className="text-neutral-700 hover:text-primary-dark transition-colors font-medium text-lg"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
+                  {/* Logo in mobile menu */}
+                  <Link href="/" className="w-full">
+                    <Button variant="link" className="w-full justify-start p-0">
+                      <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
+                    </Button>
+                  </Link>
                   
                   {user ? (
                     <>
+                      {/* Logged in mobile menu */}
                       <div className="text-sm text-muted-foreground">
                         Welcome, <span className="font-medium">{user.fullName}</span>
                       </div>
@@ -189,6 +136,7 @@ export default function Navbar() {
                     </>
                   ) : (
                     <>
+                      {/* Logged out mobile menu */}
                       <Link href="/auth" className="w-full">
                         <Button variant="outline" className="w-full">Sign In</Button>
                       </Link>
