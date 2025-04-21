@@ -1002,6 +1002,60 @@ function CareerAnalysisResults({
                             )}
                           </div>
                         )}
+
+                        {/* New GenAI Recommended Projects */}
+                        {step.recommendedProjects && step.recommendedProjects.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-xs font-semibold text-blue-700 mb-1 flex items-center gap-1">
+                              <Sparkles className="h-3 w-3" />
+                              AI-Recommended Projects:
+                            </div>
+                            <div className="space-y-2 mb-2">
+                              {step.recommendedProjects.map((project, idx) => (
+                                <div key={idx} className="bg-blue-50 rounded-md p-2 text-xs">
+                                  <div className="font-medium text-blue-800">{project.name}</div>
+                                  <div className="text-blue-600 mt-1">{project.description}</div>
+                                  {project.skillsGained && (
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      {project.skillsGained.map((skill, sIdx) => (
+                                        <span key={sIdx} className="inline-flex bg-blue-100 text-blue-800 text-2xs px-1.5 py-0.5 rounded">
+                                          {skill}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* New GenAI Job Opportunities */}
+                        {step.jobOpportunities && step.jobOpportunities.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-xs font-semibold text-blue-700 mb-1 flex items-center gap-1">
+                              <Sparkles className="h-3 w-3" />
+                              AI-Recommended Job Opportunities:
+                            </div>
+                            <div className="space-y-2">
+                              {step.jobOpportunities.map((job, idx) => (
+                                <div key={idx} className="bg-blue-50 rounded-md p-2 text-xs">
+                                  <div className="font-medium text-blue-800">{job.roleType}</div>
+                                  <div className="text-blue-600 mt-1">{job.description}</div>
+                                  {job.skillsUtilized && (
+                                    <div className="mt-1 flex flex-wrap gap-1">
+                                      {job.skillsUtilized.map((skill, sIdx) => (
+                                        <span key={sIdx} className="inline-flex bg-blue-100 text-blue-800 text-2xs px-1.5 py-0.5 rounded">
+                                          {skill}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         
                         {step.licenseRequired && (
                           <div className="flex items-center gap-1 text-xs text-blue-600 mb-2">
