@@ -329,6 +329,11 @@ export const IndustrySkillsChart = ({ skills }: { skills: IndustrySkill[] }) => 
 };
 
 export const IndustryMarketOverview = ({ industry }: { industry: IndustryData }) => {
+  // Safely check properties before using them
+  if (!industry || !industry.name) {
+    return null;
+  }
+  
   const data = prepareMarketOverviewData(industry);
 
   return (
@@ -379,6 +384,10 @@ export const IndustryMarketOverview = ({ industry }: { industry: IndustryData })
 };
 
 export const IndustryTrendsChart = ({ industry }: { industry: IndustryData }) => {
+  if (!industry || !industry.name) {
+    return null;
+  }
+  
   const data = prepareTrendsData(industry);
 
   return (
@@ -497,6 +506,10 @@ export const IndustrySkillRadarChart = ({ skills }: { skills: IndustrySkill[] })
 export const IndustryVisualizations = ({ industry }: { industry: IndustryData }) => {
   if (!industry) return null;
   
+  // Ensure required properties exist
+  const hasRoles = industry.roles && Array.isArray(industry.roles) && industry.roles.length > 0;
+  const hasSkills = industry.skills && Array.isArray(industry.skills) && industry.skills.length > 0;
+  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Industry Insights</h2>
@@ -506,12 +519,14 @@ export const IndustryVisualizations = ({ industry }: { industry: IndustryData })
         <IndustryMarketOverview industry={industry} />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <IndustryRolesChart roles={industry.roles} />
-        <IndustrySkillsChart skills={industry.skills} />
-      </div>
+      {(hasRoles || hasSkills) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {hasRoles && <IndustryRolesChart roles={industry.roles} />}
+          {hasSkills && <IndustrySkillsChart skills={industry.skills} />}
+        </div>
+      )}
       
-      <IndustrySkillRadarChart skills={industry.skills} />
+      {hasSkills && <IndustrySkillRadarChart skills={industry.skills} />}
     </div>
   );
 };
