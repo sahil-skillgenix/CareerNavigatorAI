@@ -11,6 +11,8 @@ import {
   LearningResource,
   LearningPathRecommendation
 } from "./learning-resources-service";
+import { seedDatabase } from "./seed-data";
+import * as CareerDataService from "./career-data-service";
 
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
   // Use provided storage or fallback to in-memory storage
@@ -18,6 +20,14 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   
   // Setup authentication
   setupAuth(app, storageInstance);
+
+  // Seed database with initial data (will only run if database is empty)
+  try {
+    await seedDatabase();
+    console.log('Database check/seed completed');
+  } catch (error) {
+    console.error('Error seeding database:', error);
+  }
 
   // API routes
   app.get('/api/health', (req, res) => {
@@ -258,6 +268,374 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       res.status(500).json({ 
         error: 'Failed to analyze organization pathway', 
         message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  // Career Data API Endpoints
+
+  // Skills endpoints
+  app.get('/api/skills', async (req: Request, res: Response) => {
+    try {
+      const { query, category } = req.query;
+      
+      let skills;
+      if (query) {
+        skills = await CareerDataService.searchSkills(query as string);
+      } else if (category) {
+        skills = await CareerDataService.getSkillsByCategory(category as string);
+      } else {
+        skills = await CareerDataService.getAllSkills();
+      }
+      
+      res.json(skills);
+    } catch (error) {
+      console.error('Error fetching skills:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch skills', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/skills/popular', async (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const skills = await CareerDataService.getPopularSkills(limit);
+      res.json(skills);
+    } catch (error) {
+      console.error('Error fetching popular skills:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch popular skills', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/skills/:id', async (req: Request, res: Response) => {
+    try {
+      const skillId = parseInt(req.params.id);
+      if (isNaN(skillId)) {
+        return res.status(400).json({ error: 'Invalid skill ID' });
+      }
+      
+      const skill = await CareerDataService.getSkillById(skillId);
+      if (!skill) {
+        return res.status(404).json({ error: 'Skill not found' });
+      }
+      
+      res.json(skill);
+    } catch (error) {
+      console.error('Error fetching skill:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch skill', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/skills/:id/profile', async (req: Request, res: Response) => {
+    try {
+      const skillId = parseInt(req.params.id);
+      if (isNaN(skillId)) {
+        return res.status(400).json({ error: 'Invalid skill ID' });
+      }
+      
+      const skillProfile = await CareerDataService.getCompleteSkillProfile(skillId);
+      if (!skillProfile) {
+        return res.status(404).json({ error: 'Skill not found' });
+      }
+      
+      res.json(skillProfile);
+    } catch (error) {
+      console.error('Error fetching skill profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch skill profile', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/skills/:id/learning-path', async (req: Request, res: Response) => {
+    try {
+      const skillId = parseInt(req.params.id);
+      if (isNaN(skillId)) {
+        return res.status(400).json({ error: 'Invalid skill ID' });
+      }
+      
+      const learningPath = await CareerDataService.getSkillAcquisitionPathway(skillId);
+      if (!learningPath) {
+        return res.status(404).json({ error: 'Skill not found' });
+      }
+      
+      res.json(learningPath);
+    } catch (error) {
+      console.error('Error fetching skill learning path:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch skill learning path', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Roles endpoints
+  app.get('/api/roles', async (req: Request, res: Response) => {
+    try {
+      const { query, category } = req.query;
+      
+      let roles;
+      if (query) {
+        roles = await CareerDataService.searchRoles(query as string);
+      } else if (category) {
+        roles = await CareerDataService.getRolesByCategory(category as string);
+      } else {
+        roles = await CareerDataService.getAllRoles();
+      }
+      
+      res.json(roles);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch roles', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/roles/popular', async (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const roles = await CareerDataService.getPopularRoles(limit);
+      res.json(roles);
+    } catch (error) {
+      console.error('Error fetching popular roles:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch popular roles', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/roles/:id', async (req: Request, res: Response) => {
+    try {
+      const roleId = parseInt(req.params.id);
+      if (isNaN(roleId)) {
+        return res.status(400).json({ error: 'Invalid role ID' });
+      }
+      
+      const role = await CareerDataService.getRoleById(roleId);
+      if (!role) {
+        return res.status(404).json({ error: 'Role not found' });
+      }
+      
+      res.json(role);
+    } catch (error) {
+      console.error('Error fetching role:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch role', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/roles/:id/profile', async (req: Request, res: Response) => {
+    try {
+      const roleId = parseInt(req.params.id);
+      if (isNaN(roleId)) {
+        return res.status(400).json({ error: 'Invalid role ID' });
+      }
+      
+      const roleProfile = await CareerDataService.getCompleteRoleProfile(roleId);
+      if (!roleProfile) {
+        return res.status(404).json({ error: 'Role not found' });
+      }
+      
+      res.json(roleProfile);
+    } catch (error) {
+      console.error('Error fetching role profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch role profile', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/roles/:id/skills', async (req: Request, res: Response) => {
+    try {
+      const roleId = parseInt(req.params.id);
+      if (isNaN(roleId)) {
+        return res.status(400).json({ error: 'Invalid role ID' });
+      }
+      
+      const skills = await CareerDataService.getSkillsForRole(roleId);
+      res.json(skills);
+    } catch (error) {
+      console.error('Error fetching role skills:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch role skills', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Industries endpoints
+  app.get('/api/industries', async (req: Request, res: Response) => {
+    try {
+      const { query, category } = req.query;
+      
+      let industries;
+      if (query) {
+        industries = await CareerDataService.searchIndustries(query as string);
+      } else if (category) {
+        industries = await CareerDataService.getIndustryByCategory(category as string);
+      } else {
+        industries = await CareerDataService.getAllIndustries();
+      }
+      
+      res.json(industries);
+    } catch (error) {
+      console.error('Error fetching industries:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch industries', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/industries/popular', async (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const industries = await CareerDataService.getPopularIndustries(limit);
+      res.json(industries);
+    } catch (error) {
+      console.error('Error fetching popular industries:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch popular industries', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/industries/:id', async (req: Request, res: Response) => {
+    try {
+      const industryId = parseInt(req.params.id);
+      if (isNaN(industryId)) {
+        return res.status(400).json({ error: 'Invalid industry ID' });
+      }
+      
+      const industry = await CareerDataService.getIndustryById(industryId);
+      if (!industry) {
+        return res.status(404).json({ error: 'Industry not found' });
+      }
+      
+      res.json(industry);
+    } catch (error) {
+      console.error('Error fetching industry:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch industry', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/industries/:id/profile', async (req: Request, res: Response) => {
+    try {
+      const industryId = parseInt(req.params.id);
+      if (isNaN(industryId)) {
+        return res.status(400).json({ error: 'Invalid industry ID' });
+      }
+      
+      const industryProfile = await CareerDataService.getCompleteIndustryProfile(industryId);
+      if (!industryProfile) {
+        return res.status(404).json({ error: 'Industry not found' });
+      }
+      
+      res.json(industryProfile);
+    } catch (error) {
+      console.error('Error fetching industry profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch industry profile', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Career pathway endpoints
+  app.get('/api/pathways', async (req: Request, res: Response) => {
+    try {
+      const pathways = await CareerDataService.getAllCareerPathways();
+      res.json(pathways);
+    } catch (error) {
+      console.error('Error fetching career pathways:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch career pathways', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/pathways/:id', async (req: Request, res: Response) => {
+    try {
+      const pathwayId = parseInt(req.params.id);
+      if (isNaN(pathwayId)) {
+        return res.status(400).json({ error: 'Invalid pathway ID' });
+      }
+      
+      const pathway = await CareerDataService.getCareerPathwayById(pathwayId);
+      if (!pathway) {
+        return res.status(404).json({ error: 'Career pathway not found' });
+      }
+      
+      res.json(pathway);
+    } catch (error) {
+      console.error('Error fetching career pathway:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch career pathway', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/career-transition', async (req: Request, res: Response) => {
+    try {
+      const fromRoleId = parseInt(req.query.fromRole as string);
+      const toRoleId = parseInt(req.query.toRole as string);
+      
+      if (isNaN(fromRoleId) || isNaN(toRoleId)) {
+        return res.status(400).json({ error: 'Invalid role IDs. Both fromRole and toRole must be valid numbers.' });
+      }
+      
+      const transitionPath = await CareerDataService.getCareerTransitionPathway(fromRoleId, toRoleId);
+      if (!transitionPath) {
+        return res.status(404).json({ error: 'One or both roles not found' });
+      }
+      
+      res.json(transitionPath);
+    } catch (error) {
+      console.error('Error fetching career transition pathway:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch career transition pathway', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Search across all entities
+  app.get('/api/search', async (req: Request, res: Response) => {
+    try {
+      const { query } = req.query;
+      
+      if (!query || typeof query !== 'string' || query.trim() === '') {
+        return res.status(400).json({ error: 'Query parameter is required' });
+      }
+      
+      const results = await CareerDataService.searchAll(query as string);
+      res.json(results);
+    } catch (error) {
+      console.error('Error performing search:', error);
+      res.status(500).json({ 
+        error: 'Failed to perform search', 
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
