@@ -540,136 +540,136 @@ export default function SkillDetailPage() {
                 </CardContent>
               </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>No Industry Data</CardTitle>
-                <CardDescription>
-                  We couldn't find any industry-specific data for this skill.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  {skillProfile.name} may be applicable across various industries, but we don't have 
-                  specific industry associations in our current database.
-                </p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>No Industry Data</CardTitle>
+                  <CardDescription>
+                    We couldn't find any industry-specific data for this skill.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    {skillProfile.name} may be applicable across various industries, but we don't have 
+                    specific industry associations in our current database.
+                  </p>
+                </CardContent>
+              </Card>
           )}
         </TabsContent>
         
-        {/* Learning Resources Tab */}
-        <TabsContent value="resources" className="space-y-6">
-          {skillProfile.learningResources && skillProfile.learningResources.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Book className="mr-2 h-5 w-5" />
-                  Learning Resources
-                </CardTitle>
-                <CardDescription>
-                  Recommended resources to help you learn and master {skillProfile.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  {skillProfile.learningResources.map((resource) => (
-                    <div key={resource.id} className="border rounded-lg p-4">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-lg font-semibold">{resource.title}</h3>
-                            <Badge>{resource.type}</Badge>
-                            {renderLevelBadge(resource.difficulty)}
-                            <Badge variant="outline">{resource.costType}</Badge>
+          {/* Learning Resources Tab */}
+          <TabsContent value="resources" className="space-y-6">
+            {skillProfile.learningResources && skillProfile.learningResources.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Book className="mr-2 h-5 w-5" />
+                    Learning Resources
+                  </CardTitle>
+                  <CardDescription>
+                    Recommended resources to help you learn and master {skillProfile.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4">
+                    {skillProfile.learningResources.map((resource) => (
+                      <div key={resource.id} className="border rounded-lg p-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="text-lg font-semibold">{resource.title}</h3>
+                              <Badge>{resource.type}</Badge>
+                              {renderLevelBadge(resource.difficulty)}
+                              <Badge variant="outline">{resource.costType}</Badge>
+                            </div>
+                            {resource.provider && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Provider: {resource.provider}
+                              </p>
+                            )}
                           </div>
-                          {resource.provider && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Provider: {resource.provider}
-                            </p>
+                          {resource.url && (
+                            <Button asChild variant="outline" size="sm">
+                              <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                                <LinkIcon className="mr-2 h-3 w-3" />
+                                Visit Resource
+                              </a>
+                            </Button>
                           )}
                         </div>
-                        {resource.url && (
-                          <Button asChild variant="outline" size="sm">
-                            <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                              <LinkIcon className="mr-2 h-3 w-3" />
-                              Visit Resource
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
-                      
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm">
-                        {resource.estimatedHours && (
-                          <span className="flex items-center">
-                            <FileText className="mr-1 h-4 w-4" />
-                            {resource.estimatedHours} hours
-                          </span>
-                        )}
-                        {resource.cost && (
-                          <span className="flex items-center">
-                            <MapPin className="mr-1 h-4 w-4" />
-                            {resource.cost}
-                          </span>
-                        )}
-                        {resource.rating && (
-                          <span className="flex items-center">
-                            <Star className="mr-1 h-4 w-4 text-yellow-500" />
-                            {resource.rating}/5
-                          </span>
-                        )}
-                      </div>
-                      
-                      {resource.tags && resource.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {resource.tags.map((tag, idx) => (
-                            <Badge key={idx} variant="secondary">{tag}</Badge>
-                          ))}
+                        <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
+                        
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm">
+                          {resource.estimatedHours && (
+                            <span className="flex items-center">
+                              <FileText className="mr-1 h-4 w-4" />
+                              {resource.estimatedHours} hours
+                            </span>
+                          )}
+                          {resource.cost && (
+                            <span className="flex items-center">
+                              <MapPin className="mr-1 h-4 w-4" />
+                              {resource.cost}
+                            </span>
+                          )}
+                          {resource.rating && (
+                            <span className="flex items-center">
+                              <Star className="mr-1 h-4 w-4 text-yellow-500" />
+                              {resource.rating}/5
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <p className="text-sm text-muted-foreground">
-                  These resources are curated to help you develop your skills in {skillProfile.name} 
-                  at various levels of expertise.
-                </p>
-              </CardFooter>
-            </Card>
+                        
+                        {resource.tags && resource.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {resource.tags.map((tag, idx) => (
+                              <Badge key={idx} variant="secondary">{tag}</Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <p className="text-sm text-muted-foreground">
+                    These resources are curated to help you develop your skills in {skillProfile.name} 
+                    at various levels of expertise.
+                  </p>
+                </CardFooter>
+              </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>No Learning Resources</CardTitle>
-                <CardDescription>
-                  We couldn't find any specific learning resources for this skill in our database.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  While we don't have specific learning resources for {skillProfile.name}, 
-                  you can search for courses and materials on platforms like Coursera, Udemy, or LinkedIn Learning.
-                </p>
-                <div className="flex gap-2 mt-4">
-                  <Button asChild variant="outline">
-                    <a href="https://www.coursera.org/" target="_blank" rel="noopener noreferrer">
-                      <SquareArrowUpRight className="mr-2 h-4 w-4" />
-                      Coursera
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <a href="https://www.udemy.com/" target="_blank" rel="noopener noreferrer">
-                      <SquareArrowUpRight className="mr-2 h-4 w-4" />
-                      Udemy
-                    </a>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>No Learning Resources</CardTitle>
+                  <CardDescription>
+                    We couldn't find any specific learning resources for this skill in our database.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    While we don't have specific learning resources for {skillProfile.name}, 
+                    you can search for courses and materials on platforms like Coursera, Udemy, or LinkedIn Learning.
+                  </p>
+                  <div className="flex gap-2 mt-4">
+                    <Button asChild variant="outline">
+                      <a href="https://www.coursera.org/" target="_blank" rel="noopener noreferrer">
+                        <SquareArrowUpRight className="mr-2 h-4 w-4" />
+                        Coursera
+                      </a>
+                    </Button>
+                    <Button asChild variant="outline">
+                      <a href="https://www.udemy.com/" target="_blank" rel="noopener noreferrer">
+                        <SquareArrowUpRight className="mr-2 h-4 w-4" />
+                        Udemy
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
           )}
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
       </main>
       <Footer />
     </div>

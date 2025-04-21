@@ -35,6 +35,8 @@ function Router() {
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
       <Route path="/skills" component={SkillsPage} />
       <Route path="/skills/:id" component={SkillDetailPage} />
+      <Route path="/skills/:id/profile" component={SkillDetailPage} />
+      <Route path="/skills/:id/learning-path" component={SkillDetailPage} />
       <Route component={NotFound} />
     </Switch>
   );
