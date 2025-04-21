@@ -89,7 +89,7 @@ export default function ProfessionalSearchSection() {
               <TabsContent value="skills" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {popularSkills.map((skill) => (
-                    <Link key={skill.id} href="/auth">
+                    <Link key={skill.id} href={`/skills/${skill.id}`}>
                       <div className="flex items-center p-4 border border-[#e4e9f2] rounded-md hover:bg-[#f5f7fa] transition-colors cursor-pointer">
                         <div className="mr-4 w-10 h-10 flex items-center justify-center rounded-md bg-[#f5f7fa] text-[#1c3b82]">
                           <Code className="h-5 w-5" />
@@ -105,7 +105,7 @@ export default function ProfessionalSearchSection() {
                 </div>
                 
                 <div className="mt-6 flex justify-center">
-                  <Link href="/auth">
+                  <Link href="/skills">
                     <Button variant="outline" className="border-[#1c3b82] text-[#1c3b82]">
                       View All Skills
                     </Button>

@@ -16,6 +16,8 @@ import CareerAnalysisPage from "@/pages/career-analysis-page";
 import LearningResourcesPage from "@/pages/learning-resources-page";
 import SavedResourcesPage from "@/pages/saved-resources-page";
 import OrganizationPathwayPage from "@/pages/organization-pathway-page";
+import SkillDetailPage from "@/pages/skill-detail-page";
+import SkillsPage from "@/pages/skills-page";
 
 function Router() {
   return (
@@ -31,6 +33,8 @@ function Router() {
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       */}
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
+      <Route path="/skills" component={SkillsPage} />
+      <Route path="/skills/:id" component={SkillDetailPage} />
       <Route component={NotFound} />
     </Switch>
   );
