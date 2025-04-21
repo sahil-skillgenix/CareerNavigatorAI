@@ -1,8 +1,8 @@
 import Navbar from '@/components/navbar';
-import NewHeroSection from '@/components/new-hero-section';
-import AnimatedJourneySection from '@/components/animated-journey-section';
-import CareerSearchSection from '@/components/career-search-section';
-import AiFeaturesSection from '@/components/ai-features-section';
+import ProfessionalHeroSection from '@/components/professional-hero-section';
+import ProfessionalJourneySection from '@/components/professional-journey-section';
+import ProfessionalSearchSection from '@/components/professional-search-section';
+import ProfessionalFeaturesSection from '@/components/professional-features-section';
 import TestimonialsSection from '@/components/testimonials-section';
 import CtaSection from '@/components/cta-section';
 import Footer from '@/components/footer';
@@ -18,10 +18,10 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <Navbar />
       <main>
-        <NewHeroSection />
-        <AiFeaturesSection />
-        <AnimatedJourneySection />
-        <CareerSearchSection />
+        <ProfessionalHeroSection />
+        <ProfessionalFeaturesSection />
+        <ProfessionalJourneySection />
+        <ProfessionalSearchSection />
         <TestimonialsSection />
         <CtaSection />
       </main>
