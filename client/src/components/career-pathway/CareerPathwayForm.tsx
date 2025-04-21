@@ -68,6 +68,8 @@ export interface CareerAnalysisResult {
   skillGapAnalysis: {
     gaps: Array<{skill: string, importance: string, description: string}>;
     strengths: Array<{skill: string, level: string, relevance: string, description: string}>;
+    aiAnalysis?: string; // New field for GenAI deeper analysis of skill gaps
+    recommendations?: Array<{area: string, suggestion: string, impactLevel: string}>;
   };
   careerPathway: {
     withDegree: Array<{
@@ -77,6 +79,8 @@ export interface CareerAnalysisResult {
       keySkillsNeeded: string[];
       description: string;
       requiredQualification?: string;
+      recommendedProjects?: Array<{name: string, description: string, skillsGained: string[]}>;
+      jobOpportunities?: Array<{roleType: string, description: string, skillsUtilized: string[]}>;
     }>;
     withoutDegree: Array<{
       step: number;
@@ -85,7 +89,10 @@ export interface CareerAnalysisResult {
       keySkillsNeeded: string[];
       description: string;
       alternativeQualification?: string;
+      recommendedProjects?: Array<{name: string, description: string, skillsGained: string[]}>;
+      jobOpportunities?: Array<{roleType: string, description: string, skillsUtilized: string[]}>;
     }>;
+    aiRecommendations?: string; // New field for GenAI recommendations for pathway enhancement
   };
   developmentPlan: {
     skillsToAcquire: Array<{skill: string, priority: string, resources: string[]}>;
@@ -96,6 +103,29 @@ export interface CareerAnalysisResult {
     };
     suggestedProjects: string[];
     learningPath: string;
+    roadmapStages?: Array<{
+      stage: number;
+      title: string;
+      timeframe: string;
+      focusAreas: string[];
+      milestones: string[];
+      description: string;
+    }>;
+  };
+  similarRoles?: Array<{
+    role: string;
+    similarityScore: number;
+    keySkillsOverlap: string[];
+    uniqueRequirements: string[];
+    potentialSalaryRange: string;
+    locationSpecificDemand: string;
+  }>;
+  socialSkills?: {
+    criticalSoftSkills: Array<{skill: string, importance: string, developmentStrategies: string[]}>;
+    communicationRecommendations: string;
+    leadershipDevelopment: string;
+    teamworkStrategies: string;
+    networkingOpportunities: Array<{type: string, specificRecommendation: string, location: string}>;
   };
   reviewNotes: {
     firstReview: string;

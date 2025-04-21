@@ -182,11 +182,32 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       }
     - skillGapAnalysis: {
         gaps: [{skill, importance, description}],
-        strengths: [{skill, level, relevance, description}]
+        strengths: [{skill, level, relevance, description}],
+        aiAnalysis: "A detailed GenAI analysis of the skill gaps, explaining patterns, underlying issues, and strategic insights beyond the framework-based analysis",
+        recommendations: [{area, suggestion, impactLevel}]
       }
     - careerPathway: {
-        withDegree: [{step, role, timeframe, keySkillsNeeded, description, requiredQualification}],
-        withoutDegree: [{step, role, timeframe, keySkillsNeeded, description, alternativeQualification}]
+        withDegree: [{
+          step, 
+          role, 
+          timeframe, 
+          keySkillsNeeded, 
+          description, 
+          requiredQualification,
+          recommendedProjects: [{name, description, skillsGained}],
+          jobOpportunities: [{roleType, description, skillsUtilized}]
+        }],
+        withoutDegree: [{
+          step, 
+          role, 
+          timeframe, 
+          keySkillsNeeded, 
+          description, 
+          alternativeQualification,
+          recommendedProjects: [{name, description, skillsGained}],
+          jobOpportunities: [{roleType, description, skillsUtilized}]
+        }],
+        aiRecommendations: "Strategic GenAI recommendations for optimizing the career pathway, including fast-tracking options, unique opportunities to consider, and creative approaches to career development"
       }
     - developmentPlan: {
         skillsToAcquire: [{skill, priority, resources}],
@@ -196,7 +217,15 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           online: []
         },
         suggestedProjects: [],
-        learningPath
+        learningPath,
+        roadmapStages: [{
+          stage, 
+          title, 
+          timeframe, 
+          focusAreas, 
+          milestones, 
+          description
+        }]
       }
     - similarRoles: [{
         role,
@@ -278,6 +307,8 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - Identify specific gaps between current skills and desired role requirements
           - Rate importance of each gap
           - Provide detailed context for how each gap impacts career progression
+          - Include deeper AI analysis of patterns across skill gaps, giving insightful recommendations beyond the framework-based assessment
+          - Provide clear, actionable recommendations for addressing each gap area
           
           4. GENERATE CAREER PATHWAY:
           - Create TWO distinct pathway options:
@@ -285,6 +316,8 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
             b) WITHOUT degree, using vocational/technical qualifications + skills + experience (using country-appropriate terms: TAFE in Australia, Community College in USA, Further Education in UK, etc.)
           - Design logical progression steps for each pathway
           - Include role descriptions, timeframes, and required skills for each step
+          - For each pathway step, add recommended practical projects to gain experience and job opportunities to apply for
+          - Provide comprehensive AI-powered recommendations for optimizing and fast-tracking the career journey
           
           5. IDENTIFY SIMILAR ROLES:
           - Analyze the job market in the user's specified location (state/province and country)
@@ -303,6 +336,8 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
           - For other countries: Recommend appropriate local educational institutions and programs
           - Include quality online learning resources that are accessible globally
           - Provide a structured learning roadmap with clear milestones tailored to location
+          - Create a detailed, multi-stage career development roadmap with specific milestones, focus areas and timeframes
+          - Include visual-friendly structure for roadmap stages that can be animated in a timeline visualization
           
           8. CONDUCT QUALITY ASSURANCE:
           - Perform two-stage review to ensure accuracy and completeness
