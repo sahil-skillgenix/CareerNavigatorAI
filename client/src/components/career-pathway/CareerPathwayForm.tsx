@@ -1926,6 +1926,84 @@ function CareerAnalysisResults({
                   </CardContent>
                 </Card>
               </motion.div>
+              
+              {/* New Roadmap Stages Visualization */}
+              {results.developmentPlan.roadmapStages && results.developmentPlan.roadmapStages.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="mt-8"
+                >
+                  <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-indigo-600" />
+                    AI-Enhanced Learning Roadmap
+                  </h3>
+                  
+                  <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-xl border border-indigo-100">
+                    <p className="text-sm text-indigo-800 mb-6">
+                      This AI-generated roadmap provides a structured learning path divided into clear stages, 
+                      helping you progress systematically toward your career goals with focused milestones.
+                    </p>
+                    
+                    <div className="relative pt-4 pb-2">
+                      {/* Horizontal progress line */}
+                      <div className="absolute left-0 right-0 top-10 h-1 bg-indigo-200 rounded-full" />
+                      
+                      <div className="flex justify-between relative">
+                        {results.developmentPlan.roadmapStages.map((stage: any, index: number) => (
+                          <div key={index} className="flex flex-col items-center relative z-10" style={{ width: `${100/results.developmentPlan.roadmapStages.length}%` }}>
+                            <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
+                              {stage.stage}
+                            </div>
+                            <div className="mt-3 text-center">
+                              <div className="font-medium text-indigo-800">{stage.title}</div>
+                              <div className="text-xs text-indigo-600 mt-1">{stage.timeframe}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 grid gap-6">
+                      {results.developmentPlan.roadmapStages.map((stage: any, index: number) => (
+                        <div key={index} className="bg-white rounded-lg p-4 border border-indigo-100 shadow-sm">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                              {stage.stage}
+                            </div>
+                            <div className="font-semibold text-indigo-800">{stage.title}</div>
+                          </div>
+                          
+                          <p className="text-sm text-slate-600 mb-4">{stage.description}</p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-indigo-50 rounded-md p-3">
+                              <div className="text-xs font-semibold text-indigo-700 mb-2">Focus Areas:</div>
+                              <div className="flex flex-wrap gap-2">
+                                {stage.focusAreas.map((area: string, idx: number) => (
+                                  <span key={idx} className="inline-flex bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">
+                                    {area}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 rounded-md p-3">
+                              <div className="text-xs font-semibold text-blue-700 mb-2">Key Milestones:</div>
+                              <ul className="text-xs text-blue-700 space-y-1 list-disc pl-4">
+                                {stage.milestones.map((milestone: string, idx: number) => (
+                                  <li key={idx}>{milestone}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
             
             <motion.div
