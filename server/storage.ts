@@ -55,10 +55,10 @@ async function hashPassword(password: string) {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private careerAnalyses: Map<string, CareerAnalysis>;
-  private userBadges: Map<string, UserBadge>;
-  private userProgress: Map<string, UserProgress>;
+  private users: Map<string, User & { id: string }>;
+  private careerAnalyses: Map<string, CareerAnalysis & { id: string }>;
+  private userBadges: Map<string, UserBadge & { id: string }>;
+  private userProgress: Map<string, UserProgress & { id: string }>;
   
   private userId: number = 1;
   private analysisId: number = 1;
@@ -203,11 +203,9 @@ export class MemStorage implements IStorage {
   
   // Progress Tracking
   async getUserProgress(userId: string | number): Promise<UserProgressWithStringDates[]> {
-    if (typeof userId === 'string') {
-      userId = parseInt(userId);
-    }
+    const stringUserId = userId.toString();
     return Array.from(this.userProgress.values())
-      .filter(progress => progress.userId === userId)
+      .filter(progress => progress.userId === stringUserId)
       .sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
@@ -216,21 +214,17 @@ export class MemStorage implements IStorage {
   }
   
   async getProgressItemById(id: string | number): Promise<UserProgressWithStringDates | undefined> {
-    if (typeof id === 'string') {
-      id = parseInt(id);
-    }
-    const item = this.userProgress.get(id);
+    const stringId = id.toString();
+    const item = this.userProgress.get(stringId);
     return item as unknown as UserProgressWithStringDates;
   }
   
   async updateUserProgress(id: string | number, progress: number, notes?: string): Promise<UserProgressWithStringDates> {
-    if (typeof id === 'string') {
-      id = parseInt(id);
-    }
-    const progressItem = this.userProgress.get(id);
+    const stringId = id.toString();
+    const progressItem = this.userProgress.get(stringId);
     
     if (!progressItem) {
-      throw new Error(`Progress item with ID ${id} not found`);
+      throw new Error(`Progress item with ID ${stringId} not found`);
     }
     
     const updatedProgress: UserProgressWithStringDates = {
@@ -240,12 +234,13 @@ export class MemStorage implements IStorage {
       updatedAt: new Date().toISOString()
     };
     
-    this.userProgress.set(id, updatedProgress as any);
+    this.userProgress.set(stringId, updatedProgress as any);
     return updatedProgress;
   }
   
   async createUserProgress(progressItem: InsertUserProgress): Promise<UserProgressWithStringDates> {
-    const id = this.progressId++;
+    const idNum = this.progressId++;
+    const id = idNum.toString();
     
     const newProgressItem: UserProgressWithStringDates = {
       ...progressItem,
