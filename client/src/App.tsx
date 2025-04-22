@@ -27,8 +27,10 @@ import SearchPage from "@/pages/search-page";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      {/* Auth routes */}
       <Route path="/auth" component={AuthPage} />
+      
+      {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={NewDashboardPage} />
       <ProtectedRoute path="/old-dashboard" component={DashboardPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
@@ -44,20 +46,24 @@ function Router() {
       
       {/* Skills routes */}
       <Route path="/skills" component={SkillsPage} />
-      <Route path="/skills/:id" component={SkillDetailPage} />
       <Route path="/skills/:id/profile" component={SkillDetailPage} />
       <Route path="/skills/:id/learning-path" component={SkillDetailPage} />
+      <Route path="/skills/:id" component={SkillDetailPage} />
       
       {/* Roles routes */}
       <Route path="/roles" component={RolesPage} />
-      <Route path="/roles/:id" component={RoleDetailPage} />
       <Route path="/roles/:id/profile" component={RoleDetailPage} />
+      <Route path="/roles/:id" component={RoleDetailPage} />
       
       {/* Industries routes */}
       <Route path="/industries" component={IndustriesPage} />
-      <Route path="/industries/:id" component={IndustryDetailPage} />
       <Route path="/industries/:id/profile" component={IndustryDetailPage} />
+      <Route path="/industries/:id" component={IndustryDetailPage} />
       
+      {/* Home route - should be last before the NotFound route */}
+      <Route path="/" component={Home} />
+      
+      {/* Not found route */}
       <Route component={NotFound} />
     </Switch>
   );
