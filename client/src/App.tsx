@@ -10,7 +10,7 @@ import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import MyDetailsPage from "@/pages/my-details-page";
-import NewDashboardPage from "@/pages/new-dashboard-page";
+import DashboardPage from "@/pages/dashboard-page";
 import CareerPathwayPage from "@/pages/career-pathway-page";
 import CareerAnalysisPage from "@/pages/career-analysis-page";
 import LearningResourcesPage from "@/pages/learning-resources-page";
@@ -31,7 +31,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       
       {/* Protected routes */}
-      <ProtectedRoute path="/dashboard" component={NewDashboardPage} />
+      <ProtectedRoute path="/dashboard" component={DashboardPage} />
       <ProtectedRoute path="/my-details" component={MyDetailsPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />

@@ -1,34 +1,20 @@
 import { useAuth } from "@/hooks/use-auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { staggerContainer, staggerItem } from "@/lib/animations";
 import {
-  ProfileSection,
-  EducationSection,
-  ExperienceSection,
-  ProfessionalLevelSection,
-  SkillsToolsSection,
-  OrganizationSection
+  RecommendedCourses,
+  CareerProgressTracker,
+  SavedAnalyses
 } from "@/components/dashboard";
 import { AuthenticatedLayout } from "@/components/layouts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { UserCircle, Briefcase, GraduationCap } from "lucide-react";
+import { BarChart3, Rocket, Lightbulb, Plus } from "lucide-react";
 
-export default function MyDetailsPage() {
+export default function DashboardPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("profile"); // Set default active tab
   
-  // Function to handle saving changes
-  const handleSaveChanges = () => {
-    // In a real implementation, you would save the data to the server here
-    console.log("Changes saved");
-  };
-  
-  const { data: dashboardData, isLoading } = useQuery({
+  // Fetch dashboard data
+  const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ["/api/dashboard"],
     queryFn: async () => {
       const response = await fetch("/api/dashboard");
@@ -40,128 +26,120 @@ export default function MyDetailsPage() {
   });
   
   return (
-    <AuthenticatedLayout title="My Details">
-      {/* Welcome Header */}
-      <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl py-6 px-6 max-w-5xl mx-auto">
-        <div className="flex items-center gap-6">
-          <div className="bg-white p-3 rounded-full border-2 border-primary shadow-sm">
-            <UserCircle className="h-12 w-12 text-primary" />
+    <AuthenticatedLayout title="Dashboard">
+      {/* Welcome Message */}
+      <motion.section 
+        className="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl py-8 px-6 max-w-7xl mx-auto shadow-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-4">Welcome, {user?.fullName || 'Skillgenix User'}!</h1>
+            <p className="mb-4 text-gray-700">
+              This is your personalized dashboard where you can track your career progress, 
+              review your saved analyses, and discover recommended learning resources.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <a href="/career-pathway">
+                <Button className="shadow-sm bg-primary hover:bg-primary/90">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Analysis
+                </Button>
+              </a>
+              <a href="/my-details">
+                <Button variant="outline" className="shadow-sm">
+                  My Details
+                </Button>
+              </a>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <img 
+              src="/src/assets/images/career-growth-ai.svg" 
+              alt="Career Growth" 
+              className="max-w-full h-48"
+            />
+          </div>
+        </div>
+      </motion.section>
+      
+      {/* Career History Section */}
+      <motion.section 
+        className="mb-16"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
+          <BarChart3 className="mr-2 h-6 w-6 text-primary" />
+          Your Career Analyses
+        </h2>
+        <div className="max-w-7xl mx-auto">
+          <SavedAnalyses />
+        </div>
+      </motion.section>
+      
+      {/* Career Insights Section */}
+      <motion.section 
+        className="mb-16"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
+          <Lightbulb className="mr-2 h-6 w-6 text-primary" />
+          Career Insights & Progress
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="lg:col-span-2">
+            <RecommendedCourses />
           </div>
           <div>
-            <h1 className="text-2xl font-bold mb-1">My Personal Details</h1>
-            <p className="text-gray-600">
-              Manage your profile information, career experience, and organization details
-            </p>
+            <CareerProgressTracker />
           </div>
         </div>
-      </div>
+      </motion.section>
       
-      <div className="flex flex-col items-center">
-        <div className="w-full max-w-4xl">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-6">
-              <TabsList className="grid grid-cols-3 w-full max-w-xl">
-                <TabsTrigger value="profile" className="flex items-center gap-2">
-                  <UserCircle className="h-4 w-4" /> 
-                  Profile
-                </TabsTrigger>
-                <TabsTrigger value="info" className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" /> 
-                  Education & Skills
-                </TabsTrigger>
-                <TabsTrigger value="organization" className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" /> 
-                  Organization
-                </TabsTrigger>
-              </TabsList>
+      {/* Quick Links Section */}
+      <motion.section 
+        className="mb-16"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
+          <Rocket className="mr-2 h-6 w-6 text-primary" />
+          Quick Links
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <a href="/learning-resources" className="block">
+            <div className="bg-white border rounded-xl p-6 text-center hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-medium mb-2">Learning Resources</h3>
+              <p className="text-sm text-gray-600">
+                Discover personalized learning resources based on your career goals and skills gap
+              </p>
             </div>
-            
-            <TabsContent value="profile" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your personal details and account information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ProfileSection 
-                    userData={{ 
-                      fullName: user?.fullName || "Demo User", 
-                      email: user?.email || "demo@skillgenix.com" 
-                    }} 
-                    onSave={handleSaveChanges} 
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="info" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Education</CardTitle>
-                  <CardDescription>
-                    Add your educational background
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <EducationSection onAddEducation={() => console.log("Add education clicked")} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Work Experience</CardTitle>
-                  <CardDescription>
-                    Add your work experience
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ExperienceSection onAddExperience={() => console.log("Add experience clicked")} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Professional Level</CardTitle>
-                  <CardDescription>
-                    Set your current professional level
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ProfessionalLevelSection onSave={handleSaveChanges} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skills & Tools</CardTitle>
-                  <CardDescription>
-                    Add your skills and proficiency levels
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SkillsToolsSection onSave={handleSaveChanges} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="organization" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Organization Details</CardTitle>
-                  <CardDescription>
-                    Information about your current organization
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <OrganizationSection />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          </a>
+          <a href="/saved-resources" className="block">
+            <div className="bg-white border rounded-xl p-6 text-center hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-medium mb-2">Saved Resources</h3>
+              <p className="text-sm text-gray-600">
+                Access your bookmarked learning resources for easy reference
+              </p>
+            </div>
+          </a>
+          <a href="/search" className="block">
+            <div className="bg-white border rounded-xl p-6 text-center hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-medium mb-2">Skills & Roles</h3>
+              <p className="text-sm text-gray-600">
+                Explore skills, roles and industries in our comprehensive database
+              </p>
+            </div>
+          </a>
         </div>
-      </div>
+      </motion.section>
     </AuthenticatedLayout>
   );
 }

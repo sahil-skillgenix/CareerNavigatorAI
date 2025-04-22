@@ -1,166 +1,313 @@
-import { useAuth } from "@/hooks/use-auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { staggerContainer, staggerItem } from "@/lib/animations";
-import {
-  ProfileSection,
-  EducationSection,
-  ExperienceSection,
-  ProfessionalLevelSection,
-  SkillsToolsSection,
-  OrganizationSection
-} from "@/components/dashboard";
 import { AuthenticatedLayout } from "@/components/layouts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { UserCircle, Briefcase, GraduationCap } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CalendarIcon, BookIcon, BriefcaseIcon, GraduationCapIcon, ChevronRightIcon, BadgeCheck, Settings, User, MapPin } from "lucide-react";
 
 export default function MyDetailsPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("profile"); // Set default active tab
+  const [activeTab, setActiveTab] = useState("profile");
   
-  // Function to handle saving changes
-  const handleSaveChanges = () => {
-    // In a real implementation, you would save the data to the server here
-    console.log("Changes saved");
-  };
-  
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ["/api/dashboard"],
+  // Fetch user details data
+  const { data: userData, isLoading, error } = useQuery({
+    queryKey: ["/api/user/details"],
     queryFn: async () => {
-      const response = await fetch("/api/dashboard");
+      const response = await fetch("/api/user/details");
       if (!response.ok) {
-        throw new Error("Failed to fetch dashboard data");
+        throw new Error("Failed to fetch user details");
       }
       return response.json();
     }
   });
   
+  // Initialize form state - typically would be populated from userData once loaded
+  const [formData, setFormData] = useState({
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    location: "",
+    phone: "",
+    bio: "",
+    currentRole: "",
+    experience: "",
+    education: "",
+    skills: "",
+    interests: ""
+  });
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Save profile changes (would be implemented with a mutation)
+    console.log("Submitting profile changes:", formData);
+  };
+  
+  const userInitials = user?.fullName
+    ? user.fullName.split(" ").map(name => name[0]).join("")
+    : "SU";
+  
   return (
     <AuthenticatedLayout title="My Details">
-      {/* Welcome Header */}
-      <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl py-6 px-6 max-w-5xl mx-auto">
-        <div className="flex items-center gap-6">
-          <div className="bg-white p-3 rounded-full border-2 border-primary shadow-sm">
-            <UserCircle className="h-12 w-12 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold mb-1">My Personal Details</h1>
-            <p className="text-gray-600">
-              Manage your profile information, career experience, and organization details
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex flex-col items-center">
-        <div className="w-full max-w-4xl">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-6">
-              <TabsList className="grid grid-cols-3 w-full max-w-xl">
-                <TabsTrigger value="profile" className="flex items-center gap-2">
-                  <UserCircle className="h-4 w-4" /> 
-                  Profile
-                </TabsTrigger>
-                <TabsTrigger value="info" className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" /> 
-                  Education & Skills
-                </TabsTrigger>
-                <TabsTrigger value="organization" className="flex items-center gap-2">
-                  <Briefcase className="h-4 w-4" /> 
-                  Organization
-                </TabsTrigger>
-              </TabsList>
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Header Section */}
+        <motion.div 
+          className="mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <Avatar className="h-24 w-24 border-4 border-background">
+              <AvatarImage src={userData?.avatarUrl} />
+              <AvatarFallback className="text-xl bg-primary text-white">{userInitials}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold">{user?.fullName || 'Your Profile'}</h1>
+              <p className="text-gray-600 mt-1">{user?.email || ''}</p>
+              <div className="flex gap-2 mt-3">
+                <Badge variant="outline" className="bg-blue-50">
+                  <User className="w-3 h-3 mr-1" />
+                  Member since {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
+                </Badge>
+                {userData?.location && (
+                  <Badge variant="outline" className="bg-green-50">
+                    <MapPin className="w-3 h-3 mr-1" />
+                    {userData.location}
+                  </Badge>
+                )}
+              </div>
             </div>
+          </div>
+        </motion.div>
+        
+        {/* Tabs Section */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <Tabs defaultValue="profile" className="w-full" onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8">
+              <TabsTrigger value="profile" className="flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="career" className="flex items-center">
+                <BriefcaseIcon className="mr-2 h-4 w-4" />
+                <span>Career History</span>
+              </TabsTrigger>
+              <TabsTrigger value="education" className="flex items-center">
+                <GraduationCapIcon className="mr-2 h-4 w-4" />
+                <span>Education</span>
+              </TabsTrigger>
+              <TabsTrigger value="skills" className="flex items-center">
+                <BadgeCheck className="mr-2 h-4 w-4" />
+                <span>Skills & Interests</span>
+              </TabsTrigger>
+            </TabsList>
             
-            <TabsContent value="profile" className="space-y-6">
+            {/* Profile Tab */}
+            <TabsContent value="profile">
               <Card>
                 <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
+                  <CardTitle>Personal Information</CardTitle>
                   <CardDescription>
-                    Update your personal details and account information
+                    Update your personal details and how others can contact you
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ProfileSection 
-                    userData={{ 
-                      fullName: user?.fullName || "Demo User", 
-                      email: user?.email || "demo@skillgenix.com" 
-                    }} 
-                    onSave={handleSaveChanges} 
-                  />
+                  <form className="space-y-6" onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input 
+                          id="fullName" 
+                          name="fullName" 
+                          value={formData.fullName} 
+                          onChange={handleInputChange}
+                          placeholder="Your full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email" 
+                          name="email" 
+                          type="email" 
+                          value={formData.email} 
+                          onChange={handleInputChange}
+                          placeholder="Your email address"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input 
+                          id="location" 
+                          name="location" 
+                          value={formData.location} 
+                          onChange={handleInputChange}
+                          placeholder="City, Country"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input 
+                          id="phone" 
+                          name="phone" 
+                          value={formData.phone} 
+                          onChange={handleInputChange}
+                          placeholder="Your phone number"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea 
+                        id="bio" 
+                        name="bio" 
+                        value={formData.bio} 
+                        onChange={handleInputChange}
+                        placeholder="Tell us a bit about yourself"
+                        rows={4}
+                      />
+                    </div>
+                  </form>
                 </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">Cancel</Button>
+                  <Button onClick={handleSubmit}>Save Changes</Button>
+                </CardFooter>
               </Card>
             </TabsContent>
             
-            <TabsContent value="info" className="space-y-6">
+            {/* Career History Tab */}
+            <TabsContent value="career">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Career History</CardTitle>
+                  <CardDescription>
+                    Add your work experience to help Skillgenix provide better career recommendations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentRole">Current Role</Label>
+                      <Input 
+                        id="currentRole" 
+                        name="currentRole" 
+                        value={formData.currentRole} 
+                        onChange={handleInputChange}
+                        placeholder="Your current job title"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="experience">Work Experience</Label>
+                      <Textarea 
+                        id="experience" 
+                        name="experience" 
+                        value={formData.experience} 
+                        onChange={handleInputChange}
+                        placeholder="List your previous roles and responsibilities"
+                        rows={6}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">Cancel</Button>
+                  <Button onClick={handleSubmit}>Save Changes</Button>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+            
+            {/* Education Tab */}
+            <TabsContent value="education">
               <Card>
                 <CardHeader>
                   <CardTitle>Education</CardTitle>
                   <CardDescription>
-                    Add your educational background
+                    Add your educational background to enhance your career recommendations
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <EducationSection onAddEducation={() => console.log("Add education clicked")} />
+                  <div className="space-y-2">
+                    <Label htmlFor="education">Educational Background</Label>
+                    <Textarea 
+                      id="education" 
+                      name="education" 
+                      value={formData.education} 
+                      onChange={handleInputChange}
+                      placeholder="List your degrees, certifications, and educational achievements"
+                      rows={6}
+                    />
+                  </div>
                 </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Work Experience</CardTitle>
-                  <CardDescription>
-                    Add your work experience
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ExperienceSection onAddExperience={() => console.log("Add experience clicked")} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Professional Level</CardTitle>
-                  <CardDescription>
-                    Set your current professional level
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ProfessionalLevelSection onSave={handleSaveChanges} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skills & Tools</CardTitle>
-                  <CardDescription>
-                    Add your skills and proficiency levels
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <SkillsToolsSection onSave={handleSaveChanges} />
-                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">Cancel</Button>
+                  <Button onClick={handleSubmit}>Save Changes</Button>
+                </CardFooter>
               </Card>
             </TabsContent>
             
-            <TabsContent value="organization" className="space-y-6">
+            {/* Skills & Interests Tab */}
+            <TabsContent value="skills">
               <Card>
                 <CardHeader>
-                  <CardTitle>Organization Details</CardTitle>
+                  <CardTitle>Skills & Interests</CardTitle>
                   <CardDescription>
-                    Information about your current organization
+                    Let us know about your skills and interests to personalize your experience
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <OrganizationSection />
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="skills">Professional Skills</Label>
+                      <Textarea 
+                        id="skills" 
+                        name="skills" 
+                        value={formData.skills} 
+                        onChange={handleInputChange}
+                        placeholder="List your technical and soft skills (e.g., Python, Project Management, Communication)"
+                        rows={4}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="interests">Professional Interests</Label>
+                      <Textarea 
+                        id="interests" 
+                        name="interests" 
+                        value={formData.interests} 
+                        onChange={handleInputChange}
+                        placeholder="What areas are you interested in exploring in your career?"
+                        rows={4}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline">Cancel</Button>
+                  <Button onClick={handleSubmit}>Save Changes</Button>
+                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
+        </motion.div>
       </div>
     </AuthenticatedLayout>
   );
