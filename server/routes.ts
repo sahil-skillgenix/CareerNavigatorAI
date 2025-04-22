@@ -171,6 +171,14 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(401).json({ message: 'Authentication required' });
       }
       
+      console.log('Received career analysis request with body:', 
+        JSON.stringify({
+          ...req.body,
+          result: req.body.result ? 'Analysis result included (not shown)' : null
+        })
+      );
+      
+      // Extract fields from request body
       const { 
         professionalLevel, 
         currentSkills, 
@@ -178,42 +186,60 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         careerHistory, 
         desiredRole,
         state,
-        country
+        country,
+        result
       } = req.body;
       
-      // Validate required fields
-      if (!professionalLevel || !currentSkills || !educationalBackground || 
-          !careerHistory || !desiredRole) {
-        return res.status(400).json({ 
-          error: 'Missing required fields. Please provide all career information.' 
-        });
+      // If result is provided, we're saving an existing analysis
+      // and some fields might be empty or incomplete
+      const isSavingExistingAnalysis = !!result;
+      
+      // When saving an existing analysis, don't validate required fields
+      if (!isSavingExistingAnalysis) {
+        // Validate required fields only for new analysis generation
+        if (!professionalLevel || !currentSkills || !educationalBackground || 
+            !careerHistory || !desiredRole) {
+          return res.status(400).json({ 
+            error: 'Missing required fields. Please provide all career information.' 
+          });
+        }
+        
+        // Check if currentSkills exceeds max length (50)
+        if (currentSkills && currentSkills.split(',').length > 50) {
+          return res.status(400).json({ 
+            error: 'Current skills exceed the maximum limit of 50 skills.'
+          });
+        }
+        
+        // Check if desiredRole exceeds 250 characters
+        if (desiredRole && desiredRole.length > 250) {
+          return res.status(400).json({ 
+            error: 'Desired role exceeds the maximum limit of 250 characters.'
+          });
+        }
       }
       
-      // Check if currentSkills exceeds max length (50)
-      if (currentSkills.split(',').length > 50) {
-        return res.status(400).json({ 
-          error: 'Current skills exceed the maximum limit of 50 skills.'
-        });
+      // If this is a save request with an existing result, use that instead of generating a new one
+      let analysisResult;
+      
+      if (isSavingExistingAnalysis) {
+        console.log('Using existing analysis result from request body');
+        analysisResult = result;
+      } else {
+        // Only call the AI analysis if we're not saving an existing result
+        const input: CareerAnalysisInput = {
+          professionalLevel,
+          currentSkills,
+          educationalBackground,
+          careerHistory,
+          desiredRole,
+          state,
+          country
+        };
+        
+        console.log('Generating new career analysis with OpenAI');
+        analysisResult = await analyzeCareerPathway(input);
       }
-      
-      // Check if desiredRole exceeds 250 characters
-      if (desiredRole.length > 250) {
-        return res.status(400).json({ 
-          error: 'Desired role exceeds the maximum limit of 250 characters.'
-        });
-      }
-      
-      const input: CareerAnalysisInput = {
-        professionalLevel,
-        currentSkills,
-        educationalBackground,
-        careerHistory,
-        desiredRole,
-        state,
-        country
-      };
-      
-      const analysisResult = await analyzeCareerPathway(input);
       
       // Verify that the response has all required sections
       const requiredSections = [
@@ -221,8 +247,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         'skillMapping', 
         'skillGapAnalysis', 
         'careerPathway', 
-        'developmentPlan', 
-        'reviewNotes'
+        'developmentPlan'
       ];
       
       // Cast to any to avoid TypeScript errors with dynamic property access
