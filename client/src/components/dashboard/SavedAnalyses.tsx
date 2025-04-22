@@ -26,16 +26,19 @@ export function SavedAnalyses() {
   const [expandedAnalysis, setExpandedAnalysis] = useState<string | null>(null);
 
   // Fetch saved career analyses
-  const { data: analyses, isLoading, error } = useQuery({
-    queryKey: ["/api/career-analyses"],
+  const { data: dashboardData, isLoading, error } = useQuery({
+    queryKey: ["/api/dashboard"],
     queryFn: async () => {
-      const response = await fetch("/api/career-analyses");
+      const response = await fetch("/api/dashboard");
       if (!response.ok) {
-        throw new Error("Failed to fetch saved analyses");
+        throw new Error("Failed to fetch dashboard data");
       }
-      return response.json() as Promise<SavedAnalysis[]>;
+      return response.json();
     }
   });
+  
+  // Extract analyses from dashboard data
+  const analyses = dashboardData?.careerAnalyses || [];
 
   const toggleExpand = (id: string) => {
     if (expandedAnalysis === id) {

@@ -35,29 +35,42 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Protected routes - require authentication
-  app.get('/api/dashboard', (req, res) => {
+  app.get('/api/dashboard', async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    // Mock dashboard data for initial implementation
-    res.json({ 
-      message: 'Welcome to your career planning dashboard',
-      careerPaths: [
-        { id: 1, title: 'Technical Career Path', progress: 35 },
-        { id: 2, title: 'Management Career Path', progress: 20 },
-        { id: 3, title: 'Creative Career Path', progress: 15 },
-      ],
-      suggestedSkills: [
-        { id: 1, name: 'Leadership', category: 'Soft Skills' },
-        { id: 2, name: 'JavaScript', category: 'Technical Skills' },
-        { id: 3, name: 'Strategic Planning', category: 'Management' },
-      ],
-      upcomingMilestones: [
-        { id: 1, title: 'Complete Leadership Course', dueDate: '2025-05-15' },
-        { id: 2, title: 'Technical Certification', dueDate: '2025-06-30' },
-      ]
-    });
+    try {
+      // Get the user's saved career analyses
+      const analyses = await storageInstance.getUserCareerAnalyses(req.user!.id);
+      
+      // Get the user's progress data
+      const progressItems = await storageInstance.getUserProgress(req.user!.id);
+      
+      // Get the user's earned badges
+      const badges = await storageInstance.getUserBadges(req.user!.id);
+      
+      // Get popular skills, roles and industries for recommendations
+      const popularSkills = await CareerDataService.getPopularSkills(5);
+      const popularRoles = await CareerDataService.getPopularRoles(5);
+      
+      res.json({ 
+        user: req.user,
+        careerAnalyses: analyses,
+        progressItems,
+        badges,
+        recommendations: {
+          skills: popularSkills,
+          roles: popularRoles
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch dashboard data',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   });
   
   // Career Pathway Analysis Endpoint

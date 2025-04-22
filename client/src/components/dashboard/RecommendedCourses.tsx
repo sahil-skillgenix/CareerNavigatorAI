@@ -21,18 +21,21 @@ interface Course {
 export function RecommendedCourses() {
   const { user } = useAuth();
   
-  // Fetch user's latest career analysis
-  const { data: analyses, isLoading, error } = useQuery({
-    queryKey: ["/api/career-analyses"],
+  // Fetch dashboard data which includes career analyses
+  const { data: dashboardData, isLoading, error } = useQuery({
+    queryKey: ["/api/dashboard"],
     queryFn: async () => {
-      const response = await fetch("/api/career-analyses");
+      const response = await fetch("/api/dashboard");
       if (!response.ok) {
-        throw new Error("Failed to fetch career analyses");
+        throw new Error("Failed to fetch dashboard data");
       }
       return response.json();
     },
     enabled: !!user
   });
+  
+  // Extract analyses from dashboard data
+  const analyses = dashboardData?.careerAnalyses || [];
   
   // Extract course recommendations from the analysis
   const extractRecommendedCourses = (): Course[] => {
