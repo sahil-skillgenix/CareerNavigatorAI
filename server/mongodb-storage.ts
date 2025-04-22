@@ -150,6 +150,9 @@ export class MongoDBStorage implements IStorage {
 
   async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis> {
     try {
+      // Generate a MongoDB ObjectId for this analysis
+      const analysisId = new mongoose.Types.ObjectId();
+      
       // Create a new badge for the first analysis
       let newBadge = null;
       const userAnalysisCount = await CareerAnalysisModel.countDocuments({ userId: analysis.userId });
@@ -173,6 +176,7 @@ export class MongoDBStorage implements IStorage {
       }
       
       const newAnalysis = new CareerAnalysisModel({
+        _id: analysisId, // Explicitly set MongoDB _id
         userId: analysis.userId,
         professionalLevel: analysis.professionalLevel,
         currentSkills: analysis.currentSkills,
@@ -186,6 +190,7 @@ export class MongoDBStorage implements IStorage {
         badges: newBadge ? [newBadge.id] : []
       });
       
+      console.log(`Saving career analysis with explicit _id: ${analysisId}`);
       const savedAnalysis = await newAnalysis.save();
       const doc = savedAnalysis.toObject();
       
@@ -498,7 +503,11 @@ export class MongoDBStorage implements IStorage {
   
   async createUserProgress(progressItem: InsertUserProgress): Promise<UserProgress> {
     try {
+      // Generate a MongoDB ObjectId for this progress item
+      const progressId = new mongoose.Types.ObjectId();
+      
       const newProgress = new UserProgressModel({
+        _id: progressId, // Explicitly set MongoDB _id
         userId: progressItem.userId,
         type: progressItem.type || "career_pathway",
         title: progressItem.title,
@@ -513,6 +522,7 @@ export class MongoDBStorage implements IStorage {
         notes: progressItem.notes
       });
       
+      console.log(`Creating progress item with explicitly set _id: ${progressId}`);
       const savedProgress = await newProgress.save();
       const doc = savedProgress.toObject();
       

@@ -36,11 +36,11 @@ const UserProgressSchema = new Schema<UserProgressDocument>(
   },
   { 
     timestamps: { createdAt: true, updatedAt: true },
+    // Don't use any virtual ID field or automatic ID creation
+    // Just rely on MongoDB's native _id handling
     toJSON: {
-      virtuals: true,
       transform: (doc, ret) => {
-        ret.id = ret._id.toString();
-        delete ret._id;
+        ret.id = ret._id.toString(); // Convert MongoDB ObjectId to string
         delete ret.__v;
         return ret;
       }
