@@ -604,12 +604,15 @@ export async function generateCareerData() {
     
     console.log('Starting career data generation...');
     
-    // Generate skills (2 per category)
+    // Generate skills (2 skills for just 3 categories to test more quickly)
     let skillId = 1;
-    for (const category of SKILL_CATEGORIES) {
-      const skillsData = await generateSkillData(category, 2);
+    const testSkillCategories = SKILL_CATEGORIES.slice(0, 3); // Just use first 3 categories
+    for (const category of testSkillCategories) {
+      console.log(`Generating skills for category: ${category}`);
+      const skillsData = await generateSkillData(category, 1); // Just 1 per category for testing
       
       for (const skillData of skillsData) {
+        console.log(`Creating skill: ${skillData.name}`);
         await SkillModel.create({
           ...skillData,
           id: skillId++
@@ -617,12 +620,15 @@ export async function generateCareerData() {
       }
     }
     
-    // Generate roles (1 per category)
+    // Generate roles (1 for just 2 categories)
     let roleId = 1;
-    for (const category of ROLE_CATEGORIES) {
+    const testRoleCategories = ROLE_CATEGORIES.slice(0, 2); // Just use first 2 categories
+    for (const category of testRoleCategories) {
+      console.log(`Generating roles for category: ${category}`);
       const rolesData = await generateRoleData(category, 1);
       
       for (const roleData of rolesData) {
+        console.log(`Creating role: ${roleData.title}`);
         await RoleModel.create({
           ...roleData,
           id: roleId++,
@@ -634,9 +640,11 @@ export async function generateCareerData() {
       }
     }
     
-    // Generate industries (1 per category, using only first 10 categories)
+    // Generate industries (1 for just 2 categories)
     let industryId = 1;
-    for (const category of INDUSTRY_CATEGORIES.slice(0, 10)) {
+    const testIndustryCategories = INDUSTRY_CATEGORIES.slice(0, 2); // Just use first 2 categories
+    for (const category of testIndustryCategories) {
+      console.log(`Generating industries for category: ${category}`);
       const industriesData = await generateIndustryData(category, 1);
       
       for (const industryData of industriesData) {
@@ -668,15 +676,5 @@ export async function generateCareerData() {
   }
 }
 
-// Run the generator if this file is executed directly
-if (require.main === module) {
-  generateCareerData()
-    .then(() => {
-      console.log('Data generation complete.');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('Data generation failed:', error);
-      process.exit(1);
-    });
-}
+// In ES modules, there is no direct equivalent to require.main === module
+// Instead, we use a separate main file (main-generator.ts) to run this code
