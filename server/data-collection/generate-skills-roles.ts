@@ -13,9 +13,9 @@ import {
 // Initialize environment variables
 dotenv.config();
 
-// Starting IDs for our entities (to avoid conflicts with other test data)
-const SKILL_ID_START = 2000;
-const ROLE_ID_START = 2000;
+// Starting IDs for our entities (using higher IDs to avoid conflicts)
+const SKILL_ID_START = 3000;
+const ROLE_ID_START = 3000;
 
 /**
  * Generate skills and roles for skill gap analysis
