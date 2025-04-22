@@ -34,6 +34,97 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     res.json({ status: 'ok', message: 'Skillgenix server is running' });
   });
   
+  // User details endpoint
+  app.get('/api/user/details', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      // Return all user details except password
+      const user = req.user;
+      
+      // Return additional user details if needed
+      res.json({
+        ...user,
+        location: user.location || '',
+        phone: user.phone || '',
+        bio: user.bio || '',
+        currentRole: user.currentRole || '',
+        experience: user.experience || '',
+        education: user.education || '',
+        skills: user.skills || '',
+        interests: user.interests || '',
+        avatarUrl: user.avatarUrl || ''
+      });
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch user details', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
+  // Update user details endpoint
+  app.post('/api/user/details', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      // Get updatable fields from request body
+      const { 
+        fullName, 
+        location, 
+        phone, 
+        bio, 
+        currentRole,
+        experience,
+        education,
+        skills,
+        interests
+      } = req.body;
+      
+      // Update user in session (in a real app, this would update the database)
+      const user = req.user;
+      
+      // Update fields if they were provided
+      if (fullName) user.fullName = fullName;
+      if (location !== undefined) user.location = location;
+      if (phone !== undefined) user.phone = phone;
+      if (bio !== undefined) user.bio = bio;
+      if (currentRole !== undefined) user.currentRole = currentRole;
+      if (experience !== undefined) user.experience = experience;
+      if (education !== undefined) user.education = education;
+      if (skills !== undefined) user.skills = skills;
+      if (interests !== undefined) user.interests = interests;
+      
+      // In a real implementation, we would call something like:
+      // await storageInstance.updateUser(user.id, { fullName, location, phone, bio, etc });
+      
+      // Return updated user details
+      res.json({
+        ...user,
+        location: user.location || '',
+        phone: user.phone || '',
+        bio: user.bio || '',
+        currentRole: user.currentRole || '',
+        experience: user.experience || '',
+        education: user.education || '',
+        skills: user.skills || '',
+        interests: user.interests || '',
+        avatarUrl: user.avatarUrl || ''
+      });
+    } catch (error) {
+      console.error('Error updating user details:', error);
+      res.status(500).json({ 
+        error: 'Failed to update user details', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
   // Protected routes - require authentication
   app.get('/api/dashboard', async (req, res) => {
     if (!req.isAuthenticated()) {

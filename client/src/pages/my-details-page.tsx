@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { AuthenticatedLayout } from "@/components/layouts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,9 +12,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarIcon, BookIcon, BriefcaseIcon, GraduationCapIcon, ChevronRightIcon, BadgeCheck, Settings, User, MapPin } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function MyDetailsPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
   
   // Fetch user details data
@@ -26,10 +29,37 @@ export default function MyDetailsPage() {
         throw new Error("Failed to fetch user details");
       }
       return response.json();
-    }
+    },
+    enabled: !!user // Only fetch if user is logged in
   });
   
-  // Initialize form state - typically would be populated from userData once loaded
+  // Update user details mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const response = await apiRequest("POST", "/api/user/details", data);
+      if (!response.ok) {
+        throw new Error("Failed to update user details");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Your profile has been updated successfully.",
+      });
+      // Invalidate and refetch user details
+      queryClient.invalidateQueries({ queryKey: ["/api/user/details"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update profile",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Initialize form state
   const [formData, setFormData] = useState({
     fullName: user?.fullName || "",
     email: user?.email || "",
@@ -43,6 +73,24 @@ export default function MyDetailsPage() {
     interests: ""
   });
   
+  // Update form when user data is loaded
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        fullName: userData.fullName || "",
+        email: userData.email || "",
+        location: userData.location || "",
+        phone: userData.phone || "",
+        bio: userData.bio || "",
+        currentRole: userData.currentRole || "",
+        experience: userData.experience || "",
+        education: userData.education || "",
+        skills: userData.skills || "",
+        interests: userData.interests || ""
+      });
+    }
+  }, [userData]);
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -53,8 +101,7 @@ export default function MyDetailsPage() {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Save profile changes (would be implemented with a mutation)
-    console.log("Submitting profile changes:", formData);
+    updateUserMutation.mutate(formData);
   };
   
   const userInitials = user?.fullName
