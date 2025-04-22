@@ -682,6 +682,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   // Career Analysis - User History & Progress Endpoints
   
   // Get all analyses for current user
+  // Career analyses endpoint  
   app.get('/api/career-analyses', async (req: Request, res: Response) => {
     try {
       if (!req.isAuthenticated()) {
@@ -706,11 +707,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(401).json({ message: 'Authentication required' });
       }
       
-      const analysisId = parseInt(req.params.id);
-      if (isNaN(analysisId)) {
-        return res.status(400).json({ error: 'Invalid analysis ID' });
-      }
-      
+      const analysisId = req.params.id;
       const analysis = await storageInstance.getCareerAnalysisById(analysisId);
       
       if (!analysis) {

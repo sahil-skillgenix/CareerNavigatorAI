@@ -30,18 +30,21 @@ interface CareerProgressTrackerProps {
 export function CareerProgressTracker({ skills }: CareerProgressTrackerProps) {
   const { user } = useAuth();
   
-  // Fetch user progress data
-  const { data: progressItems, isLoading, error } = useQuery({
-    queryKey: ["/api/progress"],
+  // Fetch dashboard data which includes progress items
+  const { data: dashboardData, isLoading, error } = useQuery({
+    queryKey: ["/api/dashboard"],
     queryFn: async () => {
-      const response = await fetch("/api/progress");
+      const response = await fetch("/api/dashboard");
       if (!response.ok) {
-        throw new Error("Failed to fetch progress data");
+        throw new Error("Failed to fetch dashboard data");
       }
-      return response.json() as Promise<UserProgress[]>;
+      return response.json();
     },
     enabled: !!user
   });
+  
+  // Extract progress items from dashboard data
+  const progressItems = dashboardData?.progressItems || [];
   
   // Map progress items to skill progress format
   const mapProgressToSkills = (items: UserProgress[]): SkillProgress[] => {

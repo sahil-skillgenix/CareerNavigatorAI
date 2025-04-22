@@ -12,17 +12,6 @@ import { AuthenticatedLayout } from "@/components/layouts";
 export default function NewDashboardPage() {
   const { user } = useAuth();
   
-  const { data: dashboardData } = useQuery({
-    queryKey: ["/api/dashboard"],
-    queryFn: async () => {
-      const response = await fetch("/api/dashboard");
-      if (!response.ok) {
-        throw new Error("Failed to fetch dashboard data");
-      }
-      return response.json();
-    }
-  });
-  
   return (
     <AuthenticatedLayout title="Dashboard">
       {/* Career History Section */}
