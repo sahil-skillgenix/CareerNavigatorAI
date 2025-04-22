@@ -3,6 +3,8 @@ import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import dotenv from "dotenv";
 import { connectToDatabase } from "./db/mongodb";
+import { registerRoutes } from "./routes";
+import { MongoDBStorage } from "./mongodb-storage";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -31,14 +33,26 @@ app.get("/api/health", (_req, res) => {
     // Create HTTP server
     const server = createServer(app);
     
-    // Test MongoDB connection
+    // Initialize MongoDB connection and storage
     console.log("Testing MongoDB connection...");
     try {
       await connectToDatabase();
       console.log("MongoDB connection successful!");
+      
+      // Initialize MongoDB storage
+      const mongoDBStorage = new MongoDBStorage();
+      await mongoDBStorage.initialize();
+      console.log("MongoDB storage initialized");
+      
+      // Register all routes with MongoDB storage
+      await registerRoutes(app, mongoDBStorage);
+      console.log("Routes registered with MongoDB storage");
     } catch (dbError) {
       console.error("MongoDB connection failed:", dbError);
-      // Continue starting server even if MongoDB fails
+      console.log("Falling back to in-memory storage");
+      
+      // Register routes with default in-memory storage
+      await registerRoutes(app);
     }
     
     // Error handler
