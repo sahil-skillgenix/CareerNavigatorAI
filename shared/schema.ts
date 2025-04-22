@@ -112,6 +112,16 @@ export const userSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   createdAt: z.string().optional(),
+  // Extended user profile fields
+  location: z.string().optional(),
+  phone: z.string().optional(),
+  bio: z.string().optional(),
+  currentRole: z.string().optional(),
+  experience: z.string().optional(),
+  education: z.string().optional(),
+  skills: z.string().optional(),
+  interests: z.string().optional(),
+  avatarUrl: z.string().optional(),
 });
 
 // Industry schema

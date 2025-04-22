@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarIcon, BookIcon, BriefcaseIcon, GraduationCapIcon, ChevronRightIcon, BadgeCheck, Settings, User, MapPin } from "lucide-react";
+import { CalendarIcon, BookIcon, BriefcaseIcon, GraduationCapIcon, ChevronRightIcon, BadgeCheck, Settings, User, MapPin, Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -107,6 +107,53 @@ export default function MyDetailsPage() {
   const userInitials = user?.fullName
     ? user.fullName.split(" ").map(name => name[0]).join("")
     : "SU";
+  
+  // Loading states and error handling
+  if (!user) {
+    return (
+      <AuthenticatedLayout title="My Details">
+        <div className="flex items-center justify-center min-h-[70vh]">
+          <div className="text-center">
+            <h3 className="text-xl font-medium mb-2">Please log in to view your profile</h3>
+            <p className="text-muted-foreground">You need to be logged in to access this page</p>
+          </div>
+        </div>
+      </AuthenticatedLayout>
+    );
+  }
+  
+  if (isLoading) {
+    return (
+      <AuthenticatedLayout title="My Details">
+        <div className="flex items-center justify-center min-h-[70vh]">
+          <div className="text-center">
+            <Loader className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <h3 className="text-xl font-medium mb-2">Loading your profile</h3>
+            <p className="text-muted-foreground">Please wait while we fetch your information</p>
+          </div>
+        </div>
+      </AuthenticatedLayout>
+    );
+  }
+  
+  if (error) {
+    return (
+      <AuthenticatedLayout title="My Details">
+        <div className="flex items-center justify-center min-h-[70vh]">
+          <div className="text-center">
+            <h3 className="text-xl font-medium mb-2 text-destructive">Error loading profile</h3>
+            <p className="text-muted-foreground mb-4">{error instanceof Error ? error.message : "Unknown error occurred"}</p>
+            <Button 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/user/details"] })}
+              variant="outline"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </AuthenticatedLayout>
+    );
+  }
   
   return (
     <AuthenticatedLayout title="My Details">
@@ -236,8 +283,17 @@ export default function MyDetailsPage() {
                   </form>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline">Cancel</Button>
-                  <Button onClick={handleSubmit}>Save Changes</Button>
+                  <Button variant="outline" type="button">Cancel</Button>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={updateUserMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {updateUserMutation.isPending && (
+                      <Loader className="h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -277,8 +333,17 @@ export default function MyDetailsPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline">Cancel</Button>
-                  <Button onClick={handleSubmit}>Save Changes</Button>
+                  <Button variant="outline" type="button">Cancel</Button>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={updateUserMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {updateUserMutation.isPending && (
+                      <Loader className="h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
