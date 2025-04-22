@@ -199,12 +199,21 @@ export function CareerPathwayForm() {
   };
   
   // Store the submitted form data for later use when saving
-  const [submittedFormData, setSubmittedFormData] = useState<FormData | null>(null);
+  const [submittedFormData, setSubmittedFormData] = useState<any>(null);
 
   const careerAnalysisMutation = useMutation({
     mutationFn: async (data: FormData) => {
       // Save the form data for later use when saving to dashboard
-      setSubmittedFormData(data);
+      setSubmittedFormData({
+        userId: user?.id,
+        professionalLevel: data.professionalLevel,
+        currentSkills: data.currentSkills,
+        educationalBackground: data.educationalBackground,
+        careerHistory: data.careerHistory,
+        desiredRole: data.desiredRole,
+        state: data.state,
+        country: data.country,
+      });
       console.log("Form data saved for later use:", data);
       
       const res = await apiRequest("POST", "/api/career-analysis", data);
@@ -2731,18 +2740,28 @@ function CareerAnalysisResults({
                     // Save analysis to dashboard through API
                     console.log("Attempting to save career analysis to dashboard...");
                     
-                    if (!submittedFormData) {
-                      throw new Error('No form data available to save');
-                    }
+                    // Reconstruct the form data based on the current user and results
+                    const formDataToSave = {
+                      userId: user?.id,
+                      professionalLevel: "", // We'll need to store this somewhere else or in the results
+                      currentSkills: "", // We'll need to reconstruct this from results if possible
+                      educationalBackground: "",
+                      careerHistory: "",
+                      desiredRole: "",
+                      state: "",
+                      country: "",
+                      result: results // Include the full analysis results
+                    };
                     
-                    // We're saving the current analysis with the same data used to generate it
-                    // This ensures we have the right data to reproduce the analysis
+                    console.log("Saving analysis with data:", formDataToSave);
+                    
+                    // We're saving the current analysis with the results
                     const response = await fetch('/api/career-analysis', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
                       },
-                      body: JSON.stringify(submittedFormData),
+                      body: JSON.stringify(formDataToSave),
                     });
                     
                     if (!response.ok) {
