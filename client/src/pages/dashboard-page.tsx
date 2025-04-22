@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 import {
   RecommendedCourses,
   CareerProgressTracker,
@@ -42,17 +43,17 @@ export default function DashboardPage() {
               review your saved analyses, and discover recommended learning resources.
             </p>
             <div className="flex flex-wrap gap-3 mt-6">
-              <a href="/career-pathway">
-                <Button className="shadow-sm bg-primary hover:bg-primary/90">
+              <Button className="shadow-sm bg-primary hover:bg-primary/90" asChild>
+                <Link href="/career-pathway">
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Analysis
-                </Button>
-              </a>
-              <a href="/my-details">
-                <Button variant="outline" className="shadow-sm">
+                </Link>
+              </Button>
+              <Button variant="outline" className="shadow-sm" asChild>
+                <Link href="/my-details">
                   My Details
-                </Button>
-              </a>
+                </Link>
+              </Button>
             </div>
           </div>
           <div className="flex justify-center">
@@ -114,30 +115,30 @@ export default function DashboardPage() {
           Quick Links
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <a href="/learning-resources" className="block">
+          <Link href="/learning-resources" className="block">
             <div className="bg-white border rounded-xl p-6 text-center hover:shadow-md transition-shadow">
               <h3 className="text-lg font-medium mb-2">Learning Resources</h3>
               <p className="text-sm text-gray-600">
                 Discover personalized learning resources based on your career goals and skills gap
               </p>
             </div>
-          </a>
-          <a href="/saved-resources" className="block">
+          </Link>
+          <Link href="/saved-resources" className="block">
             <div className="bg-white border rounded-xl p-6 text-center hover:shadow-md transition-shadow">
               <h3 className="text-lg font-medium mb-2">Saved Resources</h3>
               <p className="text-sm text-gray-600">
                 Access your bookmarked learning resources for easy reference
               </p>
             </div>
-          </a>
-          <a href="/search" className="block">
+          </Link>
+          <Link href="/search" className="block">
             <div className="bg-white border rounded-xl p-6 text-center hover:shadow-md transition-shadow">
               <h3 className="text-lg font-medium mb-2">Skills & Roles</h3>
               <p className="text-sm text-gray-600">
                 Explore skills, roles and industries in our comprehensive database
               </p>
             </div>
-          </a>
+          </Link>
         </div>
       </motion.section>
     </AuthenticatedLayout>

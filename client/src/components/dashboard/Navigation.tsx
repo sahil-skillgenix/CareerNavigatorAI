@@ -18,13 +18,13 @@ export function Navigation() {
   const navigationItems = [
     {
       name: "Dashboard",
-      path: "/new-dashboard",
+      path: "/dashboard",
       icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
     },
     {
       name: "My Details",
-      path: "/dashboard",
-      icon: <Route className="h-5 w-5 mr-2" />,
+      path: "/my-details",
+      icon: <User className="h-5 w-5 mr-2" />,
     },
     {
       name: "Personal Career Pathway",
