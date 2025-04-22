@@ -2740,18 +2740,22 @@ function CareerAnalysisResults({
                     // Save analysis to dashboard through API
                     console.log("Attempting to save career analysis to dashboard...");
                     
-                    // Reconstruct the form data based on the current user and results
+                    // Create the form data object to save
                     const formDataToSave = {
+                      // Include current form data with the user ID
                       userId: user?.id,
-                      professionalLevel: "", // We'll need to store this somewhere else or in the results
-                      currentSkills: "", // We'll need to reconstruct this from results if possible
-                      educationalBackground: "",
-                      careerHistory: "",
-                      desiredRole: "",
-                      state: "",
-                      country: "",
+                      professionalLevel: formData.professionalLevel || "",
+                      currentSkills: formData.currentSkills || "",
+                      educationalBackground: formData.educationalBackground || "",
+                      careerHistory: formData.careerHistory || "",
+                      desiredRole: formData.desiredRole || "",
+                      state: formData.state || "",
+                      country: formData.country || "",
                       result: results // Include the full analysis results
                     };
+                    
+                    // Debug: Log what we're sending to the API
+                    console.log("Form data being sent:", formDataToSave);
                     
                     console.log("Saving analysis with data:", formDataToSave);
                     
@@ -2765,10 +2769,13 @@ function CareerAnalysisResults({
                     });
                     
                     if (!response.ok) {
-                      throw new Error('Failed to save analysis');
+                      const errorData = await response.json().catch(() => null);
+                      console.error("Server response error:", errorData);
+                      throw new Error(errorData?.message || 'Failed to save analysis');
                     }
                     
-                    console.log("Career analysis saved successfully!");
+                    const savedData = await response.json().catch(() => null);
+                    console.log("Career analysis saved successfully:", savedData);
                     
                     // Show success message
                     toast({
@@ -2776,13 +2783,13 @@ function CareerAnalysisResults({
                       description: "Your career pathway analysis has been saved to your dashboard.",
                       variant: "default",
                     });
-                  } catch (error) {
+                  } catch (error: any) {
                     console.error("Error saving analysis:", error);
                     
-                    // Show error message
+                    // Show error message with more details if available
                     toast({
                       title: "Save Failed",
-                      description: "There was an error saving your analysis. Please try again.",
+                      description: error?.message || "There was an error saving your analysis. Please try again.",
                       variant: "destructive",
                     });
                   }
