@@ -9,7 +9,7 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
-import DashboardPage from "@/pages/dashboard-page";
+import MyDetailsPage from "@/pages/my-details-page";
 import NewDashboardPage from "@/pages/new-dashboard-page";
 import CareerPathwayPage from "@/pages/career-pathway-page";
 import CareerAnalysisPage from "@/pages/career-analysis-page";
@@ -32,7 +32,7 @@ function Router() {
       
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={NewDashboardPage} />
-      <ProtectedRoute path="/my-details" component={DashboardPage} />
+      <ProtectedRoute path="/my-details" component={MyDetailsPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
