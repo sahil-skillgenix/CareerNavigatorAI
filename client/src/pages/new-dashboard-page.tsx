@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import {
   RecommendedCourses,
-  CareerProgressTracker
+  CareerProgressTracker,
+  SavedAnalyses
 } from "@/components/dashboard";
 import { AuthenticatedLayout } from "@/components/layouts";
 
@@ -24,6 +25,14 @@ export default function NewDashboardPage() {
   
   return (
     <AuthenticatedLayout title="Dashboard">
+      {/* Career History Section */}
+      <section className="mb-16">
+        <h2 className="text-2xl font-semibold mb-8 text-center">Your Career Analyses</h2>
+        <div className="max-w-7xl mx-auto">
+          <SavedAnalyses />
+        </div>
+      </section>
+      
       {/* Career Insights Section */}
       <section className="mb-16">
         <h2 className="text-2xl font-semibold mb-8 text-center">Career Insights</h2>

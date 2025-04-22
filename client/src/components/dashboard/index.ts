@@ -10,3 +10,4 @@ export * from './RecommendedCourses';
 export * from './CareerProgressTracker';
 export * from './DashboardHeader';
 export * from './Navigation';
+export * from './SavedAnalyses';

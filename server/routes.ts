@@ -719,6 +719,247 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     }
   });
   
+  // Get analysis as PDF
+  app.get('/api/career-analyses/:id/pdf', async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      const analysisId = parseInt(req.params.id);
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storageInstance.getCareerAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Verify this analysis belongs to the current user
+      if (analysis.userId !== req.user!.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Create PDF 
+      try {
+        const jsPDF = await import('jspdf');
+        const autoTable = await import('jspdf-autotable');
+        
+        const doc = new jsPDF.default();
+        // Set document metadata
+        doc.setProperties({
+          title: `Career Analysis - ${analysis.desiredRole}`,
+          subject: 'Career Pathway Analysis',
+          author: 'Skillgenix',
+          creator: 'Skillgenix Platform'
+        });
+        
+        // Add header with logo and title
+        doc.setFontSize(22);
+        doc.setTextColor(28, 59, 130); // Primary color
+        doc.text('Skillgenix', 15, 20);
+        doc.setFontSize(18);
+        doc.setTextColor(163, 29, 82); // Secondary color
+        doc.text('Career Analysis Report', 15, 30);
+        
+        // Add timestamp
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated on ${new Date().toLocaleString()}`, 15, 38);
+        
+        // Add a divider
+        doc.setDrawColor(200, 200, 200);
+        doc.line(15, 42, 195, 42);
+        
+        // Add user information
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Desired Role: ${analysis.desiredRole}`, 15, 50);
+        doc.text(`Professional Level: ${analysis.professionalLevel}`, 15, 58);
+        if (analysis.state && analysis.country) {
+          doc.text(`Location: ${analysis.state}, ${analysis.country}`, 15, 66);
+        }
+        
+        // Executive Summary
+        if (analysis.result?.executiveSummary) {
+          doc.setFontSize(16);
+          doc.setTextColor(28, 59, 130);
+          doc.text('Executive Summary', 15, 80);
+          doc.setFontSize(11);
+          doc.setTextColor(60, 60, 60);
+          
+          const splitSummary = doc.splitTextToSize(analysis.result.executiveSummary, 180);
+          doc.text(splitSummary, 15, 90);
+        }
+        
+        let yPosition = 130; // Starting Y position for the next section
+        
+        // Skill Gap Analysis
+        if (analysis.result?.skillGapAnalysis) {
+          doc.setFontSize(16);
+          doc.setTextColor(28, 59, 130);
+          doc.text('Skill Gap Analysis', 15, yPosition);
+          yPosition += 10;
+          
+          // Add gaps table if available
+          if (analysis.result.skillGapAnalysis.gaps && analysis.result.skillGapAnalysis.gaps.length > 0) {
+            yPosition += 5;
+            
+            autoTable.default(doc, {
+              head: [['Skill Gap', 'Importance', 'Description']],
+              body: analysis.result.skillGapAnalysis.gaps.map((gap: any) => [
+                gap.skill,
+                gap.importance,
+                gap.description
+              ]),
+              startY: yPosition,
+              theme: 'striped',
+              headStyles: { fillColor: [28, 59, 130], textColor: [255, 255, 255] },
+              margin: { top: 10 }
+            });
+            
+            yPosition = (doc as any).lastAutoTable.finalY + 15;
+          }
+          
+          // Add strengths table if available
+          if (analysis.result.skillGapAnalysis.strengths && analysis.result.skillGapAnalysis.strengths.length > 0) {
+            doc.setFontSize(14);
+            doc.setTextColor(28, 59, 130);
+            doc.text('Strengths', 15, yPosition);
+            yPosition += 10;
+            
+            autoTable.default(doc, {
+              head: [['Skill', 'Level', 'Relevance']],
+              body: analysis.result.skillGapAnalysis.strengths.map((strength: any) => [
+                strength.skill,
+                strength.level,
+                strength.relevance
+              ]),
+              startY: yPosition,
+              theme: 'striped',
+              headStyles: { fillColor: [163, 29, 82], textColor: [255, 255, 255] },
+              margin: { top: 10 }
+            });
+            
+            yPosition = (doc as any).lastAutoTable.finalY + 15;
+          }
+        }
+        
+        // Add new page if needed
+        if (yPosition > 240) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        // Career Pathway
+        if (analysis.result?.careerPathway) {
+          doc.setFontSize(16);
+          doc.setTextColor(28, 59, 130);
+          doc.text('Career Pathway', 15, yPosition);
+          yPosition += 10;
+          
+          // Check page limit and add a new page if needed
+          if (yPosition > 240) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          // Pathway with degree
+          if (analysis.result.careerPathway.withDegree && analysis.result.careerPathway.withDegree.length > 0) {
+            doc.setFontSize(14);
+            doc.setTextColor(28, 59, 130);
+            doc.text('Pathway with Degree', 15, yPosition);
+            yPosition += 10;
+            
+            // Create pathway table
+            autoTable.default(doc, {
+              head: [['Step', 'Role', 'Timeframe', 'Key Skills']],
+              body: analysis.result.careerPathway.withDegree.map((step: any) => [
+                step.step,
+                step.role,
+                step.timeframe,
+                step.keySkillsNeeded ? step.keySkillsNeeded.join(', ') : ''
+              ]),
+              startY: yPosition,
+              theme: 'striped',
+              headStyles: { fillColor: [28, 59, 130], textColor: [255, 255, 255] },
+              margin: { top: 10 }
+            });
+            
+            yPosition = (doc as any).lastAutoTable.finalY + 15;
+          }
+          
+          // Check page limit and add a new page if needed
+          if (yPosition > 240) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          // Pathway without degree
+          if (analysis.result.careerPathway.withoutDegree && analysis.result.careerPathway.withoutDegree.length > 0) {
+            doc.setFontSize(14);
+            doc.setTextColor(28, 59, 130);
+            doc.text('Alternative Pathway (Without Degree)', 15, yPosition);
+            yPosition += 10;
+            
+            // Create pathway table
+            autoTable.default(doc, {
+              head: [['Step', 'Role', 'Timeframe', 'Key Skills']],
+              body: analysis.result.careerPathway.withoutDegree.map((step: any) => [
+                step.step,
+                step.role,
+                step.timeframe,
+                step.keySkillsNeeded ? step.keySkillsNeeded.join(', ') : ''
+              ]),
+              startY: yPosition,
+              theme: 'striped',
+              headStyles: { fillColor: [163, 29, 82], textColor: [255, 255, 255] },
+              margin: { top: 10 }
+            });
+            
+            yPosition = (doc as any).lastAutoTable.finalY + 15;
+          }
+        }
+        
+        // Footer
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(10);
+          doc.setTextColor(150, 150, 150);
+          doc.text(`Skillgenix Career Analysis Report - Page ${i} of ${pageCount}`, 15, 285);
+          doc.text('Generated by Skillgenix AI - Confidential', 120, 285);
+        }
+        
+        // Set the filename using the desired role
+        const sanitizedRole = analysis.desiredRole.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const filename = `skillgenix_${sanitizedRole}_analysis.pdf`;
+        
+        // Set the appropriate headers for a PDF file
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        
+        // Send the PDF as a buffer
+        const pdfBuffer = doc.output('arraybuffer');
+        res.send(Buffer.from(pdfBuffer));
+      } catch (pdfError) {
+        console.error('Error generating PDF:', pdfError);
+        res.status(500).json({
+          error: 'Failed to generate PDF',
+          message: 'There was a problem generating the PDF. Please try again.'
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching career analysis for PDF:', error);
+      res.status(500).json({
+        error: 'Failed to fetch career analysis',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
   // Update analysis progress
   app.patch('/api/career-analyses/:id/progress', async (req: Request, res: Response) => {
     try {
