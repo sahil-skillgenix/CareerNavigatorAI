@@ -1,5 +1,5 @@
 /**
- * Script to add a single test role to the database
+ * Script to add a test role to the database
  * Run with: npx tsx server/data-collection/add-test-role.ts
  */
 
@@ -15,32 +15,31 @@ async function addTestRole() {
     // Connect to the database
     await connectToDatabase();
     
-    // Create a test role
     const testRole = {
       id: 999,
       title: "Test Software Developer",
       category: "Information Technology",
       description: "A test software developer role for verification purposes only. This role is responsible for writing, testing, and deploying code for software applications. The role requires strong analytical thinking, problem-solving abilities, and attention to detail. Software developers need to be proficient in one or more programming languages and understand software development methodologies.",
       averageSalary: "$80,000 - $120,000",
+      demandOutlook: "high growth",
       educationRequirements: [
-        "Bachelor's degree in Computer Science or related field", 
+        "Bachelor's degree in Computer Science or related field",
         "Relevant certifications (e.g., AWS Developer)"
       ],
       experienceRequirements: [
         "2+ years of software development experience",
         "Experience with modern programming languages"
       ],
-      demandOutlook: "high growth",
+      skillRequirements: [],
       careerPath: {
-        next: [],
-        previous: []
+        previous: [],
+        next: []
       },
-      relatedRoles: [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
     
-    // Save to database
+    // Save the role to the database
     const savedRole = await RoleModel.findOneAndUpdate(
       { id: testRole.id },
       testRole,

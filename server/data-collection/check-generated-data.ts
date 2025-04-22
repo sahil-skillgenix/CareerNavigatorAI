@@ -72,10 +72,42 @@ async function checkDatabaseContent() {
       console.log(JSON.stringify(sampleRoleSkill, null, 2));
     }
     
+    if (skillPrerequisiteCount > 0) {
+      const samplePrereq = await SkillPrerequisiteModel.findOne();
+      console.log('\n=== SAMPLE SKILL PREREQUISITE ===');
+      console.log(JSON.stringify(samplePrereq, null, 2));
+      
+      // Show the full skill acquisition pathway for Test Skill
+      if (await SkillModel.findOne({ id: 999 })) {
+        console.log('\n=== SKILL ACQUISITION PATHWAY FOR TEST SKILL ===');
+        const prerequisites = await SkillPrerequisiteModel.find({ skillId: 999 });
+        
+        // Get the actual skill names
+        const prereqWithNames = [];
+        for (const prereq of prerequisites) {
+          const preSkill = await SkillModel.findOne({ id: prereq.prerequisiteId });
+          if (preSkill) {
+            prereqWithNames.push({
+              ...prereq.toObject(),
+              prerequisiteName: preSkill.name
+            });
+          }
+        }
+        
+        console.log(JSON.stringify(prereqWithNames, null, 2));
+      }
+    }
+    
     if (learningResourceCount > 0) {
       const sampleResource = await LearningResourceModel.findOne();
       console.log('\n=== SAMPLE LEARNING RESOURCE ===');
       console.log(JSON.stringify(sampleResource, null, 2));
+    }
+    
+    if (pathwayCount > 0) {
+      const samplePathway = await CareerPathwayModel.findOne();
+      console.log('\n=== SAMPLE CAREER PATHWAY ===');
+      console.log(JSON.stringify(samplePathway, null, 2));
     }
     
   } catch (error) {
