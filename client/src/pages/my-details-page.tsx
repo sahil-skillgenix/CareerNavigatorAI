@@ -371,8 +371,17 @@ export default function MyDetailsPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline">Cancel</Button>
-                  <Button onClick={handleSubmit}>Save Changes</Button>
+                  <Button variant="outline" type="button">Cancel</Button>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={updateUserMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {updateUserMutation.isPending && (
+                      <Loader className="h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
@@ -413,8 +422,17 @@ export default function MyDetailsPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline">Cancel</Button>
-                  <Button onClick={handleSubmit}>Save Changes</Button>
+                  <Button variant="outline" type="button">Cancel</Button>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={updateUserMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    {updateUserMutation.isPending && (
+                      <Loader className="h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
