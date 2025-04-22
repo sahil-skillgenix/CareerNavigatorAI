@@ -359,7 +359,11 @@ export class MongoDBStorage implements IStorage {
   
   async createUserBadge(badge: InsertUserBadge): Promise<UserBadge> {
     try {
+      // Generate a MongoDB ObjectId
+      const badgeId = new mongoose.Types.ObjectId();
+      
       const newBadge = new UserBadgeModel({
+        _id: badgeId, // Explicitly set the _id
         userId: badge.userId,
         name: badge.name,
         description: badge.description,
@@ -368,7 +372,10 @@ export class MongoDBStorage implements IStorage {
         icon: badge.icon
       });
       
+      console.log(`Creating badge with userId: ${badge.userId}, name: ${badge.name}`);
       const savedBadge = await newBadge.save();
+      console.log(`Badge saved successfully with _id: ${savedBadge._id}`);
+      
       const doc = savedBadge.toObject();
       
       return {

@@ -198,8 +198,15 @@ export function CareerPathwayForm() {
     }));
   };
   
+  // Store the submitted form data for later use when saving
+  const [submittedFormData, setSubmittedFormData] = useState<FormData | null>(null);
+
   const careerAnalysisMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      // Save the form data for later use when saving to dashboard
+      setSubmittedFormData(data);
+      console.log("Form data saved for later use:", data);
+      
       const res = await apiRequest("POST", "/api/career-analysis", data);
       const result = await res.json();
       return result as CareerAnalysisResult;
@@ -2723,25 +2730,19 @@ function CareerAnalysisResults({
                   try {
                     // Save analysis to dashboard through API
                     console.log("Attempting to save career analysis to dashboard...");
-                    // Create a simplified version of the form input
-                    const formValues = form.getValues();
-                    console.log("Form values for saving:", formValues);
                     
-                    // We're saving the current analysis by re-submitting the original form data
+                    if (!submittedFormData) {
+                      throw new Error('No form data available to save');
+                    }
+                    
+                    // We're saving the current analysis with the same data used to generate it
+                    // This ensures we have the right data to reproduce the analysis
                     const response = await fetch('/api/career-analysis', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
                       },
-                      body: JSON.stringify({
-                        professionalLevel: formValues.professionalLevel,
-                        currentSkills: formValues.currentSkills,
-                        educationalBackground: formValues.educationalBackground,
-                        careerHistory: formValues.careerHistory,
-                        desiredRole: formValues.desiredRole,
-                        state: formValues.state,
-                        country: formValues.country
-                      }),
+                      body: JSON.stringify(submittedFormData),
                     });
                     
                     if (!response.ok) {
