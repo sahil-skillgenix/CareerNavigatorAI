@@ -150,6 +150,28 @@ export class MongoDBStorage implements IStorage {
 
   async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysis> {
     try {
+      // Create a new badge for the first analysis
+      let newBadge = null;
+      const userAnalysisCount = await CareerAnalysisModel.countDocuments({ userId: analysis.userId });
+      
+      if (userAnalysisCount === 0) {
+        // This is the user's first analysis, create a "Career Explorer" badge
+        try {
+          newBadge = await this.createUserBadge({
+            userId: analysis.userId,
+            name: "Career Explorer",
+            description: "Completed your first career analysis",
+            category: "achievement",
+            level: 1,
+            icon: "trophy"
+          });
+          log(`Created new badge for user ${analysis.userId}`, "mongodb");
+        } catch (badgeError) {
+          log(`Error creating badge: ${badgeError}`, "mongodb");
+          // Continue even if badge creation fails
+        }
+      }
+      
       const newAnalysis = new CareerAnalysisModel({
         userId: analysis.userId,
         professionalLevel: analysis.professionalLevel,
@@ -161,11 +183,37 @@ export class MongoDBStorage implements IStorage {
         country: analysis.country,
         result: analysis.result,
         progress: analysis.progress || 0,
-        badges: analysis.badges || []
+        badges: newBadge ? [newBadge.id] : []
       });
       
       const savedAnalysis = await newAnalysis.save();
       const doc = savedAnalysis.toObject();
+      
+      // Also create a progress tracking item
+      if (savedAnalysis) {
+        try {
+          await this.createUserProgress({
+            userId: analysis.userId,
+            type: "career_pathway",
+            relatedItemId: doc._id.toString(),
+            title: `Career Pathway: ${analysis.desiredRole}`,
+            description: "Track your progress towards your career goals",
+            progress: 0,
+            milestones: [
+              "Review analysis",
+              "Complete first recommended course",
+              "Apply new skills",
+              "Update resume",
+              "Reach out to industry contacts"
+            ],
+            notes: ""
+          });
+          log(`Created progress tracking for analysis ${doc._id}`, "mongodb");
+        } catch (progressError) {
+          log(`Error creating progress tracking: ${progressError}`, "mongodb");
+          // Continue even if progress tracking creation fails
+        }
+      }
       
       return {
         id: doc._id.toString(),

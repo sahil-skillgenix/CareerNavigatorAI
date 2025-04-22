@@ -45,7 +45,6 @@ const CareerAnalysisResultSchema = new Schema({
 // Schema for Career Analysis
 const CareerAnalysisSchema = new Schema<CareerAnalysisDocument>(
   {
-    id: { type: String, required: true, unique: true },
     userId: { type: String, required: true, ref: "User" },
     professionalLevel: { type: String, required: true },
     currentSkills: { type: String, required: true },
@@ -61,7 +60,9 @@ const CareerAnalysisSchema = new Schema<CareerAnalysisDocument>(
   { 
     timestamps: true,
     toJSON: {
+      virtuals: true,
       transform: (doc, ret) => {
+        ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
         return ret;
