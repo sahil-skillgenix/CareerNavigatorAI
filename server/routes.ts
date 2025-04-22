@@ -1180,6 +1180,25 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(403).json({ error: 'Access denied' });
       }
       
+      // If progress is reaching 100% for the first time, create a completion badge
+      if (progress === 100 && progressItem.progress < 100) {
+        try {
+          // Create a badge for completing a skill journey
+          await storageInstance.createUserBadge({
+            userId: req.user!.id,
+            name: progressItem.type === "career_pathway" ? "Pathway Master" : "Skill Champion",
+            description: `Completed the ${progressItem.title} journey`,
+            category: "achievement",
+            level: 2,
+            icon: progressItem.type === "career_pathway" ? "trophy" : "star"
+          });
+          console.log(`Created completion badge for user ${req.user!.id}`);
+        } catch (badgeError) {
+          console.error('Error creating badge:', badgeError);
+          // Continue even if badge creation fails
+        }
+      }
+      
       const updatedProgress = await storageInstance.updateUserProgress(
         progressId, 
         progress,
