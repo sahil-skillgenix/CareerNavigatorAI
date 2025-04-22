@@ -171,7 +171,19 @@ export function CareerPathwayForm() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [analysisResult, setAnalysisResult] = useState<CareerAnalysisResult | null>(null);
-  const [formData, setFormData] = useState<FormData>({
+  
+  // Explicitly define the FormData interface type again to ensure it's accessible
+  interface FormValues {
+    professionalLevel: string;
+    currentSkills: string;
+    educationalBackground: string;
+    careerHistory: string;
+    desiredRole: string;
+    state: string;
+    country: string;
+  }
+  
+  const [formData, setFormData] = useState<FormValues>({
     professionalLevel: "",
     currentSkills: "",
     educationalBackground: "",
@@ -2740,17 +2752,10 @@ function CareerAnalysisResults({
                     // Save analysis to dashboard through API
                     console.log("Attempting to save career analysis to dashboard...");
                     
-                    // Create the form data object to save
+                    // Simplify the form data object with minimal required information
                     const formDataToSave = {
-                      // Include current form data with the user ID
+                      // Only include user ID and results
                       userId: user?.id,
-                      professionalLevel: formData.professionalLevel || "",
-                      currentSkills: formData.currentSkills || "",
-                      educationalBackground: formData.educationalBackground || "",
-                      careerHistory: formData.careerHistory || "",
-                      desiredRole: formData.desiredRole || "",
-                      state: formData.state || "",
-                      country: formData.country || "",
                       result: results // Include the full analysis results
                     };
                     
