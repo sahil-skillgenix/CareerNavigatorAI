@@ -66,7 +66,7 @@ export default function Navbar() {
                     Search
                   </Button>
                 </Link>
-                <Link href="/dashboard">
+                <Link href="/my-details">
                   <Button variant="outline" size="sm" className="hidden md:inline-flex">
                     <User className="mr-2 h-4 w-4" />
                     Dashboard
@@ -141,7 +141,7 @@ export default function Navbar() {
                           Search
                         </Button>
                       </Link>
-                      <Link href="/dashboard" className="w-full">
+                      <Link href="/my-details" className="w-full">
                         <Button className="w-full justify-start" variant="outline">
                           <User className="mr-2 h-4 w-4" />
                           Dashboard

@@ -129,7 +129,7 @@ export function SavedAnalyses() {
         <CardDescription>Your previously saved career pathway analyses</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {analyses.map((analysis) => (
+        {analyses.map((analysis: SavedAnalysis) => (
           <Card key={analysis.id} className="border border-muted">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
