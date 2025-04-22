@@ -1,8 +1,4 @@
 import { 
-  users, 
-  careerAnalyses, 
-  userBadges, 
-  userProgress,
   type User, 
   type InsertUser, 
   type CareerAnalysis, 
@@ -59,10 +55,10 @@ async function hashPassword(password: string) {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private careerAnalyses: Map<number, CareerAnalysis>;
-  private userBadges: Map<number, UserBadge>;
-  private userProgress: Map<number, UserProgress>;
+  private users: Map<string, User>;
+  private careerAnalyses: Map<string, CareerAnalysis>;
+  private userBadges: Map<string, UserBadge>;
+  private userProgress: Map<string, UserProgress>;
   
   private userId: number = 1;
   private analysisId: number = 1;
@@ -92,7 +88,8 @@ export class MemStorage implements IStorage {
       password: await hashPassword("demo123456")
     };
     
-    const id = this.userId++;
+    const idNum = this.userId++;
+    const id = idNum.toString();
     const user: User = { 
       ...demoUser, 
       id,
@@ -104,10 +101,8 @@ export class MemStorage implements IStorage {
 
   // User Management
   async getUser(id: string | number): Promise<User | undefined> {
-    if (typeof id === 'string') {
-      id = parseInt(id);
-    }
-    return this.users.get(id);
+    const stringId = id.toString();
+    return this.users.get(stringId);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -117,7 +112,8 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: Omit<InsertUser, "confirmPassword">): Promise<User> {
-    const id = this.userId++;
+    const idNum = this.userId++;
+    const id = idNum.toString();
     const user: User = { 
       ...insertUser, 
       id, 
@@ -129,7 +125,8 @@ export class MemStorage implements IStorage {
   
   // Career Analysis Management
   async saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysisWithStringDates> {
-    const id = this.analysisId++;
+    const idNum = this.analysisId++;
+    const id = idNum.toString();
     const now = new Date().toISOString();
     
     const newAnalysis: CareerAnalysisWithStringDates = {
@@ -144,19 +141,15 @@ export class MemStorage implements IStorage {
   }
   
   async getCareerAnalysisById(id: string | number): Promise<CareerAnalysisWithStringDates | undefined> {
-    if (typeof id === 'string') {
-      id = parseInt(id);
-    }
-    const analysis = this.careerAnalyses.get(id);
+    const stringId = id.toString();
+    const analysis = this.careerAnalyses.get(stringId);
     return analysis as unknown as CareerAnalysisWithStringDates;
   }
   
   async getUserCareerAnalyses(userId: string | number): Promise<CareerAnalysisWithStringDates[]> {
-    if (typeof userId === 'string') {
-      userId = parseInt(userId);
-    }
+    const stringUserId = userId.toString();
     return Array.from(this.careerAnalyses.values())
-      .filter(analysis => analysis.userId === userId)
+      .filter(analysis => analysis.userId === stringUserId)
       .sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -165,13 +158,11 @@ export class MemStorage implements IStorage {
   }
   
   async updateCareerAnalysisProgress(id: string | number, progress: number): Promise<CareerAnalysisWithStringDates> {
-    if (typeof id === 'string') {
-      id = parseInt(id);
-    }
-    const analysis = this.careerAnalyses.get(id);
+    const stringId = id.toString();
+    const analysis = this.careerAnalyses.get(stringId);
     
     if (!analysis) {
-      throw new Error(`Analysis with ID ${id} not found`);
+      throw new Error(`Analysis with ID ${stringId} not found`);
     }
     
     const updatedAnalysis: CareerAnalysisWithStringDates = {
@@ -180,17 +171,15 @@ export class MemStorage implements IStorage {
       updatedAt: new Date().toISOString()
     };
     
-    this.careerAnalyses.set(id, updatedAnalysis as any);
+    this.careerAnalyses.set(stringId, updatedAnalysis as any);
     return updatedAnalysis;
   }
   
   // Badge Management
   async getUserBadges(userId: string | number): Promise<UserBadgeWithStringDates[]> {
-    if (typeof userId === 'string') {
-      userId = parseInt(userId);
-    }
+    const stringUserId = userId.toString();
     return Array.from(this.userBadges.values())
-      .filter(badge => badge.userId === userId)
+      .filter(badge => badge.userId === stringUserId)
       .sort((a, b) => {
         const dateA = a.earnedAt ? new Date(a.earnedAt).getTime() : 0;
         const dateB = b.earnedAt ? new Date(b.earnedAt).getTime() : 0;
@@ -199,7 +188,8 @@ export class MemStorage implements IStorage {
   }
   
   async createUserBadge(badge: InsertUserBadge): Promise<UserBadgeWithStringDates> {
-    const id = this.badgeId++;
+    const idNum = this.badgeId++;
+    const id = idNum.toString();
     
     const newBadge: UserBadgeWithStringDates = {
       ...badge,

@@ -337,3 +337,17 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCareerAnalysis = z.infer<typeof insertCareerAnalysisSchema>;
 export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
+
+// Types for handling string dates in MongoDB storage responses
+export type CareerAnalysisWithStringDates = CareerAnalysis & {
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type UserBadgeWithStringDates = UserBadge & {
+  earnedAt?: string;
+};
+
+export type UserProgressWithStringDates = UserProgress & {
+  updatedAt?: string;
+};
