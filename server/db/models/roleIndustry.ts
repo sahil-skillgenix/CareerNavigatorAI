@@ -1,32 +1,42 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { RoleIndustry } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define RoleIndustry document interface that extends Document
+// Interface for RoleIndustry document
 export interface RoleIndustryDocument extends Document {
-  roleId: mongoose.Types.ObjectId;
-  industryId: mongoose.Types.ObjectId;
-  prevalence: string;
+  roleId: number;
+  industryId: number;
+  prevalence: string; // "high", "medium", "low"
+  notes: string;
+  specializations: string;
   createdAt: Date;
-  updatedAt: Date;
 }
 
-// Define RoleIndustry schema
-const roleIndustrySchema = new Schema<RoleIndustryDocument>(
+// Schema for RoleIndustry
+const RoleIndustrySchema = new Schema<RoleIndustryDocument>(
   {
-    roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
-    industryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Industry', required: true },
-    prevalence: { type: String, required: true },
+    roleId: { type: Number, ref: "Role", required: true },
+    industryId: { type: Number, ref: "Industry", required: true },
+    prevalence: { 
+      type: String, 
+      required: true, 
+      enum: ["high", "medium", "low"] 
+    },
+    notes: { type: String },
+    specializations: { type: String }
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create compound index for unique role-industry pairs
-roleIndustrySchema.index({ roleId: 1, industryId: 1 }, { unique: true });
+// Compound index for uniqueness
+RoleIndustrySchema.index({ roleId: 1, industryId: 1 }, { unique: true });
 
-// Create the RoleIndustry model
-const RoleIndustryModel = mongoose.models.RoleIndustry || mongoose.model<RoleIndustryDocument>('RoleIndustry', roleIndustrySchema);
-
-export default RoleIndustryModel;
+// Ensure the model is only registered once
+export default mongoose.models.RoleIndustry || mongoose.model<RoleIndustryDocument>("RoleIndustry", RoleIndustrySchema);

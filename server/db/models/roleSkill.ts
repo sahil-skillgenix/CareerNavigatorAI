@@ -1,34 +1,47 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { RoleSkill } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define RoleSkill document interface that extends Document
+// Interface for RoleSkill document
 export interface RoleSkillDocument extends Document {
-  roleId: mongoose.Types.ObjectId;
-  skillId: mongoose.Types.ObjectId;
-  importance: string;
-  levelRequired: string;
+  roleId: number;
+  skillId: number;
+  importance: string; // "high", "medium", "low"
+  levelRequired: number; // 1-5
+  context: string;
   createdAt: Date;
-  updatedAt: Date;
 }
 
-// Define RoleSkill schema
-const roleSkillSchema = new Schema<RoleSkillDocument>(
+// Schema for RoleSkill
+const RoleSkillSchema = new Schema<RoleSkillDocument>(
   {
-    roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },
-    skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
-    importance: { type: String, required: true },
-    levelRequired: { type: String, required: true },
+    roleId: { type: Number, ref: "Role", required: true },
+    skillId: { type: Number, ref: "Skill", required: true },
+    importance: { 
+      type: String, 
+      required: true, 
+      enum: ["high", "medium", "low"] 
+    },
+    levelRequired: { 
+      type: Number, 
+      required: true, 
+      min: 1, 
+      max: 5 
+    },
+    context: { type: String }
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create compound index for unique role-skill pairs
-roleSkillSchema.index({ roleId: 1, skillId: 1 }, { unique: true });
+// Compound index for uniqueness
+RoleSkillSchema.index({ roleId: 1, skillId: 1 }, { unique: true });
 
-// Create the RoleSkill model
-const RoleSkillModel = mongoose.models.RoleSkill || mongoose.model<RoleSkillDocument>('RoleSkill', roleSkillSchema);
-
-export default RoleSkillModel;
+// Ensure the model is only registered once
+export default mongoose.models.RoleSkill || mongoose.model<RoleSkillDocument>("RoleSkill", RoleSkillSchema);

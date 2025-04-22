@@ -1,39 +1,74 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { Industry } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define Industry document interface that extends Document
+// Interface for key skills
+interface KeySkill {
+  skillId: number;
+  importance: string;
+}
+
+// Interface for top roles
+interface TopRole {
+  roleId: number;
+  prevalence: string;
+}
+
+// Interface for Industry document
 export interface IndustryDocument extends Document {
+  id: number;
   name: string;
-  category: string;
   description: string;
-  growthRate: number;
-  averageSalary: number;
-  jobCount: number;
-  entryLevelPercentage: number;
-  topCompanies: string[];
+  category: string;
+  trendDescription: string;
+  growthOutlook: string;
+  keySkills: KeySkill[];
+  topRoles: TopRole[];
+  disruptiveTechnologies: string[];
+  regulations: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Define Industry schema
-const industrySchema = new Schema<IndustryDocument>(
+// Schema for key skills
+const KeySkillSchema = new Schema<KeySkill>({
+  skillId: { type: Number, required: true, ref: "Skill" },
+  importance: { type: String, required: true, enum: ["critical", "important", "helpful"] }
+});
+
+// Schema for top roles
+const TopRoleSchema = new Schema<TopRole>({
+  roleId: { type: Number, required: true, ref: "Role" },
+  prevalence: { type: String, required: true, enum: ["high", "medium", "low"] }
+});
+
+// Schema for Industries
+const IndustrySchema = new Schema<IndustryDocument>(
   {
-    name: { type: String, required: true, unique: true },
-    category: { type: String, required: true },
+    id: { type: Number, required: true, unique: true },
+    name: { type: String, required: true, trim: true },
     description: { type: String, required: true },
-    growthRate: { type: Number, required: true, default: 0 },
-    averageSalary: { type: Number, required: true, default: 0 },
-    jobCount: { type: Number, required: true, default: 0 },
-    entryLevelPercentage: { type: Number, required: true, default: 0 },
-    topCompanies: [{ type: String }],
+    category: { type: String, required: true },
+    trendDescription: { type: String, required: true },
+    growthOutlook: { 
+      type: String, 
+      required: true, 
+      enum: ["high growth", "moderate growth", "stable", "declining"] 
+    },
+    keySkills: [KeySkillSchema],
+    topRoles: [TopRoleSchema],
+    disruptiveTechnologies: [{ type: String }],
+    regulations: [{ type: String }]
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create the Industry model
-const IndustryModel = mongoose.models.Industry || mongoose.model<IndustryDocument>('Industry', industrySchema);
-
-export default IndustryModel;
+// Ensure the model is only registered once
+export default mongoose.models.Industry || mongoose.model<IndustryDocument>("Industry", IndustrySchema);

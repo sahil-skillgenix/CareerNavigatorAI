@@ -9,10 +9,10 @@ export const INDUSTRY_CATEGORIES = [
   "Government",
   "Manufacturing",
   "Retail",
-  "Media",
+  "Media and Entertainment",
   "Agriculture",
-  "Energy",
-  "Transportation",
+  "Energy and Utilities",
+  "Transportation and Logistics",
   "Construction",
   "Hospitality",
   "Non-profit",
@@ -41,6 +41,68 @@ export const SKILL_CATEGORIES = [
   "Leadership",
   "Domain-Specific",
   "Certifications"
+] as const;
+
+// SFIA 9 categories
+export const SFIA9_CATEGORIES = [
+  "Strategy and architecture",
+  "Change and transformation",
+  "Development and implementation",
+  "Delivery and operation",
+  "Skills and quality",
+  "Relationships and engagement"
+] as const;
+
+// DigComp 2.2 competence areas
+export const DIGCOMP_AREAS = [
+  "Information and data literacy",
+  "Communication and collaboration",
+  "Digital content creation",
+  "Safety",
+  "Problem solving"
+] as const;
+
+// Role categories
+export const ROLE_CATEGORIES = [
+  "Engineering",
+  "Design",
+  "Management",
+  "Analysis",
+  "Support",
+  "Sales and Marketing",
+  "Research",
+  "Operations",
+  "Human Resources",
+  "Legal and Compliance"
+] as const;
+
+// Growth outlook options
+export const GROWTH_OUTLOOK = [
+  "high growth",
+  "moderate growth",
+  "stable",
+  "declining"
+] as const;
+
+// Skill importance levels
+export const IMPORTANCE_LEVELS = [
+  "critical",
+  "important",
+  "helpful"
+] as const;
+
+// Role prevalence levels
+export const PREVALENCE_LEVELS = [
+  "high",
+  "medium",
+  "low"
+] as const;
+
+// Demand trend options
+export const DEMAND_TRENDS = [
+  "increasing",
+  "stable",
+  "decreasing"
 ] as const;
 
 // User schema

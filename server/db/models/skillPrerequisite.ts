@@ -1,33 +1,40 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { SkillPrerequisite } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define SkillPrerequisite document interface that extends Document
+// Interface for SkillPrerequisite document
 export interface SkillPrerequisiteDocument extends Document {
-  skillId: mongoose.Types.ObjectId;
-  prerequisiteId: mongoose.Types.ObjectId;
-  importance: string;
+  skillId: number;
+  prerequisiteId: number;
+  importance: string; // "required", "recommended", "helpful"
+  notes: string;
   createdAt: Date;
-  updatedAt: Date;
 }
 
-// Define SkillPrerequisite schema
-const skillPrerequisiteSchema = new Schema<SkillPrerequisiteDocument>(
+// Schema for SkillPrerequisite
+const SkillPrerequisiteSchema = new Schema<SkillPrerequisiteDocument>(
   {
-    skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
-    prerequisiteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
-    importance: { type: String, required: true },
+    skillId: { type: Number, ref: "Skill", required: true },
+    prerequisiteId: { type: Number, ref: "Skill", required: true },
+    importance: { 
+      type: String, 
+      required: true, 
+      enum: ["required", "recommended", "helpful"] 
+    },
+    notes: { type: String }
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create compound index for unique skill-prerequisite pairs
-skillPrerequisiteSchema.index({ skillId: 1, prerequisiteId: 1 }, { unique: true });
+// Compound index for uniqueness
+SkillPrerequisiteSchema.index({ skillId: 1, prerequisiteId: 1 }, { unique: true });
 
-// Create the SkillPrerequisite model
-const SkillPrerequisiteModel = mongoose.models.SkillPrerequisite || 
-  mongoose.model<SkillPrerequisiteDocument>('SkillPrerequisite', skillPrerequisiteSchema);
-
-export default SkillPrerequisiteModel;
+// Ensure the model is only registered once
+export default mongoose.models.SkillPrerequisite || mongoose.model<SkillPrerequisiteDocument>("SkillPrerequisite", SkillPrerequisiteSchema);

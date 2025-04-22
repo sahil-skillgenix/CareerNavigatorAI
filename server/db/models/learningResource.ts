@@ -1,44 +1,79 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { LearningResource } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define LearningResource document interface that extends Document
+// Interface for LearningResource document
 export interface LearningResourceDocument extends Document {
-  skillId: mongoose.Types.ObjectId;
+  id: string;
   title: string;
-  provider: string;
   type: string;
+  provider: string;
   url: string;
   description: string;
-  estimatedHours: number;
+  skillId: number;
   difficulty: string;
+  estimatedHours: number;
   costType: string;
+  cost: string;
+  tags: string[];
   rating: number;
+  reviewCount: number;
+  relevanceScore: number;
+  matchReason: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Define LearningResource schema
-const learningResourceSchema = new Schema<LearningResourceDocument>(
+// Schema for Learning Resources
+const LearningResourceSchema = new Schema<LearningResourceDocument>(
   {
-    skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
-    title: { type: String, required: true },
+    id: { type: String, required: true, unique: true },
+    title: { type: String, required: true, trim: true },
+    type: { 
+      type: String, 
+      required: true,
+      enum: [
+        "course", 
+        "book", 
+        "tutorial", 
+        "video", 
+        "podcast", 
+        "article", 
+        "practice", 
+        "certification"
+      ] 
+    },
     provider: { type: String, required: true },
-    type: { type: String, required: true },
-    url: { type: String, required: true },
+    url: { type: String },
     description: { type: String, required: true },
-    estimatedHours: { type: Number, required: true },
-    difficulty: { type: String, required: true },
-    costType: { type: String, required: true },
-    rating: { type: Number, required: true, default: 0 },
+    skillId: { type: Number, ref: "Skill", required: true },
+    difficulty: { 
+      type: String, 
+      required: true, 
+      enum: ["beginner", "intermediate", "advanced", "expert"] 
+    },
+    estimatedHours: { type: Number },
+    costType: { 
+      type: String, 
+      required: true, 
+      enum: ["free", "freemium", "paid", "subscription"] 
+    },
+    cost: { type: String },
+    tags: [{ type: String }],
+    rating: { type: Number, min: 0, max: 5, default: 0 },
+    reviewCount: { type: Number, default: 0 },
+    relevanceScore: { type: Number, min: 1, max: 10, default: 5 },
+    matchReason: { type: String }
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create the LearningResource model
-const LearningResourceModel = mongoose.models.LearningResource || 
-  mongoose.model<LearningResourceDocument>('LearningResource', learningResourceSchema);
-
-export default LearningResourceModel;
+// Ensure the model is only registered once
+export default mongoose.models.LearningResource || mongoose.model<LearningResourceDocument>("LearningResource", LearningResourceSchema);

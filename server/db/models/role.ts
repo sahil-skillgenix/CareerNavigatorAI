@@ -1,41 +1,72 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { Role } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define Role document interface that extends Document
+// Interface for skill requirements
+interface SkillRequirement {
+  skillId: number;
+  importance: string;
+  levelRequired: number;
+}
+
+// Interface for career path
+interface CareerPath {
+  next: number[];
+  previous: number[];
+}
+
+// Interface for Role document
 export interface RoleDocument extends Document {
+  id: number;
   title: string;
-  category: string;
   description: string;
-  averageSalary: number;
-  entryLevelSalary: number;
-  seniorLevelSalary: number;
-  education: string;
-  experience: string;
-  popularity: number;
+  category: string;
+  averageSalary: string;
+  educationRequirements: string[];
+  experienceRequirements: string[];
+  skillRequirements: SkillRequirement[];
+  careerPath: CareerPath;
+  demandOutlook: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Define Role schema
-const roleSchema = new Schema<RoleDocument>(
+// Schema for skill requirements
+const SkillRequirementSchema = new Schema<SkillRequirement>({
+  skillId: { type: Number, required: true, ref: "Skill" },
+  importance: { type: String, required: true, enum: ["high", "medium", "low"] },
+  levelRequired: { type: Number, required: true, min: 1, max: 5 }
+});
+
+// Schema for career path
+const CareerPathSchema = new Schema<CareerPath>({
+  next: [{ type: Number, ref: "Role" }],
+  previous: [{ type: Number, ref: "Role" }]
+});
+
+// Schema for Roles
+const RoleSchema = new Schema<RoleDocument>(
   {
-    title: { type: String, required: true, unique: true },
-    category: { type: String, required: true },
+    id: { type: Number, required: true, unique: true },
+    title: { type: String, required: true, trim: true },
     description: { type: String, required: true },
-    averageSalary: { type: Number, required: true, default: 0 },
-    entryLevelSalary: { type: Number, required: true, default: 0 },
-    seniorLevelSalary: { type: Number, required: true, default: 0 },
-    education: { type: String, required: true },
-    experience: { type: String, required: true },
-    popularity: { type: Number, required: true, default: 0 },
+    category: { type: String, required: true },
+    averageSalary: { type: String, required: true },
+    educationRequirements: [{ type: String }],
+    experienceRequirements: [{ type: String }],
+    skillRequirements: [SkillRequirementSchema],
+    careerPath: { type: CareerPathSchema, required: true },
+    demandOutlook: { type: String, required: true }
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create the Role model
-const RoleModel = mongoose.models.Role || mongoose.model<RoleDocument>('Role', roleSchema);
-
-export default RoleModel;
+// Ensure the model is only registered once
+export default mongoose.models.Role || mongoose.model<RoleDocument>("Role", RoleSchema);

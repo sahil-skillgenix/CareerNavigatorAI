@@ -1,26 +1,22 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { UserBadge } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define User Badge document interface extending Document
+// Interface for UserBadge document
 export interface UserBadgeDocument extends Document {
-  userId: mongoose.Types.ObjectId | string;
+  id: string;
+  userId: string;
   name: string;
   description: string;
   category: string;
   level: number;
-  icon?: string;
+  icon: string;
   earnedAt: Date;
 }
 
-// Define User Badge schema
-const userBadgeSchema = new Schema<UserBadgeDocument>(
+// Schema for UserBadge
+const UserBadgeSchema = new Schema<UserBadgeDocument>(
   {
-    userId: { 
-      type: Schema.Types.ObjectId, 
-      ref: 'User', 
-      required: true,
-      index: true 
-    },
+    id: { type: String, required: true, unique: true },
+    userId: { type: String, required: true, ref: "User" },
     name: { type: String, required: true },
     description: { type: String, required: true },
     category: { type: String, required: true },
@@ -29,12 +25,16 @@ const userBadgeSchema = new Schema<UserBadgeDocument>(
     earnedAt: { type: Date, default: Date.now }
   },
   { 
-    versionKey: false 
+    timestamps: false,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create the User Badge model
-const UserBadgeModel = mongoose.models.UserBadge || 
-  mongoose.model<UserBadgeDocument>('UserBadge', userBadgeSchema);
-
-export default UserBadgeModel;
+// Ensure the model is only registered once
+export default mongoose.models.UserBadge || mongoose.model<UserBadgeDocument>("UserBadge", UserBadgeSchema);

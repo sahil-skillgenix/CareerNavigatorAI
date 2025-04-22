@@ -1,56 +1,47 @@
-// Export all MongoDB models from this file
-import UserModel from './user';
-import type { UserDocument } from './user';
-import IndustryModel from './industry';
-import type { IndustryDocument } from './industry';
-import SkillModel from './skill';
-import type { SkillDocument } from './skill';
-import RoleModel from './role';
-import type { RoleDocument } from './role';
-import RoleSkillModel from './roleSkill';
-import type { RoleSkillDocument } from './roleSkill';
-import RoleIndustryModel from './roleIndustry';
-import type { RoleIndustryDocument } from './roleIndustry';
-import SkillIndustryModel from './skillIndustry';
-import type { SkillIndustryDocument } from './skillIndustry';
-import SkillPrerequisiteModel from './skillPrerequisite';
-import type { SkillPrerequisiteDocument } from './skillPrerequisite';
-import LearningResourceModel from './learningResource';
-import type { LearningResourceDocument } from './learningResource';
-import CareerPathwayModel from './careerPathway';
-import type { CareerPathwayDocument } from './careerPathway';
-import CareerAnalysisModel from './careerAnalysis';
-import type { CareerAnalysisDocument } from './careerAnalysis';
-import UserBadgeModel from './userBadge';
-import type { UserBadgeDocument } from './userBadge';
-import UserProgressModel from './userProgress';
-import type { UserProgressDocument } from './userProgress';
+// Import and export all models
+import SkillModel from "./skill";
+import RoleModel from "./role";
+import IndustryModel from "./industry";
+import RoleSkillModel from "./roleSkill";
+import RoleIndustryModel from "./roleIndustry";
+import SkillIndustryModel from "./skillIndustry";
+import SkillPrerequisiteModel from "./skillPrerequisite";
+import LearningResourceModel from "./learningResource";
+import CareerPathwayModel from "./careerPathway";
+import UserModel from "./user";
+import CareerAnalysisModel from "./careerAnalysis";
+import UserBadgeModel from "./userBadge";
+import UserProgressModel from "./userProgress";
 
-export {
-  UserModel,
-  IndustryModel,
+// Export document types
+export type { 
+  SkillDocument } from "./skill";
+export type { RoleDocument } from "./role";
+export type { IndustryDocument } from "./industry";
+export type { RoleSkillDocument } from "./roleSkill";
+export type { RoleIndustryDocument } from "./roleIndustry";
+export type { SkillIndustryDocument } from "./skillIndustry";
+export type { SkillPrerequisiteDocument } from "./skillPrerequisite";
+export type { LearningResourceDocument } from "./learningResource";
+export type { CareerPathwayDocument } from "./careerPathway";
+export type { UserDocument } from "./user";
+export type { CareerAnalysisDocument } from "./careerAnalysis";
+export type { UserBadgeDocument } from "./userBadge";
+export type { UserProgressDocument } from "./userProgress";
+
+// Re-export models for easy imports elsewhere
+export { 
   SkillModel,
   RoleModel,
+  IndustryModel,
   RoleSkillModel,
   RoleIndustryModel,
   SkillIndustryModel,
   SkillPrerequisiteModel,
   LearningResourceModel,
   CareerPathwayModel,
+  UserModel,
   CareerAnalysisModel,
   UserBadgeModel,
-  UserProgressModel,
-  UserDocument,
-  IndustryDocument,
-  SkillDocument,
-  RoleDocument,
-  RoleSkillDocument,
-  RoleIndustryDocument,
-  SkillIndustryDocument,
-  SkillPrerequisiteDocument,
-  LearningResourceDocument,
-  CareerPathwayDocument,
-  CareerAnalysisDocument,
-  UserBadgeDocument,
-  UserProgressDocument
+  UserProgressModel
 };

@@ -1,34 +1,46 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { SkillIndustry } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define SkillIndustry document interface that extends Document
+// Interface for SkillIndustry document
 export interface SkillIndustryDocument extends Document {
-  skillId: mongoose.Types.ObjectId;
-  industryId: mongoose.Types.ObjectId;
-  importance: string;
-  trendDirection: string;
+  skillId: number;
+  industryId: number;
+  importance: string; // "critical", "important", "helpful"
+  trendDirection: string; // "increasing", "stable", "decreasing"
+  contextualApplication: string;
   createdAt: Date;
-  updatedAt: Date;
 }
 
-// Define SkillIndustry schema
-const skillIndustrySchema = new Schema<SkillIndustryDocument>(
+// Schema for SkillIndustry
+const SkillIndustrySchema = new Schema<SkillIndustryDocument>(
   {
-    skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
-    industryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Industry', required: true },
-    importance: { type: String, required: true },
-    trendDirection: { type: String, required: true },
+    skillId: { type: Number, ref: "Skill", required: true },
+    industryId: { type: Number, ref: "Industry", required: true },
+    importance: { 
+      type: String, 
+      required: true, 
+      enum: ["critical", "important", "helpful"] 
+    },
+    trendDirection: { 
+      type: String, 
+      required: true, 
+      enum: ["increasing", "stable", "decreasing"] 
+    },
+    contextualApplication: { type: String }
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create compound index for unique skill-industry pairs
-skillIndustrySchema.index({ skillId: 1, industryId: 1 }, { unique: true });
+// Compound index for uniqueness
+SkillIndustrySchema.index({ skillId: 1, industryId: 1 }, { unique: true });
 
-// Create the SkillIndustry model
-const SkillIndustryModel = mongoose.models.SkillIndustry || mongoose.model<SkillIndustryDocument>('SkillIndustry', skillIndustrySchema);
-
-export default SkillIndustryModel;
+// Ensure the model is only registered once
+export default mongoose.models.SkillIndustry || mongoose.model<SkillIndustryDocument>("SkillIndustry", SkillIndustrySchema);

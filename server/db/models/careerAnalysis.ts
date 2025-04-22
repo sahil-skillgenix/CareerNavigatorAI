@@ -1,32 +1,52 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { CareerAnalysis } from '@shared/schema';
+import mongoose, { Schema, Document } from "mongoose";
 
-// Define Career Analysis document interface extending Document
+// Interface for Career Analysis result
+interface CareerAnalysisResult {
+  executiveSummary: string;
+  skillMapping: any;
+  skillGapAnalysis: any;
+  careerPathway: any;
+  developmentPlan: any;
+  similarRoles: any[];
+  socialSkillsDevelopment: any;
+  qualityReview: string;
+}
+
+// Interface for Career Analysis document
 export interface CareerAnalysisDocument extends Document {
-  userId: mongoose.Types.ObjectId | string;
+  id: string;
+  userId: string;
   professionalLevel: string;
   currentSkills: string;
   educationalBackground: string;
   careerHistory: string;
   desiredRole: string;
-  state?: string;
-  country?: string;
-  result: any; // Stores the complete analysis JSON
+  state: string;
+  country: string;
+  result: CareerAnalysisResult;
   progress: number;
   badges: string[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Define Career Analysis schema
-const careerAnalysisSchema = new Schema<CareerAnalysisDocument>(
+// Schema for Career Analysis result
+const CareerAnalysisResultSchema = new Schema({
+  executiveSummary: { type: String },
+  skillMapping: { type: Schema.Types.Mixed },
+  skillGapAnalysis: { type: Schema.Types.Mixed },
+  careerPathway: { type: Schema.Types.Mixed },
+  developmentPlan: { type: Schema.Types.Mixed },
+  similarRoles: [{ type: Schema.Types.Mixed }],
+  socialSkillsDevelopment: { type: Schema.Types.Mixed },
+  qualityReview: { type: String }
+});
+
+// Schema for Career Analysis
+const CareerAnalysisSchema = new Schema<CareerAnalysisDocument>(
   {
-    userId: { 
-      type: Schema.Types.ObjectId, 
-      ref: 'User', 
-      required: true,
-      index: true 
-    },
+    id: { type: String, required: true, unique: true },
+    userId: { type: String, required: true, ref: "User" },
     professionalLevel: { type: String, required: true },
     currentSkills: { type: String, required: true },
     educationalBackground: { type: String, required: true },
@@ -34,18 +54,21 @@ const careerAnalysisSchema = new Schema<CareerAnalysisDocument>(
     desiredRole: { type: String, required: true },
     state: { type: String },
     country: { type: String },
-    result: { type: Schema.Types.Mixed, required: true },
+    result: { type: CareerAnalysisResultSchema },
     progress: { type: Number, default: 0 },
-    badges: [{ type: String }],
+    badges: [{ type: String }]
   },
   { 
-    timestamps: true, 
-    versionKey: false 
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 
-// Create the Career Analysis model
-const CareerAnalysisModel = mongoose.models.CareerAnalysis || 
-  mongoose.model<CareerAnalysisDocument>('CareerAnalysis', careerAnalysisSchema);
-
-export default CareerAnalysisModel;
+// Ensure the model is only registered once
+export default mongoose.models.CareerAnalysis || mongoose.model<CareerAnalysisDocument>("CareerAnalysis", CareerAnalysisSchema);
