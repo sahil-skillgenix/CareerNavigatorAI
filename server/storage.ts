@@ -25,24 +25,24 @@ import { promisify } from "util";
 
 export interface IStorage {
   // User management
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string | number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
   
   // Career analysis management
   saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysisWithStringDates>;
-  getCareerAnalysisById(id: number): Promise<CareerAnalysisWithStringDates | undefined>;
-  getUserCareerAnalyses(userId: number): Promise<CareerAnalysisWithStringDates[]>;
-  updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysisWithStringDates>;
+  getCareerAnalysisById(id: string | number): Promise<CareerAnalysisWithStringDates | undefined>;
+  getUserCareerAnalyses(userId: string | number): Promise<CareerAnalysisWithStringDates[]>;
+  updateCareerAnalysisProgress(id: string | number, progress: number): Promise<CareerAnalysisWithStringDates>;
   
   // Badge management
-  getUserBadges(userId: number): Promise<UserBadgeWithStringDates[]>;
+  getUserBadges(userId: string | number): Promise<UserBadgeWithStringDates[]>;
   createUserBadge(badge: InsertUserBadge): Promise<UserBadgeWithStringDates>;
   
   // Progress tracking
-  getUserProgress(userId: number): Promise<UserProgressWithStringDates[]>;
-  getProgressItemById(id: number): Promise<UserProgressWithStringDates | undefined>;
-  updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgressWithStringDates>;
+  getUserProgress(userId: string | number): Promise<UserProgressWithStringDates[]>;
+  getProgressItemById(id: string | number): Promise<UserProgressWithStringDates | undefined>;
+  updateUserProgress(id: string | number, progress: number, notes?: string): Promise<UserProgressWithStringDates>;
   createUserProgress(progressItem: InsertUserProgress): Promise<UserProgressWithStringDates>;
   
   // Session management
@@ -103,7 +103,10 @@ export class MemStorage implements IStorage {
   }
 
   // User Management
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string | number): Promise<User | undefined> {
+    if (typeof id === 'string') {
+      id = parseInt(id);
+    }
     return this.users.get(id);
   }
 
@@ -140,18 +143,31 @@ export class MemStorage implements IStorage {
     return newAnalysis;
   }
   
-  async getCareerAnalysisById(id: number): Promise<CareerAnalysisWithStringDates | undefined> {
+  async getCareerAnalysisById(id: string | number): Promise<CareerAnalysisWithStringDates | undefined> {
+    if (typeof id === 'string') {
+      id = parseInt(id);
+    }
     const analysis = this.careerAnalyses.get(id);
     return analysis as unknown as CareerAnalysisWithStringDates;
   }
   
-  async getUserCareerAnalyses(userId: number): Promise<CareerAnalysisWithStringDates[]> {
+  async getUserCareerAnalyses(userId: string | number): Promise<CareerAnalysisWithStringDates[]> {
+    if (typeof userId === 'string') {
+      userId = parseInt(userId);
+    }
     return Array.from(this.careerAnalyses.values())
       .filter(analysis => analysis.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as unknown as CareerAnalysisWithStringDates[]; // Most recent first
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      }) as unknown as CareerAnalysisWithStringDates[]; // Most recent first
   }
   
-  async updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysisWithStringDates> {
+  async updateCareerAnalysisProgress(id: string | number, progress: number): Promise<CareerAnalysisWithStringDates> {
+    if (typeof id === 'string') {
+      id = parseInt(id);
+    }
     const analysis = this.careerAnalyses.get(id);
     
     if (!analysis) {
@@ -169,10 +185,17 @@ export class MemStorage implements IStorage {
   }
   
   // Badge Management
-  async getUserBadges(userId: number): Promise<UserBadgeWithStringDates[]> {
+  async getUserBadges(userId: string | number): Promise<UserBadgeWithStringDates[]> {
+    if (typeof userId === 'string') {
+      userId = parseInt(userId);
+    }
     return Array.from(this.userBadges.values())
       .filter(badge => badge.userId === userId)
-      .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime()) as unknown as UserBadgeWithStringDates[]; // Most recent first
+      .sort((a, b) => {
+        const dateA = a.earnedAt ? new Date(a.earnedAt).getTime() : 0;
+        const dateB = b.earnedAt ? new Date(b.earnedAt).getTime() : 0;
+        return dateB - dateA;
+      }) as unknown as UserBadgeWithStringDates[]; // Most recent first
   }
   
   async createUserBadge(badge: InsertUserBadge): Promise<UserBadgeWithStringDates> {
@@ -189,18 +212,31 @@ export class MemStorage implements IStorage {
   }
   
   // Progress Tracking
-  async getUserProgress(userId: number): Promise<UserProgressWithStringDates[]> {
+  async getUserProgress(userId: string | number): Promise<UserProgressWithStringDates[]> {
+    if (typeof userId === 'string') {
+      userId = parseInt(userId);
+    }
     return Array.from(this.userProgress.values())
       .filter(progress => progress.userId === userId)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()) as unknown as UserProgressWithStringDates[]; // Most recent first
+      .sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA;
+      }) as unknown as UserProgressWithStringDates[]; // Most recent first
   }
   
-  async getProgressItemById(id: number): Promise<UserProgressWithStringDates | undefined> {
+  async getProgressItemById(id: string | number): Promise<UserProgressWithStringDates | undefined> {
+    if (typeof id === 'string') {
+      id = parseInt(id);
+    }
     const item = this.userProgress.get(id);
     return item as unknown as UserProgressWithStringDates;
   }
   
-  async updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgressWithStringDates> {
+  async updateUserProgress(id: string | number, progress: number, notes?: string): Promise<UserProgressWithStringDates> {
+    if (typeof id === 'string') {
+      id = parseInt(id);
+    }
     const progressItem = this.userProgress.get(id);
     
     if (!progressItem) {

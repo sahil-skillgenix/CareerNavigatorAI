@@ -1,23 +1,20 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { log } from "../vite";
 
 // Load environment variables to ensure MONGODB_URI is available
 dotenv.config();
 
-// MongoDB connection URL - use Atlas URI for both dev and prod
-const MONGODB_URI = process.env.MONGODB_URI;
+// Try the standard MongoDB URI, DATABASE_URL, or fall back to a local MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/skillgenix';
 
-// Log connection URI (without password)
-console.log(`MongoDB connection URI: ${MONGODB_URI?.replace(/\/\/([^:]+):[^@]+@/, '//$1:****@')}`);
-
-// Check if MongoDB URI is available
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI environment variable is not defined!');
-  // Don't default to localhost as it likely doesn't exist in the container
-}
+// Log connection URI (without password) for debugging
+log(`MongoDB connection URI: ${MONGODB_URI?.replace(/\/\/([^:]+):[^@]+@/, '//$1:****@')}`, "mongodb");
 
 // Global variable to track connection status
 let isConnected = false;
+let connectionAttempts = 0;
+const MAX_RETRIES = 3;
 
 export async function connectToDatabase() {
   if (isConnected) {
@@ -25,60 +22,71 @@ export async function connectToDatabase() {
     return;
   }
 
+  if (connectionAttempts >= MAX_RETRIES) {
+    log("Maximum MongoDB connection attempts reached. Using memory storage instead.", "mongodb");
+    return;
+  }
+  
+  connectionAttempts++;
+
   try {
-    // Ensure MONGODB_URI is available
-    if (!MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not defined!');
-    }
+    // Configure MongoDB connection options
+    mongoose.set('strictQuery', false);
     
-    // Set a connection timeout
-    const connectPromise = mongoose.connect(MONGODB_URI, {
-      // Set a shorter serverSelectionTimeoutMS to avoid hanging
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
+    // Set more robust connection options
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     });
-    
-    // Add a timeout for the connection attempt
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('MongoDB connection timeout - taking too long to connect'));
-      }, 5000);
-    });
-    
-    // Race the connection against the timeout
-    const db = await Promise.race([connectPromise, timeoutPromise]) as mongoose.Mongoose;
     
     isConnected = true;
+    connectionAttempts = 0; // Reset counter on successful connection
     
-    console.log('MongoDB connected successfully');
+    log('MongoDB connected successfully', "mongodb");
     
     // Log information about the connection
-    const databaseName = db.connection.name;
-    console.log(`Connected to database: ${databaseName}`);
+    const databaseName = mongoose.connection.name;
+    log(`Connected to database: ${databaseName}`, "mongodb");
     
     // Set up global connection error handler
     mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
+      log(`MongoDB connection error: ${err}`, "mongodb");
       isConnected = false;
     });
     
     // Handle graceful disconnection
     mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
+      log('MongoDB disconnected', "mongodb");
       isConnected = false;
+    });
+    
+    // Reconnect on disconnection
+    mongoose.connection.on('disconnected', async () => {
+      if (connectionAttempts < MAX_RETRIES) {
+        log('Attempting to reconnect to MongoDB...', "mongodb");
+        setTimeout(() => connectToDatabase(), 5000); // Wait 5 seconds before reconnecting
+      }
     });
     
     // Handle process termination
     process.on('SIGINT', async () => {
       await mongoose.connection.close();
-      console.log('MongoDB connection closed due to app termination');
+      log('MongoDB connection closed due to app termination', "mongodb");
       process.exit(0);
     });
     
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
+    log(`Error connecting to MongoDB: ${error}`, "mongodb");
     isConnected = false;
-    throw error;
+    
+    // Try to reconnect after delay if we haven't exceeded max retries
+    if (connectionAttempts < MAX_RETRIES) {
+      log(`Retrying connection (attempt ${connectionAttempts}/${MAX_RETRIES})...`, "mongodb");
+      setTimeout(() => connectToDatabase(), 3000); // Wait 3 seconds before retry
+    } else {
+      log("Failed to connect to MongoDB after multiple attempts. Using memory storage.", "mongodb");
+    }
   }
 }
 
