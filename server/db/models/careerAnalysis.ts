@@ -14,7 +14,6 @@ interface CareerAnalysisResult {
 
 // Interface for Career Analysis document
 export interface CareerAnalysisDocument extends Document {
-  id: string;
   userId: string;
   professionalLevel: string;
   currentSkills: string;

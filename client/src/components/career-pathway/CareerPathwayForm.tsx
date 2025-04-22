@@ -2723,6 +2723,10 @@ function CareerAnalysisResults({
                   try {
                     // Save analysis to dashboard through API
                     console.log("Attempting to save career analysis to dashboard...");
+                    // Create a simplified version of the form input
+                    const formValues = form.getValues();
+                    console.log("Form values for saving:", formValues);
+                    
                     // We're saving the current analysis by re-submitting the original form data
                     const response = await fetch('/api/career-analysis', {
                       method: 'POST',
@@ -2730,13 +2734,13 @@ function CareerAnalysisResults({
                         'Content-Type': 'application/json',
                       },
                       body: JSON.stringify({
-                        professionalLevel: data.professionalLevel,
-                        currentSkills: data.currentSkills,
-                        educationalBackground: data.educationalBackground,
-                        careerHistory: data.careerHistory,
-                        desiredRole: data.desiredRole,
-                        state: data.state,
-                        country: data.country
+                        professionalLevel: formValues.professionalLevel,
+                        currentSkills: formValues.currentSkills,
+                        educationalBackground: formValues.educationalBackground,
+                        careerHistory: formValues.careerHistory,
+                        desiredRole: formValues.desiredRole,
+                        state: formValues.state,
+                        country: formValues.country
                       }),
                     });
                     

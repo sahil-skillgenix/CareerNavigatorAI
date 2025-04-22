@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // Interface for UserBadge document
 export interface UserBadgeDocument extends Document {
-  id: string;
   userId: string;
   name: string;
   description: string;
@@ -15,7 +14,6 @@ export interface UserBadgeDocument extends Document {
 // Schema for UserBadge
 const UserBadgeSchema = new Schema<UserBadgeDocument>(
   {
-    id: { type: String, required: true, unique: true },
     userId: { type: String, required: true, ref: "User" },
     name: { type: String, required: true },
     description: { type: String, required: true },
@@ -27,7 +25,9 @@ const UserBadgeSchema = new Schema<UserBadgeDocument>(
   { 
     timestamps: false,
     toJSON: {
+      virtuals: true,
       transform: (doc, ret) => {
+        ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
         return ret;
