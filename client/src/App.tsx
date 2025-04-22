@@ -32,7 +32,7 @@ function Router() {
       
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={NewDashboardPage} />
-      <ProtectedRoute path="/old-dashboard" component={DashboardPage} />
+      <ProtectedRoute path="/my-details" component={DashboardPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />

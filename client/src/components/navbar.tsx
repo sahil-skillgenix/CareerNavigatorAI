@@ -66,10 +66,15 @@ export default function Navbar() {
                     Search
                   </Button>
                 </Link>
-                <Link href="/my-details">
+                <Link href="/dashboard">
                   <Button variant="outline" size="sm" className="hidden md:inline-flex">
                     <User className="mr-2 h-4 w-4" />
                     Dashboard
+                  </Button>
+                </Link>
+                <Link href="/my-details">
+                  <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                    My Details
                   </Button>
                 </Link>
                 <Link href="/learning-resources">
@@ -141,10 +146,15 @@ export default function Navbar() {
                           Search
                         </Button>
                       </Link>
-                      <Link href="/my-details" className="w-full">
+                      <Link href="/dashboard" className="w-full">
                         <Button className="w-full justify-start" variant="outline">
                           <User className="mr-2 h-4 w-4" />
                           Dashboard
+                        </Button>
+                      </Link>
+                      <Link href="/my-details" className="w-full">
+                        <Button className="w-full justify-start" variant="ghost">
+                          My Details
                         </Button>
                       </Link>
                       <Link href="/learning-resources" className="w-full">
