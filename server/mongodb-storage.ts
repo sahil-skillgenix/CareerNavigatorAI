@@ -169,7 +169,7 @@ export class MongoDBStorage implements IStorage {
       
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
+        userId: doc.userId.toString(),
         professionalLevel: doc.professionalLevel,
         currentSkills: doc.currentSkills,
         educationalBackground: doc.educationalBackground,
@@ -189,7 +189,7 @@ export class MongoDBStorage implements IStorage {
     }
   }
   
-  async getCareerAnalysisById(id: number): Promise<CareerAnalysis | undefined> {
+  async getCareerAnalysisById(id: string | number): Promise<CareerAnalysis | undefined> {
     try {
       const analysis = await CareerAnalysisModel.findById(id).lean();
       if (!analysis) return undefined;
@@ -197,7 +197,7 @@ export class MongoDBStorage implements IStorage {
       const doc = analysis as any;
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
+        userId: doc.userId.toString(),
         professionalLevel: doc.professionalLevel,
         currentSkills: doc.currentSkills,
         educationalBackground: doc.educationalBackground,
@@ -217,7 +217,7 @@ export class MongoDBStorage implements IStorage {
     }
   }
   
-  async getUserCareerAnalyses(userId: number): Promise<CareerAnalysis[]> {
+  async getUserCareerAnalyses(userId: string | number): Promise<CareerAnalysis[]> {
     try {
       const analyses = await CareerAnalysisModel.find({ userId })
         .sort({ createdAt: -1 }) // Most recent first
@@ -225,7 +225,7 @@ export class MongoDBStorage implements IStorage {
       
       return analyses.map((doc: any) => ({
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
+        userId: doc.userId.toString(),
         professionalLevel: doc.professionalLevel,
         currentSkills: doc.currentSkills,
         educationalBackground: doc.educationalBackground,
@@ -245,7 +245,7 @@ export class MongoDBStorage implements IStorage {
     }
   }
   
-  async updateCareerAnalysisProgress(id: number, progress: number): Promise<CareerAnalysis> {
+  async updateCareerAnalysisProgress(id: string | number, progress: number): Promise<CareerAnalysis> {
     try {
       const updatedAnalysis = await CareerAnalysisModel.findByIdAndUpdate(
         id,
@@ -265,7 +265,7 @@ export class MongoDBStorage implements IStorage {
       const doc = updatedAnalysis as any;
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
+        userId: doc.userId.toString(),
         professionalLevel: doc.professionalLevel,
         currentSkills: doc.currentSkills,
         educationalBackground: doc.educationalBackground,
@@ -287,7 +287,7 @@ export class MongoDBStorage implements IStorage {
   
   // Badge Management
   
-  async getUserBadges(userId: number): Promise<UserBadge[]> {
+  async getUserBadges(userId: string | number): Promise<UserBadge[]> {
     try {
       const badges = await UserBadgeModel.find({ userId })
         .sort({ earnedAt: -1 }) // Most recent first
@@ -295,7 +295,7 @@ export class MongoDBStorage implements IStorage {
       
       return badges.map((doc: any) => ({
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
+        userId: doc.userId.toString(),
         name: doc.name,
         description: doc.description,
         category: doc.category,
@@ -325,7 +325,7 @@ export class MongoDBStorage implements IStorage {
       
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
+        userId: doc.userId.toString(),
         name: doc.name,
         description: doc.description,
         category: doc.category,
@@ -341,7 +341,7 @@ export class MongoDBStorage implements IStorage {
   
   // Progress Tracking
   
-  async getUserProgress(userId: number): Promise<UserProgress[]> {
+  async getUserProgress(userId: string | number): Promise<UserProgress[]> {
     try {
       const progressItems = await UserProgressModel.find({ userId })
         .sort({ updatedAt: -1 }) // Most recent first
@@ -349,9 +349,9 @@ export class MongoDBStorage implements IStorage {
       
       return progressItems.map((doc: any) => ({
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
-        analysisId: doc.analysisId ? parseInt(doc.analysisId.toString()) : undefined,
-        skillId: doc.skillId ? parseInt(doc.skillId.toString()) : undefined,
+        userId: doc.userId.toString(),
+        analysisId: doc.analysisId ? doc.analysisId.toString() : null,
+        skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
@@ -364,7 +364,7 @@ export class MongoDBStorage implements IStorage {
     }
   }
   
-  async getProgressItemById(id: number): Promise<UserProgress | undefined> {
+  async getProgressItemById(id: string | number): Promise<UserProgress | undefined> {
     try {
       const progressItem = await UserProgressModel.findById(id).lean();
       if (!progressItem) return undefined;
@@ -372,9 +372,9 @@ export class MongoDBStorage implements IStorage {
       const doc = progressItem as any;
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
-        analysisId: doc.analysisId ? parseInt(doc.analysisId.toString()) : undefined,
-        skillId: doc.skillId ? parseInt(doc.skillId.toString()) : undefined,
+        userId: doc.userId.toString(),
+        analysisId: doc.analysisId ? doc.analysisId.toString() : null,
+        skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
@@ -387,7 +387,7 @@ export class MongoDBStorage implements IStorage {
     }
   }
   
-  async updateUserProgress(id: number, progress: number, notes?: string): Promise<UserProgress> {
+  async updateUserProgress(id: string | number, progress: number, notes?: string): Promise<UserProgress> {
     try {
       const updateData: any = { 
         progress,
@@ -411,9 +411,9 @@ export class MongoDBStorage implements IStorage {
       const doc = updatedProgress as any;
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
-        analysisId: doc.analysisId ? parseInt(doc.analysisId.toString()) : undefined,
-        skillId: doc.skillId ? parseInt(doc.skillId.toString()) : undefined,
+        userId: doc.userId.toString(),
+        analysisId: doc.analysisId ? doc.analysisId.toString() : null,
+        skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
@@ -443,9 +443,9 @@ export class MongoDBStorage implements IStorage {
       
       return {
         id: doc._id.toString(),
-        userId: parseInt(doc.userId.toString()),
-        analysisId: doc.analysisId ? parseInt(doc.analysisId.toString()) : undefined,
-        skillId: doc.skillId ? parseInt(doc.skillId.toString()) : undefined,
+        userId: doc.userId.toString(),
+        analysisId: doc.analysisId ? doc.analysisId.toString() : null,
+        skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
