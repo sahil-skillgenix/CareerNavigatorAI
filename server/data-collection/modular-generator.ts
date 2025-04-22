@@ -1,7 +1,7 @@
 /**
- * Efficient career data generator with batching and caching
- * This optimized version reduces API calls and improves performance
- * Run with: npx tsx server/data-collection/efficient-generator.ts
+ * Modular career data generator
+ * This version allows generating each type of data independently
+ * Run with: npx tsx server/data-collection/modular-generator.ts [skills|roles|industries|relationships|all]
  */
 
 import dotenv from 'dotenv';
@@ -74,7 +74,7 @@ function writeCache(cachePath: string, data: any[]): void {
   }
 }
 
-// Function to generate skill data using OpenAI with batching
+// Function to generate skill data using OpenAI
 async function generateSkillBatch(categories: string[], countPerCategory: number = 1) {
   console.log(`Generating ${countPerCategory} skills for ${categories.length} categories in a batch`);
   
@@ -147,7 +147,7 @@ Ensure all data is professionally written, realistic, and accurate. The returned
   }
 }
 
-// Function to generate role data using OpenAI with batching
+// Function to generate role data using OpenAI
 async function generateRoleBatch(categories: string[], countPerCategory: number = 1) {
   console.log(`Generating ${countPerCategory} roles for ${categories.length} categories in a batch`);
   
@@ -197,7 +197,7 @@ Ensure all data is professionally written, realistic, and accurate. The returned
   }
 }
 
-// Function to generate industry data using OpenAI with batching
+// Function to generate industry data using OpenAI
 async function generateIndustryBatch(categories: string[], countPerCategory: number = 1) {
   console.log(`Generating ${countPerCategory} industries for ${categories.length} categories in a batch`);
   
@@ -258,25 +258,20 @@ function getRandomElement<T>(array: readonly T[] | T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-// Main function to efficiently generate career data
-export async function generateEfficientCareerData() {
+// Function to generate skills
+export async function generateSkills() {
   try {
     // Connect to the database
     await connectToDatabase();
     
-    // Check if we already have data
+    // Check if we already have skills
     const skillCount = await SkillModel.countDocuments();
-    const roleCount = await RoleModel.countDocuments();
-    const industryCount = await IndustryModel.countDocuments();
-    
-    if (skillCount > 0 && roleCount > 0 && industryCount > 1) {
-      console.log('Career data already exists in database. Skipping generation.');
+    if (skillCount > 0) {
+      console.log(`Skills already exist in database (${skillCount} found). Skipping generation.`);
       return;
     }
     
-    console.log('Starting efficient career data generation...');
-    
-    // 1. GENERATE SKILLS
+    console.log('Starting skill generation...');
     
     // Check cache first
     let allSkills = readCache(SKILL_CACHE);
@@ -306,7 +301,43 @@ export async function generateEfficientCareerData() {
       console.log(`Using ${allSkills.length} skills from cache`);
     }
     
-    // 2. GENERATE ROLES
+    // Save skills to database
+    let skillId = 1;
+    for (const skillData of allSkills) {
+      try {
+        console.log(`Saving skill: ${skillData.name}`);
+        await SkillModel.findOneAndUpdate(
+          { name: skillData.name }, 
+          { ...skillData, id: skillId++ },
+          { upsert: true, new: true }
+        );
+      } catch (error) {
+        console.error(`Error saving skill ${skillData.name}:`, error);
+      }
+    }
+    
+    console.log(`Saved ${allSkills.length} skills to database`);
+    return allSkills.length;
+  } catch (error) {
+    console.error('Error generating skills:', error);
+    throw error;
+  }
+}
+
+// Function to generate roles
+export async function generateRoles() {
+  try {
+    // Connect to the database
+    await connectToDatabase();
+    
+    // Check if we already have roles
+    const roleCount = await RoleModel.countDocuments();
+    if (roleCount > 0) {
+      console.log(`Roles already exist in database (${roleCount} found). Skipping generation.`);
+      return;
+    }
+    
+    console.log('Starting role generation...');
     
     // Check cache first
     let allRoles = readCache(ROLE_CACHE);
@@ -330,7 +361,50 @@ export async function generateEfficientCareerData() {
       console.log(`Using ${allRoles.length} roles from cache`);
     }
     
-    // 3. GENERATE INDUSTRIES
+    // Save roles to database
+    let roleId = 1;
+    for (const roleData of allRoles) {
+      try {
+        console.log(`Saving role: ${roleData.title}`);
+        await RoleModel.findOneAndUpdate(
+          { title: roleData.title },
+          { 
+            ...roleData, 
+            id: roleId++,
+            careerPath: {
+              next: [],
+              previous: []
+            }
+          },
+          { upsert: true, new: true }
+        );
+      } catch (error) {
+        console.error(`Error saving role ${roleData.title}:`, error);
+      }
+    }
+    
+    console.log(`Saved ${allRoles.length} roles to database`);
+    return allRoles.length;
+  } catch (error) {
+    console.error('Error generating roles:', error);
+    throw error;
+  }
+}
+
+// Function to generate industries
+export async function generateIndustries() {
+  try {
+    // Connect to the database
+    await connectToDatabase();
+    
+    // Check if we already have industries
+    const industryCount = await IndustryModel.countDocuments();
+    if (industryCount > 1) { // Allow for test industry
+      console.log(`Industries already exist in database (${industryCount} found). Skipping generation.`);
+      return;
+    }
+    
+    console.log('Starting industry generation...');
     
     // Check cache first
     let allIndustries = readCache(INDUSTRY_CACHE);
@@ -354,47 +428,7 @@ export async function generateEfficientCareerData() {
       console.log(`Using ${allIndustries.length} industries from cache`);
     }
     
-    // 4. SAVE TO DATABASE
-    console.log('\nSaving data to MongoDB...');
-    
-    // Save skills
-    let skillId = 1;
-    for (const skillData of allSkills) {
-      try {
-        console.log(`Saving skill: ${skillData.name}`);
-        await SkillModel.findOneAndUpdate(
-          { name: skillData.name }, 
-          { ...skillData, id: skillId++ },
-          { upsert: true, new: true }
-        );
-      } catch (error) {
-        console.error(`Error saving skill ${skillData.name}:`, error);
-      }
-    }
-    
-    // Save roles
-    let roleId = 1;
-    for (const roleData of allRoles) {
-      try {
-        console.log(`Saving role: ${roleData.title}`);
-        await RoleModel.findOneAndUpdate(
-          { title: roleData.title },
-          { 
-            ...roleData, 
-            id: roleId++,
-            careerPath: {
-              next: [],
-              previous: []
-            }
-          },
-          { upsert: true, new: true }
-        );
-      } catch (error) {
-        console.error(`Error saving role ${roleData.title}:`, error);
-      }
-    }
-    
-    // Save industries
+    // Save industries to database
     let industryId = 1;
     for (const industryData of allIndustries) {
       try {
@@ -409,17 +443,44 @@ export async function generateEfficientCareerData() {
       }
     }
     
-    // Create relationships
-    console.log('\nCreating relationships between entities...');
+    console.log(`Saved ${allIndustries.length} industries to database`);
+    return allIndustries.length;
+  } catch (error) {
+    console.error('Error generating industries:', error);
+    throw error;
+  }
+}
+
+// Function to generate relationships
+export async function generateRelationships() {
+  try {
+    // Connect to the database
+    await connectToDatabase();
+    
+    // Check if we already have relationships
+    const relationshipCount = await RoleSkillModel.countDocuments();
+    if (relationshipCount > 0) {
+      console.log(`Relationships already exist in database (${relationshipCount} found). Skipping generation.`);
+      return;
+    }
+    
+    console.log('Starting relationship generation...');
     
     // Get all model IDs
     const savedSkills = await SkillModel.find({}, 'id name');
     const savedRoles = await RoleModel.find({}, 'id title');
     const savedIndustries = await IndustryModel.find({}, 'id name');
     
+    if (savedSkills.length === 0 || savedRoles.length === 0 || savedIndustries.length === 0) {
+      console.error('Cannot generate relationships: Missing skills, roles, or industries');
+      return;
+    }
+    
     const savedSkillIds = savedSkills.map(s => s.id);
     const savedRoleIds = savedRoles.map(r => r.id);
     const savedIndustryIds = savedIndustries.map(i => i.id);
+    
+    console.log(`Found ${savedSkillIds.length} skills, ${savedRoleIds.length} roles, and ${savedIndustryIds.length} industries`);
     
     // Generate role-skill relationships
     for (const roleId of savedRoleIds) {
@@ -522,12 +583,44 @@ export async function generateEfficientCareerData() {
       }
     }
     
-    // Generate learning resources for skills (simplified for testing)
-    console.log('\nGenerating learning resources for skills...');
+    console.log('Relationship generation completed successfully');
+    return true;
+  } catch (error) {
+    console.error('Error generating relationships:', error);
+    throw error;
+  }
+}
+
+// Function to generate learning resources
+export async function generateLearningResources() {
+  try {
+    // Connect to the database
+    await connectToDatabase();
+    
+    // Check if we already have learning resources
+    const existingResourceCount = await LearningResourceModel.countDocuments();
+    if (existingResourceCount > 0) {
+      console.log(`Learning resources already exist in database (${existingResourceCount} found). Skipping generation.`);
+      return;
+    }
+    
+    console.log('Starting learning resource generation...');
+    
+    // Get all skills
+    const savedSkills = await SkillModel.find({}, 'id name category');
+    
+    if (savedSkills.length === 0) {
+      console.error('Cannot generate learning resources: No skills found');
+      return;
+    }
+    
+    console.log(`Generating learning resources for ${savedSkills.length} skills...`);
     
     const resourceTypes = ["course", "book", "tutorial", "video"];
     const difficulties = ["beginner", "intermediate", "advanced"];
     const costTypes = ["free", "paid", "subscription"];
+    
+    let totalResourceCount = 0;
     
     for (const skill of savedSkills) {
       try {
@@ -566,75 +659,166 @@ export async function generateEfficientCareerData() {
             },
             { upsert: true, new: true }
           );
+          
+          totalResourceCount++;
         }
+        
         console.log(`Created ${numResources} learning resources for skill: ${skill.name}`);
       } catch (error) {
         console.error(`Error creating learning resources for skill ${skill.name}:`, error);
       }
     }
     
-    // Generate a simple career pathway
-    console.log('\nGenerating career pathways...');
+    console.log(`Learning resource generation completed: Created ${totalResourceCount} resources`);
+    return totalResourceCount;
+  } catch (error) {
+    console.error('Error generating learning resources:', error);
+    throw error;
+  }
+}
+
+// Function to generate career pathways
+export async function generateCareerPathways() {
+  try {
+    // Connect to the database
+    await connectToDatabase();
     
-    if (savedRoles.length >= 2) {
-      try {
-        const startRole = savedRoles[0];
-        const endRole = savedRoles[savedRoles.length - 1];
-        
-        const pathwayId = 'cp-1';
-        const pathwayName = `From ${startRole.title} to ${endRole.title}`;
-        
-        await CareerPathwayModel.findOneAndUpdate(
-          { id: pathwayId },
-          {
-            id: pathwayId,
-            name: pathwayName,
-            description: `A career pathway showing progression from ${startRole.title} to ${endRole.title}`,
-            startingRoleId: startRole.id,
-            targetRoleId: endRole.id,
-            estimatedTimeYears: 3,
-            steps: [
-              {
-                step: 1,
-                roleId: startRole.id,
-                timeframe: "1-2 years",
-                description: `Build foundational experience as a ${startRole.title}`,
-                requiredSkills: savedSkillIds.slice(0, 2)
-              },
-              {
-                step: 2,
-                roleId: endRole.id,
-                timeframe: "2-3 years",
-                description: `Advance to the ${endRole.title} position`,
-                requiredSkills: savedSkillIds.slice(2, 4)
-              }
-            ]
-          },
-          { upsert: true, new: true }
-        );
-        
-        console.log(`Created career pathway: ${pathwayName}`);
-      } catch (error) {
-        console.error('Error creating career pathway:', error);
-      }
+    // Check if we already have career pathways
+    const pathwayCount = await CareerPathwayModel.countDocuments();
+    if (pathwayCount > 0) {
+      console.log(`Career pathways already exist in database (${pathwayCount} found). Skipping generation.`);
+      return;
     }
     
-    console.log('\nEfficient career data generation completed successfully.');
+    console.log('Starting career pathway generation...');
+    
+    // Get all roles
+    const savedRoles = await RoleModel.find({}, 'id title');
+    
+    if (savedRoles.length < 2) {
+      console.error('Cannot generate career pathways: Need at least 2 roles');
+      return;
+    }
+    
+    // Get all skills
+    const savedSkills = await SkillModel.find({}, 'id name');
+    const savedSkillIds = savedSkills.map(s => s.id);
+    
+    console.log(`Generating career pathways using ${savedRoles.length} roles...`);
+    
+    // Generate a simple career pathway
+    try {
+      const startRole = savedRoles[0];
+      const endRole = savedRoles[savedRoles.length - 1];
+      
+      const pathwayId = 'cp-1';
+      const pathwayName = `From ${startRole.title} to ${endRole.title}`;
+      
+      await CareerPathwayModel.findOneAndUpdate(
+        { id: pathwayId },
+        {
+          id: pathwayId,
+          name: pathwayName,
+          description: `A career pathway showing progression from ${startRole.title} to ${endRole.title}`,
+          startingRoleId: startRole.id,
+          targetRoleId: endRole.id,
+          estimatedTimeYears: 3,
+          steps: [
+            {
+              step: 1,
+              roleId: startRole.id,
+              timeframe: "1-2 years",
+              description: `Build foundational experience as a ${startRole.title}`,
+              requiredSkills: savedSkillIds.slice(0, 2)
+            },
+            {
+              step: 2,
+              roleId: endRole.id,
+              timeframe: "2-3 years",
+              description: `Advance to the ${endRole.title} position`,
+              requiredSkills: savedSkillIds.slice(2, 4)
+            }
+          ]
+        },
+        { upsert: true, new: true }
+      );
+      
+      console.log(`Created career pathway: ${pathwayName}`);
+      return 1;
+    } catch (error) {
+      console.error('Error creating career pathway:', error);
+    }
   } catch (error) {
-    console.error('Error in efficient career data generation:', error);
+    console.error('Error generating career pathways:', error);
+    throw error;
+  }
+}
+
+// Main function to generate all career data
+export async function generateAllCareerData() {
+  try {
+    await connectToDatabase();
+    
+    console.log('=== STARTING MODULAR CAREER DATA GENERATION ===');
+    
+    // Generate core data
+    await generateSkills();
+    await generateRoles();
+    await generateIndustries();
+    
+    // Generate relationships and additional data
+    await generateRelationships();
+    await generateLearningResources();
+    await generateCareerPathways();
+    
+    console.log('=== MODULAR CAREER DATA GENERATION COMPLETED ===');
+  } catch (error) {
+    console.error('Error in modular career data generation:', error);
     throw error;
   }
 }
 
 // Run the generator directly if needed
+async function main() {
+  // Parse command line arguments
+  const args = process.argv.slice(2);
+  const command = args[0] || 'all';
+  
+  try {
+    switch (command) {
+      case 'skills':
+        await generateSkills();
+        break;
+      case 'roles':
+        await generateRoles();
+        break;
+      case 'industries':
+        await generateIndustries();
+        break;
+      case 'relationships':
+        await generateRelationships();
+        break;
+      case 'resources':
+        await generateLearningResources();
+        break;
+      case 'pathways':
+        await generateCareerPathways();
+        break;
+      case 'all':
+      default:
+        await generateAllCareerData();
+        break;
+    }
+    
+    console.log(`Modular data generation for '${command}' completed successfully.`);
+    process.exit(0);
+  } catch (error) {
+    console.error(`Modular data generation for '${command}' failed:`, error);
+    process.exit(1);
+  }
+}
+
+// Run the main function if this file is executed directly
 if (process.argv[1] === import.meta.url) {
-  generateEfficientCareerData()
-    .then(() => {
-      console.log('Efficient data generation complete.');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('Efficient data generation failed:', error);
-      process.exit(1);
-    });
+  main();
 }
