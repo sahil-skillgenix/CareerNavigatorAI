@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { connectToDatabase } from '../db/mongodb';
 import { 
   RoleModel,
+  SkillModel,
   CareerPathwayModel
 } from '../db/models';
 
@@ -34,11 +35,41 @@ async function generateCareerPathways() {
     const aiRole = await RoleModel.findOne({ title: "AI/ML Engineer" });
     const cloudRole = await RoleModel.findOne({ title: "Cloud Solutions Architect" });
     
+    // Look up existing skills
+    console.log('Looking up skills...');
+    const jsSkill = await SkillModel.findOne({ name: "JavaScript Programming" });
+    const reactSkill = await SkillModel.findOne({ name: "React Development" });
+    const nodeSkill = await SkillModel.findOne({ name: "Node.js Backend Development" });
+    const dbSkill = await SkillModel.findOne({ name: "Database Management" });
+    const dataAnalysisSkill = await SkillModel.findOne({ name: "Data Analysis" });
+    const sqlSkill = await SkillModel.findOne({ name: "SQL Programming" });
+    const dataVizSkill = await SkillModel.findOne({ name: "Data Visualization" });
+    const mlSkill = await SkillModel.findOne({ name: "Machine Learning" });
+    const pythonSkill = await SkillModel.findOne({ name: "Python Programming" });
+    const deepLearningSkill = await SkillModel.findOne({ name: "Deep Learning" });
+    const dockerSkill = await SkillModel.findOne({ name: "Docker Containerization" });
+    const awsSkill = await SkillModel.findOne({ name: "AWS Cloud Services" });
+    
     // Create career pathways
     console.log('Creating career pathways...');
     const pathways = [];
     
-    if (frontendRole && fullstackRole) {
+    // Log the skill IDs for debugging
+    console.log('Found skills:');
+    if (jsSkill) console.log(`JavaScript: ID ${jsSkill.id}`);
+    if (reactSkill) console.log(`React: ID ${reactSkill.id}`);
+    if (nodeSkill) console.log(`Node.js: ID ${nodeSkill.id}`);
+    if (dbSkill) console.log(`Database: ID ${dbSkill.id}`);
+    if (dataAnalysisSkill) console.log(`Data Analysis: ID ${dataAnalysisSkill.id}`);
+    if (sqlSkill) console.log(`SQL: ID ${sqlSkill.id}`);
+    if (dataVizSkill) console.log(`Data Viz: ID ${dataVizSkill.id}`);
+    if (mlSkill) console.log(`Machine Learning: ID ${mlSkill.id}`);
+    if (pythonSkill) console.log(`Python: ID ${pythonSkill.id}`);
+    if (deepLearningSkill) console.log(`Deep Learning: ID ${deepLearningSkill.id}`);
+    if (dockerSkill) console.log(`Docker: ID ${dockerSkill.id}`);
+    if (awsSkill) console.log(`AWS: ID ${awsSkill.id}`);
+
+    if (frontendRole && fullstackRole && jsSkill && reactSkill && nodeSkill && dbSkill) {
       pathways.push({
         id: 5000,
         name: "Frontend to Full Stack Developer Progression",
@@ -52,20 +83,20 @@ async function generateCareerPathways() {
             roleId: frontendRole.id,
             timeframe: "0-12 months",
             description: "Master advanced frontend concepts and begin learning backend fundamentals",
-            requiredSkills: ["JavaScript Programming", "React Development"]
+            requiredSkills: [jsSkill.id, reactSkill.id]
           },
           {
             step: 2,
             roleId: fullstackRole.id,
             timeframe: "12-24 months",
             description: "Develop backend skills and integrate with frontend knowledge",
-            requiredSkills: ["Node.js Backend Development", "Database Management"]
+            requiredSkills: [nodeSkill.id, dbSkill.id]
           }
         ]
       });
     }
     
-    if (backendRole && fullstackRole) {
+    if (backendRole && fullstackRole && jsSkill && reactSkill && nodeSkill && dbSkill) {
       pathways.push({
         id: 5001,
         name: "Backend to Full Stack Developer Progression",
@@ -79,20 +110,20 @@ async function generateCareerPathways() {
             roleId: backendRole.id,
             timeframe: "0-9 months",
             description: "Master advanced backend concepts and begin learning frontend fundamentals",
-            requiredSkills: ["Node.js Backend Development", "Database Management"]
+            requiredSkills: [nodeSkill.id, dbSkill.id]
           },
           {
             step: 2,
             roleId: fullstackRole.id,
             timeframe: "9-18 months",
             description: "Develop frontend skills and integrate with backend knowledge",
-            requiredSkills: ["JavaScript Programming", "React Development"]
+            requiredSkills: [jsSkill.id, reactSkill.id]
           }
         ]
       });
     }
     
-    if (dataAnalystRole && dataScientistRole) {
+    if (dataAnalystRole && dataScientistRole && dataAnalysisSkill && sqlSkill && dataVizSkill && mlSkill && pythonSkill) {
       pathways.push({
         id: 5002,
         name: "Data Analyst to Data Scientist Progression",
@@ -106,20 +137,20 @@ async function generateCareerPathways() {
             roleId: dataAnalystRole.id,
             timeframe: "0-15 months",
             description: "Master data analysis techniques and learn advanced statistics",
-            requiredSkills: ["Data Analysis", "SQL Programming", "Data Visualization"]
+            requiredSkills: [dataAnalysisSkill.id, sqlSkill.id, dataVizSkill.id]
           },
           {
             step: 2,
             roleId: dataScientistRole.id,
             timeframe: "15-30 months",
             description: "Develop machine learning skills and apply to complex problems",
-            requiredSkills: ["Machine Learning", "Python Programming"]
+            requiredSkills: [mlSkill.id, pythonSkill.id]
           }
         ]
       });
     }
     
-    if (pythonRole && aiRole) {
+    if (pythonRole && aiRole && pythonSkill && dataAnalysisSkill && deepLearningSkill && mlSkill) {
       pathways.push({
         id: 5003,
         name: "Python Developer to AI Engineer Progression",
@@ -133,20 +164,20 @@ async function generateCareerPathways() {
             roleId: pythonRole.id,
             timeframe: "0-12 months",
             description: "Master Python development and begin learning AI/ML fundamentals",
-            requiredSkills: ["Python Programming", "Data Analysis"]
+            requiredSkills: [pythonSkill.id, dataAnalysisSkill.id]
           },
           {
             step: 2,
             roleId: aiRole.id,
             timeframe: "12-24 months",
             description: "Develop deep learning skills and apply to complex problems",
-            requiredSkills: ["Deep Learning", "Machine Learning"]
+            requiredSkills: [deepLearningSkill.id, mlSkill.id]
           }
         ]
       });
     }
     
-    if (devopsRole && cloudRole) {
+    if (devopsRole && cloudRole && dockerSkill && awsSkill) {
       pathways.push({
         id: 5004,
         name: "DevOps to Cloud Architect Progression",
@@ -160,14 +191,14 @@ async function generateCareerPathways() {
             roleId: devopsRole.id,
             timeframe: "0-12 months",
             description: "Master DevOps practices and begin learning cloud architecture principles",
-            requiredSkills: ["Docker Containerization", "AWS Cloud Services"]
+            requiredSkills: [dockerSkill.id, awsSkill.id]
           },
           {
             step: 2,
             roleId: cloudRole.id,
             timeframe: "12-24 months",
             description: "Develop advanced cloud architecture skills and solutions design expertise",
-            requiredSkills: ["AWS Cloud Services", "Cloud Architecture"]
+            requiredSkills: [awsSkill.id]
           }
         ]
       });
