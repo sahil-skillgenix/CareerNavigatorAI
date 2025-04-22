@@ -240,7 +240,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       // Save the analysis result to the database
       try {
         // Create a new entry in the careerAnalyses table
-        await storageInstance.saveCareerAnalysis({
+        const savedAnalysis = await storageInstance.saveCareerAnalysis({
           userId: req.user!.id,
           professionalLevel,
           currentSkills,
@@ -255,6 +255,47 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         });
         
         console.log(`Career analysis saved for user ${req.user!.id}`);
+        
+        // Check if this is the user's first career analysis
+        const userAnalyses = await storageInstance.getUserCareerAnalyses(req.user!.id);
+        if (userAnalyses.length === 1) { // If we just saved the first analysis
+          // Create a skill journey progress item for the user
+          try {
+            // Create a badge for the first analysis
+            await storageInstance.createUserBadge({
+              userId: req.user!.id,
+              name: "Career Explorer",
+              description: "Completed your first career analysis",
+              category: "achievement",
+              level: 1,
+              icon: "zap"
+            });
+            
+            // Create a progress tracking item for the career pathway
+            await storageInstance.createUserProgress({
+              userId: req.user!.id,
+              type: "career_pathway",
+              title: `Career Pathway: ${desiredRole}`,
+              description: "Track your progress towards your desired career role",
+              relatedItemId: savedAnalysis.id,
+              progress: 0,
+              milestones: [
+                "Complete career analysis",
+                "Review skill gap analysis",
+                "Start learning recommended skills",
+                "Complete at least one course",
+                "Apply new skills in a project",
+                "Update your resume with new skills",
+                "Start networking in your target field"
+              ]
+            });
+            
+            console.log(`Created first analysis badge and progress tracker for user ${req.user!.id}`);
+          } catch (error) {
+            console.error('Error creating badges or progress:', error);
+            // Continue even if badge/progress creation fails
+          }
+        }
       } catch (saveError) {
         console.error('Error saving career analysis:', saveError);
         // Continue even if saving fails - don't block the user from seeing their results
