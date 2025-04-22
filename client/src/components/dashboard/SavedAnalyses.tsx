@@ -46,7 +46,7 @@ export function SavedAnalyses() {
   };
 
   const viewFullAnalysis = (id: string) => {
-    window.location.href = `/career-analysis/${id}`;
+    window.open(`/career-analysis/${id}`, '_blank');
   };
 
   // Helper function to format date
