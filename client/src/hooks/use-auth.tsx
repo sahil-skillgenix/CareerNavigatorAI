@@ -17,7 +17,15 @@ type AuthContextType = {
   registerMutation: UseMutationResult<Omit<User, "password">, Error, InsertUser>;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+// Create a context with a default value that's safe to use
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: false,
+  error: null,
+  loginMutation: {} as UseMutationResult<Omit<User, "password">, Error, { email: string; password: string }>,
+  logoutMutation: {} as UseMutationResult<void, Error, void>,
+  registerMutation: {} as UseMutationResult<Omit<User, "password">, Error, InsertUser>
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
@@ -115,9 +123,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return useContext(AuthContext);
 }

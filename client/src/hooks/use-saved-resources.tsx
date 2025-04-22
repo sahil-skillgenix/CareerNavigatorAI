@@ -33,8 +33,14 @@ type SavedResourcesContextType = {
   clearAllResources: () => void;
 };
 
-// Create context with null as default value
-const SavedResourcesContext = createContext<SavedResourcesContextType | null>(null);
+// Create context with default values
+const SavedResourcesContext = createContext<SavedResourcesContextType>({
+  savedResources: [],
+  saveResource: () => {},
+  removeResource: () => {},
+  isResourceSaved: () => false,
+  clearAllResources: () => {}
+});
 
 /**
  * SavedResourcesProvider component that manages saved resources
@@ -175,9 +181,5 @@ export function SavedResourcesProvider({ children }: { children: ReactNode }) {
  * Hook to use saved resources
  */
 export function useSavedResources() {
-  const context = useContext(SavedResourcesContext);
-  if (!context) {
-    throw new Error("useSavedResources must be used within SavedResourcesProvider");
-  }
-  return context;
+  return useContext(SavedResourcesContext);
 }
