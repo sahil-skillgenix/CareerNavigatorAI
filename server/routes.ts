@@ -239,6 +239,11 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       
       // Save the analysis result to the database
       try {
+        console.log('Attempting to save career analysis with these details:');
+        console.log(`User ID: ${req.user!.id}`);
+        console.log(`Professional Level: ${professionalLevel}`);
+        console.log(`Desired Role: ${desiredRole}`);
+        
         // Create a new entry in the careerAnalyses table
         const savedAnalysis = await storageInstance.saveCareerAnalysis({
           userId: req.user!.id,
@@ -254,15 +259,18 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
           badges: [] // No badges yet
         });
         
-        console.log(`Career analysis saved for user ${req.user!.id}`);
+        console.log(`Career analysis saved successfully. Analysis ID: ${savedAnalysis.id}`);
         
         // Check if this is the user's first career analysis
         const userAnalyses = await storageInstance.getUserCareerAnalyses(req.user!.id);
+        console.log(`User has ${userAnalyses.length} saved analyses`);
+        
         if (userAnalyses.length === 1) { // If we just saved the first analysis
           // Create a skill journey progress item for the user
           try {
+            console.log('Creating badge for first analysis...');
             // Create a badge for the first analysis
-            await storageInstance.createUserBadge({
+            const badge = await storageInstance.createUserBadge({
               userId: req.user!.id,
               name: "Career Explorer",
               description: "Completed your first career analysis",
@@ -270,9 +278,11 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
               level: 1,
               icon: "zap"
             });
+            console.log(`Badge created with ID: ${badge.id}`);
             
+            console.log('Creating progress tracker...');
             // Create a progress tracking item for the career pathway
-            await storageInstance.createUserProgress({
+            const progress = await storageInstance.createUserProgress({
               userId: req.user!.id,
               type: "career_pathway",
               title: `Career Pathway: ${desiredRole}`,
@@ -289,15 +299,18 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
                 "Start networking in your target field"
               ]
             });
+            console.log(`Progress tracker created with ID: ${progress.id}`);
             
             console.log(`Created first analysis badge and progress tracker for user ${req.user!.id}`);
           } catch (error) {
             console.error('Error creating badges or progress:', error);
+            console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
             // Continue even if badge/progress creation fails
           }
         }
       } catch (saveError) {
         console.error('Error saving career analysis:', saveError);
+        console.error('Error details:', saveError instanceof Error ? saveError.message : 'Unknown error');
         // Continue even if saving fails - don't block the user from seeing their results
       }
       

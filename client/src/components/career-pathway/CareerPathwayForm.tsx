@@ -2719,13 +2719,48 @@ function CareerAnalysisResults({
           <div className="flex justify-center w-full gap-4">
             <div className="bg-gradient-to-r from-green-600 to-teal-600 p-0.5 rounded-lg">
               <Button 
-                onClick={() => {
-                  // Save analysis to dashboard functionality
-                  toast({
-                    title: "Analysis Saved",
-                    description: "Your career pathway analysis has been saved to your dashboard.",
-                    variant: "default",
-                  });
+                onClick={async () => {
+                  try {
+                    // Save analysis to dashboard through API
+                    console.log("Attempting to save career analysis to dashboard...");
+                    const response = await fetch('/api/career-pathway', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        professionalLevel: formData.professionalLevel,
+                        currentSkills: formData.currentSkills,
+                        educationalBackground: formData.educationalBackground,
+                        careerHistory: formData.careerHistory,
+                        desiredRole: formData.desiredRole,
+                        state: formData.state,
+                        country: formData.country
+                      }),
+                    });
+                    
+                    if (!response.ok) {
+                      throw new Error('Failed to save analysis');
+                    }
+                    
+                    console.log("Career analysis saved successfully!");
+                    
+                    // Show success message
+                    toast({
+                      title: "Analysis Saved",
+                      description: "Your career pathway analysis has been saved to your dashboard.",
+                      variant: "default",
+                    });
+                  } catch (error) {
+                    console.error("Error saving analysis:", error);
+                    
+                    // Show error message
+                    toast({
+                      title: "Save Failed",
+                      description: "There was an error saving your analysis. Please try again.",
+                      variant: "destructive",
+                    });
+                  }
                 }}
                 size="lg" 
                 className="bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900 shadow-lg text-base gap-2"
