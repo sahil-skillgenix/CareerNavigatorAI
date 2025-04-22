@@ -11,3 +11,5 @@ export * from './CareerProgressTracker';
 export * from './DashboardHeader';
 export * from './Navigation';
 export * from './SavedAnalyses';
+export * from './BadgeCard';
+export * from './SkillJourneyTracker';

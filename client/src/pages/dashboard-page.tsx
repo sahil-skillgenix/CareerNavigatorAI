@@ -5,11 +5,13 @@ import { Link } from "wouter";
 import {
   RecommendedCourses,
   CareerProgressTracker,
-  SavedAnalyses
+  SavedAnalyses,
+  BadgeCard,
+  SkillJourneyTracker
 } from "@/components/dashboard";
 import { AuthenticatedLayout } from "@/components/layouts";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Rocket, Lightbulb, Plus } from "lucide-react";
+import { BarChart3, Rocket, Lightbulb, Plus, Trophy } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -82,12 +84,35 @@ export default function DashboardPage() {
         </div>
       </motion.section>
       
+      {/* Achievements & Gamification Section */}
+      <motion.section 
+        className="mb-16"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
+          <Trophy className="mr-2 h-6 w-6 text-primary" />
+          Your Achievements & Journey
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+          <BadgeCard 
+            badges={dashboardData?.badges || []} 
+            isLoading={isLoading}
+          />
+          <SkillJourneyTracker 
+            progressItems={dashboardData?.progressItems || []} 
+            isLoading={isLoading}
+          />
+        </div>
+      </motion.section>
+      
       {/* Career Insights Section */}
       <motion.section 
         className="mb-16"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
       >
         <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
           <Lightbulb className="mr-2 h-6 w-6 text-primary" />
