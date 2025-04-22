@@ -22,6 +22,7 @@ import RolesPage from "@/pages/roles-page";
 import RoleDetailPage from "@/pages/role-detail-page";
 import IndustriesPage from "@/pages/industries-page";
 import IndustryDetailPage from "@/pages/industry-detail-page";
+import SearchPage from "@/pages/search-page";
 
 function Router() {
   return (
@@ -37,6 +38,9 @@ function Router() {
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       */}
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
+      
+      {/* Search page */}
+      <Route path="/search" component={SearchPage} />
       
       {/* Skills routes */}
       <Route path="/skills" component={SkillsPage} />
