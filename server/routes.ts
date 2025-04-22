@@ -311,7 +311,12 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       } catch (saveError) {
         console.error('Error saving career analysis:', saveError);
         console.error('Error details:', saveError instanceof Error ? saveError.message : 'Unknown error');
-        // Continue even if saving fails - don't block the user from seeing their results
+        // If it's just saving that failed, we should let the caller know with a 200 status but details about the save failure
+      return res.status(500).json({
+        error: 'Failed to save career analysis',
+        message: saveError instanceof Error ? saveError.message : 'Unknown error',
+        analysisResult // Still return the analysis so client has access to it
+      });
       }
       
       res.json(analysisResult);
