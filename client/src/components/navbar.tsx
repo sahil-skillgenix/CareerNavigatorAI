@@ -72,6 +72,16 @@ export default function Navbar() {
                     Dashboard
                   </Button>
                 </Link>
+                <Link href="/learning-resources">
+                  <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                    Learning Resources
+                  </Button>
+                </Link>
+                <Link href="/saved-resources">
+                  <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                    Saved Resources
+                  </Button>
+                </Link>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -135,6 +145,16 @@ export default function Navbar() {
                         <Button className="w-full justify-start" variant="outline">
                           <User className="mr-2 h-4 w-4" />
                           Dashboard
+                        </Button>
+                      </Link>
+                      <Link href="/learning-resources" className="w-full">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Learning Resources
+                        </Button>
+                      </Link>
+                      <Link href="/saved-resources" className="w-full">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Saved Resources
                         </Button>
                       </Link>
                       <Button 
