@@ -398,11 +398,16 @@ export class MongoDBStorage implements IStorage {
       return progressItems.map((doc: any) => ({
         id: doc._id.toString(),
         userId: doc.userId.toString(),
+        type: doc.type,
+        title: doc.title,
+        description: doc.description,
+        relatedItemId: doc.relatedItemId ? doc.relatedItemId.toString() : null,
         analysisId: doc.analysisId ? doc.analysisId.toString() : null,
         skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
+        milestones: doc.milestones || [],
         notes: doc.notes,
         updatedAt: doc.updatedAt.toISOString()
       }));
@@ -421,11 +426,16 @@ export class MongoDBStorage implements IStorage {
       return {
         id: doc._id.toString(),
         userId: doc.userId.toString(),
+        type: doc.type,
+        title: doc.title,
+        description: doc.description,
+        relatedItemId: doc.relatedItemId ? doc.relatedItemId.toString() : null,
         analysisId: doc.analysisId ? doc.analysisId.toString() : null,
         skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
+        milestones: doc.milestones || [],
         notes: doc.notes,
         updatedAt: doc.updatedAt.toISOString()
       };
@@ -460,11 +470,16 @@ export class MongoDBStorage implements IStorage {
       return {
         id: doc._id.toString(),
         userId: doc.userId.toString(),
+        type: doc.type,
+        title: doc.title,
+        description: doc.description,
+        relatedItemId: doc.relatedItemId ? doc.relatedItemId.toString() : null,
         analysisId: doc.analysisId ? doc.analysisId.toString() : null,
         skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
+        milestones: doc.milestones || [],
         notes: doc.notes,
         updatedAt: doc.updatedAt.toISOString()
       };
@@ -478,11 +493,16 @@ export class MongoDBStorage implements IStorage {
     try {
       const newProgress = new UserProgressModel({
         userId: progressItem.userId,
+        type: progressItem.type || "career_pathway",
+        title: progressItem.title,
+        description: progressItem.description,
+        relatedItemId: progressItem.relatedItemId,
         analysisId: progressItem.analysisId,
         skillId: progressItem.skillId,
         currentLevel: progressItem.currentLevel,
         targetLevel: progressItem.targetLevel,
         progress: progressItem.progress || 0,
+        milestones: progressItem.milestones || [],
         notes: progressItem.notes
       });
       
@@ -492,11 +512,16 @@ export class MongoDBStorage implements IStorage {
       return {
         id: doc._id.toString(),
         userId: doc.userId.toString(),
+        type: doc.type,
+        title: doc.title,
+        description: doc.description,
+        relatedItemId: doc.relatedItemId ? doc.relatedItemId.toString() : null,
         analysisId: doc.analysisId ? doc.analysisId.toString() : null,
         skillId: doc.skillId ? doc.skillId.toString() : null,
         currentLevel: doc.currentLevel,
         targetLevel: doc.targetLevel,
         progress: doc.progress,
+        milestones: doc.milestones || [],
         notes: doc.notes,
         updatedAt: doc.updatedAt.toISOString()
       };

@@ -279,15 +279,28 @@ export const userBadgeSchema = z.object({
   earnedAt: z.string().optional(),
 });
 
+// Progress item types
+export const PROGRESS_TYPES = [
+  "career_pathway",
+  "skill_acquisition",
+  "learning_path",
+  "goal"
+] as const;
+
 // User Progress schema
 export const userProgressSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
+  type: z.enum(PROGRESS_TYPES).default("career_pathway"),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  relatedItemId: z.string().optional().nullable(),
   analysisId: z.string().optional().nullable(),
   skillId: z.string().optional().nullable(),
   currentLevel: z.string().optional().nullable(),
   targetLevel: z.string().optional().nullable(),
   progress: z.number().default(0),
+  milestones: z.array(z.string()).optional().default([]),
   notes: z.string().optional().nullable(),
   updatedAt: z.string().optional(),
 });
