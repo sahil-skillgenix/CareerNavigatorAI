@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   Card, 
   CardContent, 
@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface SavedAnalysis {
   id: string;
@@ -24,21 +25,52 @@ interface SavedAnalysis {
 
 export function SavedAnalyses() {
   const [expandedAnalysis, setExpandedAnalysis] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch saved career analyses
-  const { data: dashboardData, isLoading, error } = useQuery({
+  const { data: dashboardData, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/dashboard"],
     queryFn: async () => {
+      console.log("Fetching dashboard data...");
       const response = await fetch("/api/dashboard");
       if (!response.ok) {
+        console.error("Failed to fetch dashboard data:", response.status);
         throw new Error("Failed to fetch dashboard data");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Dashboard data received:", data?.careerAnalyses?.length || 0, "analyses found");
+      return data;
     }
   });
   
   // Extract analyses from dashboard data
   const analyses = dashboardData?.careerAnalyses || [];
+  
+  // Function to refresh dashboard data
+  const refreshDashboard = async () => {
+    try {
+      toast({
+        title: "Refreshing data...",
+        description: "Getting your latest saved analyses",
+        variant: "default",
+      });
+      
+      await refetch();
+      
+      toast({
+        title: "Data refreshed",
+        description: `Found ${analyses.length} saved analyses`,
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh failed",
+        description: "Could not refresh dashboard data",
+        variant: "destructive",
+      });
+    }
+  };
 
   const toggleExpand = (id: string) => {
     if (expandedAnalysis === id) {
@@ -121,12 +153,23 @@ export function SavedAnalyses() {
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-          Saved Career Analyses
-        </CardTitle>
-        <CardDescription>Your previously saved career pathway analyses</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div>
+          <CardTitle className="flex items-center">
+            <BarChart3 className="h-5 w-5 mr-2 text-primary" />
+            Saved Career Analyses
+          </CardTitle>
+          <CardDescription>Your previously saved career pathway analyses</CardDescription>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refreshDashboard}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         {analyses.map((analysis: SavedAnalysis) => (
