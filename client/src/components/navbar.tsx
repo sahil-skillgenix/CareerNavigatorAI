@@ -150,6 +150,11 @@ export default function Navbar() {
                   ) : (
                     <>
                       {/* Logged out mobile menu */}
+                      <Link href="/search" className="w-full">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Search
+                        </Button>
+                      </Link>
                       <Link href="/auth" className="w-full">
                         <Button variant="outline" className="w-full">Sign In</Button>
                       </Link>
