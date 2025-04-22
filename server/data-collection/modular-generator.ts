@@ -345,9 +345,10 @@ export async function generateRoles() {
     // Generate roles if not in cache
     if (allRoles.length === 0) {
       // Use smaller subset of categories for testing
-      const targetRoleCategories = ROLE_CATEGORIES.slice(0, 2);
+      const targetRoleCategories = ROLE_CATEGORIES.slice(0, 1); // Only use 1 category
       
       try {
+        console.log(`Generating roles for categories: ${targetRoleCategories.join(', ')}`);
         const roles = await generateRoleBatch(targetRoleCategories, 1);
         allRoles = [...allRoles, ...roles];
         
@@ -412,9 +413,10 @@ export async function generateIndustries() {
     // Generate industries if not in cache
     if (allIndustries.length === 0) {
       // Use smaller subset of categories for testing
-      const targetIndustryCategories = INDUSTRY_CATEGORIES.slice(0, 2);
+      const targetIndustryCategories = INDUSTRY_CATEGORIES.slice(0, 1); // Only use 1 category
       
       try {
+        console.log(`Generating industries for categories: ${targetIndustryCategories.join(', ')}`);
         const industries = await generateIndustryBatch(targetIndustryCategories, 1);
         allIndustries = [...allIndustries, ...industries];
         
