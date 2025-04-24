@@ -210,18 +210,6 @@ export function CareerPathwayForm() {
     }));
   };
   
-  // Define the type for submitted form data to save
-  type SubmittedFormData = {
-    userId: string | undefined;
-    professionalLevel: string;
-    currentSkills: string;
-    educationalBackground: string;
-    careerHistory: string;
-    desiredRole: string;
-    state: string;
-    country: string;
-  };
-  
   // Store the submitted form data for later use when saving
   const [submittedFormData, setSubmittedFormData] = useState<SubmittedFormData | null>(null);
 
@@ -311,7 +299,11 @@ export function CareerPathwayForm() {
   }
   
   if (analysisResult) {
-    return <CareerAnalysisResults results={analysisResult} onRestart={() => setAnalysisResult(null)} />;
+    return <CareerAnalysisResults 
+      results={analysisResult} 
+      formData={submittedFormData}
+      onRestart={() => setAnalysisResult(null)} 
+    />;
   }
   
   return (
@@ -504,12 +496,26 @@ export function CareerPathwayForm() {
   );
 }
 
+// Type definition for form data
+type SubmittedFormData = {
+  userId: string | undefined;
+  professionalLevel: string;
+  currentSkills: string;
+  educationalBackground: string;
+  careerHistory: string;
+  desiredRole: string;
+  state: string;
+  country: string;
+};
+
 // Component to display analysis results
 function CareerAnalysisResults({
   results,
+  formData,
   onRestart
 }: {
   results: CareerAnalysisResult;
+  formData: SubmittedFormData | null;
   onRestart: () => void;
 }) {
   const { user } = useAuth();
@@ -2767,20 +2773,20 @@ function CareerAnalysisResults({
                     console.log("Attempting to save career analysis to dashboard...");
                     
                     // Check if we have the submitted form data
-                    if (!submittedFormData) {
+                    if (!formData) {
                       throw new Error("Form data not available. Please try analyzing again.");
                     }
                     
                     // Prepare the form data with all required fields for MongoDB
                     const formDataToSave = {
                       userId: user?.id,
-                      professionalLevel: submittedFormData.professionalLevel,
-                      currentSkills: submittedFormData.currentSkills,
-                      educationalBackground: submittedFormData.educationalBackground,
-                      careerHistory: submittedFormData.careerHistory,
-                      desiredRole: submittedFormData.desiredRole,
-                      state: submittedFormData.state,
-                      country: submittedFormData.country,
+                      professionalLevel: formData.professionalLevel,
+                      currentSkills: formData.currentSkills,
+                      educationalBackground: formData.educationalBackground,
+                      careerHistory: formData.careerHistory,
+                      desiredRole: formData.desiredRole,
+                      state: formData.state,
+                      country: formData.country,
                       result: results // Include the full analysis results
                     };
                     
