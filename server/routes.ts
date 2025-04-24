@@ -1126,8 +1126,8 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(401).json({ message: 'Authentication required' });
       }
       
-      const analysisId = parseInt(req.params.id);
-      if (isNaN(analysisId)) {
+      const analysisId = req.params.id;
+      if (!analysisId) {
         return res.status(400).json({ error: 'Invalid analysis ID' });
       }
       
@@ -1367,8 +1367,8 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(401).json({ message: 'Authentication required' });
       }
       
-      const analysisId = parseInt(req.params.id);
-      if (isNaN(analysisId)) {
+      const analysisId = req.params.id;
+      if (!analysisId) {
         return res.status(400).json({ error: 'Invalid analysis ID' });
       }
       
@@ -1454,8 +1454,8 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(401).json({ message: 'Authentication required' });
       }
       
-      const progressId = parseInt(req.params.id);
-      if (isNaN(progressId)) {
+      const progressId = req.params.id;
+      if (!progressId) {
         return res.status(400).json({ error: 'Invalid progress ID' });
       }
       

@@ -9,7 +9,8 @@ import {
   Book, 
   Bookmark,
   Building,
-  User
+  User,
+  History
 } from "lucide-react";
 
 export function Navigation() {
@@ -30,6 +31,11 @@ export function Navigation() {
       name: "Personal Career Pathway",
       path: "/career-pathway",
       icon: <GraduationCap className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "History",
+      path: "/history",
+      icon: <History className="h-5 w-5 mr-2" />,
     },
     {
       name: "Organization Pathway",

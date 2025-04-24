@@ -24,6 +24,7 @@ import IndustriesPage from "@/pages/industries-page";
 import IndustryDetailPage from "@/pages/industry-detail-page";
 import SearchPage from "@/pages/search-page";
 import SettingsPage from "@/pages/settings-page";
+import HistoryPage from "@/pages/history-page";
 
 function Router() {
   return (
@@ -38,6 +39,7 @@ function Router() {
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
+      <ProtectedRoute path="/history" component={HistoryPage} />
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
       
       {/* Settings routes */}

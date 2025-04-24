@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 interface SavedAnalysis {
   id: string;
@@ -151,66 +152,90 @@ export function SavedAnalyses() {
     );
   }
 
+  // Sort analyses by date (newest first) and get the latest one
+  const sortedAnalyses = [...analyses].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  
+  // Get only the latest analysis for the main dashboard
+  const latestAnalysis = sortedAnalyses.length > 0 ? sortedAnalyses[0] : null;
+  const hasMultipleAnalyses = sortedAnalyses.length > 1;
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="flex items-center">
             <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-            Saved Career Analyses
+            Latest Career Analysis
           </CardTitle>
-          <CardDescription>Your previously saved career pathway analyses</CardDescription>
+          <CardDescription>Your most recent career pathway analysis</CardDescription>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={refreshDashboard}
-          className="flex items-center gap-1"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasMultipleAnalyses && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              asChild
+              className="flex items-center gap-1"
+            >
+              <Link href="/history">
+                <History className="h-3.5 w-3.5" />
+                View History
+              </Link>
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refreshDashboard}
+            className="flex items-center gap-1"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Refresh
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {analyses.map((analysis: SavedAnalysis) => (
-          <Card key={analysis.id} className="border border-muted">
+        {latestAnalysis ? (
+          <Card className="border border-muted">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg">{analysis.desiredRole}</CardTitle>
+                  <CardTitle className="text-lg">{latestAnalysis.desiredRole}</CardTitle>
                   <CardDescription className="flex items-center mt-1">
                     <Clock className="h-3 w-3 mr-1" />
-                    {formatDate(analysis.createdAt)}
+                    {formatDate(latestAnalysis.createdAt)}
                   </CardDescription>
                 </div>
-                <Badge variant={analysis.progress === 100 ? "default" : "outline"}>
-                  {analysis.progress === 100 ? "Complete" : `${analysis.progress}%`}
+                <Badge variant={latestAnalysis.progress === 100 ? "default" : "outline"}>
+                  {latestAnalysis.progress === 100 ? "Complete" : `${latestAnalysis.progress}%`}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="pt-0 pb-2">
-              <p className="text-sm text-muted-foreground mb-1">Professional Level: {analysis.professionalLevel}</p>
+              <p className="text-sm text-muted-foreground mb-1">Professional Level: {latestAnalysis.professionalLevel}</p>
               
-              {expandedAnalysis === analysis.id && analysis.result && (
+              {expandedAnalysis === latestAnalysis.id && latestAnalysis.result && (
                 <div className="mt-4 space-y-3 text-sm">
-                  {analysis.result.executiveSummary && (
+                  {latestAnalysis.result.executiveSummary && (
                     <div>
                       <p className="font-medium">Executive Summary:</p>
-                      <p className="text-muted-foreground">{analysis.result.executiveSummary}</p>
+                      <p className="text-muted-foreground">{latestAnalysis.result.executiveSummary}</p>
                     </div>
                   )}
                   
-                  {analysis.result.skillGapAnalysis?.aiAnalysis && (
+                  {latestAnalysis.result.skillGapAnalysis?.aiAnalysis && (
                     <div>
                       <p className="font-medium">Skill Gap Analysis:</p>
-                      <p className="text-muted-foreground">{analysis.result.skillGapAnalysis.aiAnalysis}</p>
+                      <p className="text-muted-foreground">{latestAnalysis.result.skillGapAnalysis.aiAnalysis}</p>
                     </div>
                   )}
                   
-                  {analysis.result.careerPathway?.aiRecommendations && (
+                  {latestAnalysis.result.careerPathway?.aiRecommendations && (
                     <div>
                       <p className="font-medium">Career Pathway:</p>
-                      <p className="text-muted-foreground">{analysis.result.careerPathway.aiRecommendations}</p>
+                      <p className="text-muted-foreground">{latestAnalysis.result.careerPathway.aiRecommendations}</p>
                     </div>
                   )}
                 </div>
@@ -220,9 +245,9 @@ export function SavedAnalyses() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => toggleExpand(analysis.id)}
+                onClick={() => toggleExpand(latestAnalysis.id)}
               >
-                {expandedAnalysis === analysis.id ? (
+                {expandedAnalysis === latestAnalysis.id ? (
                   <>
                     <ChevronUp className="h-4 w-4 mr-1" /> Show Less
                   </>
@@ -236,7 +261,7 @@ export function SavedAnalyses() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => viewFullAnalysis(analysis.id)}
+                  onClick={() => viewFullAnalysis(latestAnalysis.id)}
                 >
                   View Full Analysis
                 </Button>
@@ -244,14 +269,21 @@ export function SavedAnalyses() {
                   variant="default" 
                   size="sm"
                   className="px-2"
-                  onClick={() => window.open(`/api/career-analyses/${analysis.id}/pdf`, '_blank')}
+                  onClick={() => window.open(`/api/career-analyses/${latestAnalysis.id}/pdf`, '_blank')}
                 >
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
             </CardFooter>
           </Card>
-        ))}
+        ) : (
+          <div className="text-center py-6 text-muted-foreground">
+            <p>No career analysis found. Create your first one!</p>
+            <Button className="mt-4" onClick={() => window.location.href = "/career-pathway"}>
+              Create Your First Analysis
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
