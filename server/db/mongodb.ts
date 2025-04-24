@@ -40,37 +40,50 @@ async function repairProblematicIndexes() {
     
     const db = mongoose.connection.db;
     
+    // First option: Try to clean documents with null id
     for (const collectionName of collectionsToCheck) {
       try {
         // Check if the collection exists
         const collections = await db.listCollections({ name: collectionName }).toArray();
         if (collections.length === 0) {
-          log(`Collection ${collectionName} does not exist yet, skipping repair`, "mongodb");
+          log(`Collection ${collectionName} does not exist yet, skipping cleanup`, "mongodb");
           continue;
         }
         
         // Get the collection
         const collection = db.collection(collectionName);
         
+        // Try to clean documents with null id field (this is what causes the duplicate key error)
+        const deleteResult = await collection.deleteMany({ id: null });
+        if (deleteResult.deletedCount > 0) {
+          log(`Removed ${deleteResult.deletedCount} documents with null id from ${collectionName}`, "mongodb");
+        }
+        
+        // Also drop and recreate the collection if needed
+        if (collectionName === 'userbadges' || collectionName === 'careeranalyses') {
+          log(`Dropping problematic collection ${collectionName} to clear all indexes`, "mongodb");
+          await db.dropCollection(collectionName);
+          log(`Successfully dropped collection ${collectionName}`, "mongodb");
+        }
+        
         // Get all indexes
         const indexes = await collection.indexes();
         log(`Found ${indexes.length} indexes in ${collectionName}`, "mongodb");
         
-        // Check for problematic 'id' index
-        const idIndex = indexes.find(idx => 
-          idx.name === 'id_1' || 
-          (idx.key && idx.key.id === 1)
-        );
-        
-        if (idIndex) {
-          log(`Dropping problematic 'id' index from ${collectionName}`, "mongodb");
-          await collection.dropIndex('id_1');
-          log(`Successfully dropped 'id' index from ${collectionName}`, "mongodb");
-        } else {
-          log(`No problematic 'id' index found in ${collectionName}`, "mongodb");
+        // Loop through all indexes and drop any that might be problematic
+        for (const idx of indexes) {
+          if (idx.name !== '_id_' && (idx.name === 'id_1' || (idx.key && idx.key.id))) {
+            log(`Dropping index ${idx.name} from ${collectionName}`, "mongodb");
+            try {
+              await collection.dropIndex(idx.name);
+              log(`Successfully dropped index ${idx.name} from ${collectionName}`, "mongodb");
+            } catch (indexError) {
+              log(`Error dropping index ${idx.name}: ${indexError}`, "mongodb");
+            }
+          }
         }
       } catch (collectionError) {
-        log(`Error checking/repairing collection ${collectionName}: ${collectionError}`, "mongodb");
+        log(`Error cleaning collection ${collectionName}: ${collectionError}`, "mongodb");
         // Continue with next collection even if this one fails
       }
     }
