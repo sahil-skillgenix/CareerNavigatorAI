@@ -181,7 +181,9 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       
       const prompt = `
       You are an expert career analyst specialized in SFIA 9 and DigComp 2.2 frameworks. 
-      Analyze this career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights:
+      Analyze this career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights.
+      
+      Format your entire response as a JSON object. Include all analysis sections as structured JSON data.
       
       Current Professional Level: ${input.professionalLevel}
       Current Skills: ${input.currentSkills}
@@ -191,7 +193,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       State/Province: ${input.state || 'Not specified'}
       Country: ${input.country || 'Not specified'}
       
-      STRICTLY follow this enhanced 8-step process in order:
+      STRICTLY follow this enhanced 8-step process in order and provide the results as a JSON object:
       
       1. INPUT ANALYSIS USING FRAMEWORKS:
       - Clearly assess all provided inputs
@@ -248,7 +250,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
         messages: [
           { 
             role: "system", 
-            content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways worldwide.`
+            content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways worldwide. Always provide responses in well-structured JSON format.`
           },
           { role: "user", content: prompt }
         ],
