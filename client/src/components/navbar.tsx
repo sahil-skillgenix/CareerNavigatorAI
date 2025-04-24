@@ -1,11 +1,36 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ButtonHighlighted } from './ui/button-highlighted';
-import { Menu, User, LogOut } from 'lucide-react';
+import { 
+  Menu, 
+  User, 
+  LogOut, 
+  Settings, 
+  Bell, 
+  UserCog, 
+  Lock, 
+  Mail, 
+  Shield
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from './ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // Simple navbar with only Skillgenix logo, Sign In, and Get Started buttons
 export default function Navbar() {
@@ -39,13 +64,15 @@ export default function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Link 
-              href="/" 
-              className="flex items-center flex-shrink-0"
-              onClick={scrollToTop}
+            <button 
+              onClick={() => {
+                // Use the Link component's behavior to navigate but don't rely on it solely
+                window.location.href = '/';
+              }}
+              className="flex items-center flex-shrink-0 cursor-pointer"
             >
               <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
-            </Link>
+            </button>
           </motion.div>
           
           {/* Right side buttons */}
@@ -87,16 +114,84 @@ export default function Navbar() {
                     Saved Resources
                   </Button>
                 </Link>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => logoutMutation.mutate()}
-                  disabled={logoutMutation.isPending}
-                  className="hidden md:inline-flex"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </Button>
+                
+                {/* Profile dropdown menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {user?.fullName?.charAt(0) || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    
+                    <DropdownMenuGroup>
+                      <Link href="/my-details">
+                        <DropdownMenuItem>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>My Details</span>
+                        </DropdownMenuItem>
+                      </Link>
+                      
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Settings</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent className="w-56">
+                            <Link href="/settings/profile">
+                              <DropdownMenuItem>
+                                <UserCog className="mr-2 h-4 w-4" />
+                                <span>Profile Settings</span>
+                              </DropdownMenuItem>
+                            </Link>
+                            <Link href="/settings/security">
+                              <DropdownMenuItem>
+                                <Lock className="mr-2 h-4 w-4" />
+                                <span>Security</span>
+                              </DropdownMenuItem>
+                            </Link>
+                            <Link href="/settings/notifications">
+                              <DropdownMenuItem>
+                                <Bell className="mr-2 h-4 w-4" />
+                                <span>Notifications</span>
+                              </DropdownMenuItem>
+                            </Link>
+                            <Link href="/settings/2fa">
+                              <DropdownMenuItem>
+                                <Shield className="mr-2 h-4 w-4" />
+                                <span>Email 2FA</span>
+                              </DropdownMenuItem>
+                            </Link>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      
+                      <Link href="/notifications">
+                        <DropdownMenuItem>
+                          <Bell className="mr-2 h-4 w-4" />
+                          <span>Notifications</span>
+                        </DropdownMenuItem>
+                      </Link>
+                    </DropdownMenuGroup>
+                    
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => logoutMutation.mutate()}
+                      disabled={logoutMutation.isPending}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
@@ -129,11 +224,15 @@ export default function Navbar() {
               <SheetContent>
                 <div className="flex flex-col gap-6 mt-6">
                   {/* Logo in mobile menu */}
-                  <Link href="/" className="w-full">
-                    <Button variant="link" className="w-full justify-start p-0">
-                      <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="link" 
+                    className="w-full justify-start p-0"
+                    onClick={() => {
+                      window.location.href = '/';
+                    }}
+                  >
+                    <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
+                  </Button>
                   
                   {user ? (
                     <>

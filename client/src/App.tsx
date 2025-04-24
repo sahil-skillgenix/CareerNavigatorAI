@@ -23,6 +23,7 @@ import RoleDetailPage from "@/pages/role-detail-page";
 import IndustriesPage from "@/pages/industries-page";
 import IndustryDetailPage from "@/pages/industry-detail-page";
 import SearchPage from "@/pages/search-page";
+import SettingsPage from "@/pages/settings-page";
 
 function Router() {
   return (
@@ -38,6 +39,13 @@ function Router() {
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
+      
+      {/* Settings routes */}
+      <ProtectedRoute path="/settings" component={SettingsPage} />
+      <ProtectedRoute path="/settings/profile" component={SettingsPage} />
+      <ProtectedRoute path="/settings/security" component={SettingsPage} />
+      <ProtectedRoute path="/settings/notifications" component={SettingsPage} />
+      <ProtectedRoute path="/settings/2fa" component={SettingsPage} />
       
       {/* Search page */}
       <Route path="/search" component={SearchPage} />
