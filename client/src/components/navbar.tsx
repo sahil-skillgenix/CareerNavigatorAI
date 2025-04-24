@@ -64,15 +64,9 @@ export default function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <button 
-              onClick={() => {
-                // Use the Link component's behavior to navigate but don't rely on it solely
-                window.location.href = '/';
-              }}
-              className="flex items-center flex-shrink-0 cursor-pointer"
-            >
+            <Link href="/" className="flex items-center flex-shrink-0 cursor-pointer">
               <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
-            </button>
+            </Link>
           </motion.div>
           
           {/* Right side buttons */}
@@ -224,15 +218,14 @@ export default function Navbar() {
               <SheetContent>
                 <div className="flex flex-col gap-6 mt-6">
                   {/* Logo in mobile menu */}
-                  <Button 
-                    variant="link" 
-                    className="w-full justify-start p-0"
-                    onClick={() => {
-                      window.location.href = '/';
-                    }}
-                  >
-                    <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
-                  </Button>
+                  <Link href="/" className="w-full">
+                    <Button 
+                      variant="link" 
+                      className="w-full justify-start p-0"
+                    >
+                      <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
+                    </Button>
+                  </Link>
                   
                   {user ? (
                     <>
