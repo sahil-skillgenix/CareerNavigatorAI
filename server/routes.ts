@@ -165,6 +165,90 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     }
   });
   
+  // Account deactivation endpoint
+  app.post('/api/user/deactivate', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { confirmPhrase } = req.body;
+      
+      if (confirmPhrase !== 'DEACTIVATE') {
+        return res.status(400).json({
+          error: 'Invalid confirmation',
+          message: 'You must type DEACTIVATE to confirm'
+        });
+      }
+      
+      // In a real implementation, we would:
+      // 1. Set account status to inactive/deactivated
+      // 2. Preserve all user data but prevent login
+      // await storageInstance.deactivateUser(req.user.id);
+      
+      // Log the user out
+      req.logout((err) => {
+        if (err) {
+          console.error('Error logging out after deactivation:', err);
+          return res.status(500).json({
+            error: 'Failed to complete deactivation',
+            message: err instanceof Error ? err.message : 'Unknown error'
+          });
+        }
+        
+        res.json({ success: true, message: 'Account deactivated successfully' });
+      });
+    } catch (error) {
+      console.error('Error deactivating account:', error);
+      res.status(500).json({
+        error: 'Failed to deactivate account',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // Account deletion endpoint
+  app.post('/api/user/delete', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { confirmPhrase } = req.body;
+      
+      if (confirmPhrase !== 'DELETE PERMANENTLY') {
+        return res.status(400).json({
+          error: 'Invalid confirmation',
+          message: 'You must type DELETE PERMANENTLY to confirm'
+        });
+      }
+      
+      // In a real implementation, we would:
+      // 1. Delete or anonymize all user data
+      // 2. Follow all applicable data protection laws for user data deletion
+      // await storageInstance.deleteUser(req.user.id);
+      
+      // Log the user out
+      req.logout((err) => {
+        if (err) {
+          console.error('Error logging out after account deletion:', err);
+          return res.status(500).json({
+            error: 'Failed to complete account deletion',
+            message: err instanceof Error ? err.message : 'Unknown error'
+          });
+        }
+        
+        res.json({ success: true, message: 'Account deleted successfully' });
+      });
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      res.status(500).json({
+        error: 'Failed to delete account',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
   // User details endpoint
   app.get('/api/user/details', (req, res) => {
     if (!req.isAuthenticated()) {

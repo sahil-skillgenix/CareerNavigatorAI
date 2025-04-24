@@ -178,6 +178,8 @@ function SecuritySettings() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [deactivateConfirmation, setDeactivateConfirmation] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   
   const changePasswordMutation = useMutation({
     mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
@@ -203,7 +205,55 @@ function SecuritySettings() {
     },
   });
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const deactivateAccountMutation = useMutation({
+    mutationFn: async (data: { confirmPhrase: string }) => {
+      const res = await apiRequest("POST", "/api/user/deactivate", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Account deactivated",
+        description: "Your account has been deactivated. You will be redirected to the home page.",
+      });
+      // Redirect to home after successful deactivation (after a delay)
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Deactivation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const deleteAccountMutation = useMutation({
+    mutationFn: async (data: { confirmPhrase: string }) => {
+      const res = await apiRequest("POST", "/api/user/delete", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Account deleted",
+        description: "Your account has been permanently deleted. You will be redirected to the home page.",
+      });
+      // Redirect to home after successful deletion (after a delay)
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Deletion failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
@@ -221,6 +271,40 @@ function SecuritySettings() {
     });
   };
   
+  const handleDeactivateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (deactivateConfirmation !== "DEACTIVATE") {
+      toast({
+        title: "Invalid confirmation",
+        description: "You must type DEACTIVATE (all caps) to confirm.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    deactivateAccountMutation.mutate({
+      confirmPhrase: deactivateConfirmation
+    });
+  };
+  
+  const handleDeleteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (deleteConfirmation !== "DELETE PERMANENTLY") {
+      toast({
+        title: "Invalid confirmation",
+        description: "You must type DELETE PERMANENTLY (all caps) to confirm.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    deleteAccountMutation.mutate({
+      confirmPhrase: deleteConfirmation
+    });
+  };
+  
   return (
     <div className="space-y-6">
       <Card>
@@ -231,7 +315,7 @@ function SecuritySettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handlePasswordSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>
@@ -304,6 +388,96 @@ function SecuritySettings() {
               Login history is currently being tracked. Past sessions will appear here.
             </p>
           </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="border-amber-200">
+        <CardHeader className="bg-amber-50 border-b border-amber-100">
+          <CardTitle className="text-amber-700">Deactivate Account</CardTitle>
+          <CardDescription className="text-amber-600">
+            Temporarily disable your account. You can reactivate it later.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <form onSubmit={handleDeactivateSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                When you deactivate your account:
+              </p>
+              <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                <li>Your profile will be hidden from other users</li>
+                <li>You won't be able to log in until you contact support to reactivate</li>
+                <li>Your data will be preserved for future reactivation</li>
+              </ul>
+              
+              <div className="space-y-2 pt-2">
+                <Label htmlFor="deactivate-confirmation" className="text-amber-700">
+                  Type DEACTIVATE to confirm
+                </Label>
+                <Input
+                  id="deactivate-confirmation"
+                  className="border-amber-300 focus:ring-amber-500"
+                  value={deactivateConfirmation}
+                  onChange={(e) => setDeactivateConfirmation(e.target.value)}
+                  placeholder="DEACTIVATE"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              type="submit" 
+              variant="outline"
+              className="border-amber-500 text-amber-700 hover:bg-amber-50"
+              disabled={deactivateAccountMutation.isPending}
+            >
+              {deactivateAccountMutation.isPending ? "Processing..." : "Deactivate Account"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+      
+      <Card className="border-red-200">
+        <CardHeader className="bg-red-50 border-b border-red-100">
+          <CardTitle className="text-red-700">Delete Account Permanently</CardTitle>
+          <CardDescription className="text-red-600">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <form onSubmit={handleDeleteSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                When you delete your account:
+              </p>
+              <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                <li>All your personal data will be permanently deleted</li>
+                <li>Your career analyses and saved resources will be removed</li>
+                <li>Your progress tracking and badges will be lost</li>
+                <li>This action <strong>cannot</strong> be undone</li>
+              </ul>
+              
+              <div className="space-y-2 pt-2">
+                <Label htmlFor="delete-confirmation" className="text-red-700">
+                  Type DELETE PERMANENTLY to confirm
+                </Label>
+                <Input
+                  id="delete-confirmation"
+                  className="border-red-300 focus:ring-red-500"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="DELETE PERMANENTLY"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              type="submit" 
+              variant="destructive"
+              disabled={deleteAccountMutation.isPending}
+            >
+              {deleteAccountMutation.isPending ? "Processing..." : "Delete Account Permanently"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

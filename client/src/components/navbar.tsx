@@ -132,12 +132,12 @@ export default function Navbar() {
                     <DropdownMenuSeparator />
                     
                     <DropdownMenuGroup>
-                      <Link href="/my-details">
-                        <DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-details">
                           <User className="mr-2 h-4 w-4" />
                           <span>My Details</span>
-                        </DropdownMenuItem>
-                      </Link>
+                        </Link>
+                      </DropdownMenuItem>
                       
                       <DropdownMenuSub>
                         <DropdownMenuSubTrigger>
@@ -146,44 +146,44 @@ export default function Navbar() {
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuSubContent className="w-56">
-                            <Link href="/settings/profile">
-                              <DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/settings/profile">
                                 <UserCog className="mr-2 h-4 w-4" />
                                 <span>Profile Settings</span>
-                              </DropdownMenuItem>
-                            </Link>
-                            <Link href="/settings/security">
-                              <DropdownMenuItem>
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/settings/security">
                                 <Lock className="mr-2 h-4 w-4" />
                                 <span>Security</span>
-                              </DropdownMenuItem>
-                            </Link>
-                            <Link href="/settings/notifications">
-                              <DropdownMenuItem>
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/settings/notifications">
                                 <Bell className="mr-2 h-4 w-4" />
                                 <span>Notifications</span>
-                              </DropdownMenuItem>
-                            </Link>
-                            <Link href="/settings/2fa">
-                              <DropdownMenuItem>
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/settings/2fa">
                                 <Shield className="mr-2 h-4 w-4" />
                                 <span>Email 2FA</span>
-                              </DropdownMenuItem>
-                            </Link>
+                              </Link>
+                            </DropdownMenuItem>
                           </DropdownMenuSubContent>
                         </DropdownMenuPortal>
                       </DropdownMenuSub>
                       
-                      <Link href="/notifications">
-                        <DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/notifications">
                           <Bell className="mr-2 h-4 w-4" />
                           <span>Notifications</span>
-                        </DropdownMenuItem>
-                      </Link>
+                        </Link>
+                      </DropdownMenuItem>
                     </DropdownMenuGroup>
                     
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => logoutMutation.mutate()}
                       disabled={logoutMutation.isPending}
                     >
