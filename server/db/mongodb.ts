@@ -16,6 +16,72 @@ let isConnected = false;
 let connectionAttempts = 0;
 const MAX_RETRIES = 3;
 
+/**
+ * CRITICAL FIX: Repairs problematic indexes in the MongoDB collections
+ * Drops any problematic 'id' indexes that are causing duplicate key errors
+ * This is needed because we're using both _id (MongoDB's native ID) and id (virtual getter)
+ */
+async function repairProblematicIndexes() {
+  try {
+    log("Starting problematic index repair...", "mongodb");
+    
+    // Collections that might have problematic indexes
+    const collectionsToCheck = [
+      'careeranalyses',
+      'userbadges',
+      'userprogresses',
+      'users'
+    ];
+    
+    if (!mongoose.connection || !mongoose.connection.db) {
+      log("Database connection not available for index repair", "mongodb");
+      return;
+    }
+    
+    const db = mongoose.connection.db;
+    
+    for (const collectionName of collectionsToCheck) {
+      try {
+        // Check if the collection exists
+        const collections = await db.listCollections({ name: collectionName }).toArray();
+        if (collections.length === 0) {
+          log(`Collection ${collectionName} does not exist yet, skipping repair`, "mongodb");
+          continue;
+        }
+        
+        // Get the collection
+        const collection = db.collection(collectionName);
+        
+        // Get all indexes
+        const indexes = await collection.indexes();
+        log(`Found ${indexes.length} indexes in ${collectionName}`, "mongodb");
+        
+        // Check for problematic 'id' index
+        const idIndex = indexes.find(idx => 
+          idx.name === 'id_1' || 
+          (idx.key && idx.key.id === 1)
+        );
+        
+        if (idIndex) {
+          log(`Dropping problematic 'id' index from ${collectionName}`, "mongodb");
+          await collection.dropIndex('id_1');
+          log(`Successfully dropped 'id' index from ${collectionName}`, "mongodb");
+        } else {
+          log(`No problematic 'id' index found in ${collectionName}`, "mongodb");
+        }
+      } catch (collectionError) {
+        log(`Error checking/repairing collection ${collectionName}: ${collectionError}`, "mongodb");
+        // Continue with next collection even if this one fails
+      }
+    }
+    
+    log("Problematic index repair completed", "mongodb");
+  } catch (error) {
+    log(`Error during problematic index repair: ${error}`, "mongodb");
+    // Continue execution even if repair fails
+  }
+}
+
 export async function connectToDatabase() {
   if (isConnected) {
     // If already connected, return immediately
@@ -48,6 +114,9 @@ export async function connectToDatabase() {
     // Log information about the connection
     const databaseName = mongoose.connection.name;
     log(`Connected to database: ${databaseName}`, "mongodb");
+    
+    // CRITICAL FIX: Repair problematic indexes
+    await repairProblematicIndexes();
     
     // Set up global connection error handler
     mongoose.connection.on('error', (err) => {
