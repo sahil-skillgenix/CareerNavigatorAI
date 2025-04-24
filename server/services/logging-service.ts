@@ -216,20 +216,34 @@ export function authEventLogger() {
         callback = done;
       }
       
-      // Call original logout method
-      return originalLogout.call(this, options, (err: any) => {
-        if (!err && userId) {
-          // Log successful logout
-          logUserActivity({
-            userId,
-            activityType: 'logout',
-            req
-          });
-        }
-        
-        // Continue with original callback
-        if (callback) return callback(err);
-      });
+      // Call original logout method with the proper arguments
+      if (callback) {
+        return originalLogout.call(this, options, (err: any) => {
+          if (!err && userId) {
+            // Log successful logout
+            logUserActivity({
+              userId,
+              activityType: 'logout',
+              req
+            });
+          }
+          
+          // Continue with original callback
+          return callback(err);
+        });
+      } else {
+        // If no callback provided, use default empty function
+        return originalLogout.call(this, options, (err: any) => {
+          if (!err && userId) {
+            // Log successful logout
+            logUserActivity({
+              userId,
+              activityType: 'logout',
+              req
+            }).catch(e => console.error("Error logging logout:", e));
+          }
+        });
+      }
     };
     
     next();

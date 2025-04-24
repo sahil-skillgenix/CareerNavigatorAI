@@ -97,6 +97,26 @@ async function repairProblematicIndexes() {
   }
 }
 
+/**
+ * Connection monitoring information
+ */
+export interface ConnectionStats {
+  lastConnected: Date | null;
+  lastDisconnected: Date | null;
+  connectionAttempts: number;
+  connectionErrors: string[];
+  isConnected: boolean;
+}
+
+// Track connection statistics
+const connectionStats: ConnectionStats = {
+  lastConnected: null,
+  lastDisconnected: null,
+  connectionAttempts: 0,
+  connectionErrors: [],
+  isConnected: false
+};
+
 export async function connectToDatabase() {
   if (isConnected) {
     // If already connected, return immediately
@@ -104,11 +124,20 @@ export async function connectToDatabase() {
   }
 
   if (connectionAttempts >= MAX_RETRIES) {
-    log("Maximum MongoDB connection attempts reached. Using memory storage instead.", "mongodb");
+    const errorMsg = "Maximum MongoDB connection attempts reached. Using memory storage instead.";
+    log(errorMsg, "mongodb");
+    
+    // Store the error in statistics
+    connectionStats.connectionErrors.push(errorMsg);
+    if (connectionStats.connectionErrors.length > 10) {
+      connectionStats.connectionErrors.shift(); // Keep only the last 10 errors
+    }
+    
     return;
   }
   
   connectionAttempts++;
+  connectionStats.connectionAttempts = connectionAttempts;
 
   try {
     // Configure MongoDB connection options
@@ -122,7 +151,10 @@ export async function connectToDatabase() {
     });
     
     isConnected = true;
+    connectionStats.isConnected = true;
+    connectionStats.lastConnected = new Date();
     connectionAttempts = 0; // Reset counter on successful connection
+    connectionStats.connectionAttempts = 0;
     
     log('MongoDB connected successfully', "mongodb");
     
@@ -135,14 +167,25 @@ export async function connectToDatabase() {
     
     // Set up global connection error handler
     mongoose.connection.on('error', (err) => {
-      log(`MongoDB connection error: ${err}`, "mongodb");
+      const errorMsg = `MongoDB connection error: ${err}`;
+      log(errorMsg, "mongodb");
+      
+      // Store the error in statistics
+      connectionStats.connectionErrors.push(errorMsg);
+      if (connectionStats.connectionErrors.length > 10) {
+        connectionStats.connectionErrors.shift(); // Keep only the last 10 errors
+      }
+      
       isConnected = false;
+      connectionStats.isConnected = false;
     });
     
     // Handle graceful disconnection
     mongoose.connection.on('disconnected', () => {
       log('MongoDB disconnected', "mongodb");
       isConnected = false;
+      connectionStats.isConnected = false;
+      connectionStats.lastDisconnected = new Date();
     });
     
     // Reconnect on disconnection
@@ -161,15 +204,26 @@ export async function connectToDatabase() {
     });
     
   } catch (error) {
-    log(`Error connecting to MongoDB: ${error}`, "mongodb");
+    const errorMsg = `Error connecting to MongoDB: ${error}`;
+    log(errorMsg, "mongodb");
+    
+    // Store the error in statistics
+    connectionStats.connectionErrors.push(errorMsg);
+    if (connectionStats.connectionErrors.length > 10) {
+      connectionStats.connectionErrors.shift(); // Keep only the last 10 errors
+    }
+    
     isConnected = false;
+    connectionStats.isConnected = false;
     
     // Try to reconnect after delay if we haven't exceeded max retries
     if (connectionAttempts < MAX_RETRIES) {
       log(`Retrying connection (attempt ${connectionAttempts}/${MAX_RETRIES})...`, "mongodb");
       setTimeout(() => connectToDatabase(), 3000); // Wait 3 seconds before retry
     } else {
-      log("Failed to connect to MongoDB after multiple attempts. Using memory storage.", "mongodb");
+      const finalErrorMsg = "Failed to connect to MongoDB after multiple attempts. Using memory storage.";
+      log(finalErrorMsg, "mongodb");
+      connectionStats.connectionErrors.push(finalErrorMsg);
     }
   }
 }
@@ -180,8 +234,12 @@ export function getMongooseInstance() {
 
 export function getDatabaseStatus() {
   return {
-    isConnected,
+    ...connectionStats,
     connectionState: mongoose.connection.readyState,
     // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    readyState: mongoose.connection.readyState,
+    databaseName: mongoose.connection.name,
+    host: mongoose.connection.host,
+    port: mongoose.connection.port,
   };
 }

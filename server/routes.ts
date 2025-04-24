@@ -20,6 +20,8 @@ import {
   logUserActivity,
   logError
 } from "./services/logging-service";
+import { UserActivityModel } from "./db/models";
+import { getDatabaseStatus } from "./db/mongodb";
 
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
   // Use provided storage or fallback to in-memory storage
@@ -39,6 +41,35 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   // API routes
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Skillgenix server is running' });
+  });
+  
+  // Database status endpoint (for admins and monitoring)
+  app.get('/api/system/database-status', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      // For now, simple authentication based on user role/email
+      if (req.user.email !== 'admin@skillgenix.com' && req.user.email !== 'demo@skillgenix.com') {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Get database status information
+      const dbStatus = getDatabaseStatus();
+      
+      res.json({
+        status: dbStatus.isConnected ? 'connected' : 'disconnected',
+        ...dbStatus,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching database status:', error);
+      res.status(500).json({
+        error: 'Failed to fetch database status',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   });
   
   // User profile settings endpoints
