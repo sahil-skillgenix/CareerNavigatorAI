@@ -24,7 +24,7 @@ const fadeInVariants = {
 
 export default function ProfessionalHeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center bg-white overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center bg-white overflow-hidden pt-16">
       {/* Professional grid background */}
       <div className="absolute inset-0 bg-grid-professional opacity-[0.03] z-0"></div>
       
