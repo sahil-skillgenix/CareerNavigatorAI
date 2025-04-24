@@ -46,14 +46,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogoClick = () => {
-    navigate('/');
-  };
-
-  const handleSettingsClick = (path: string) => {
-    navigate(path);
-  };
-
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -71,12 +63,11 @@ export default function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div 
-              onClick={handleLogoClick}
-              className="flex items-center flex-shrink-0 cursor-pointer"
-            >
-              <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
-            </div>
+            <Link href="/">
+              <div className="flex items-center flex-shrink-0 cursor-pointer">
+                <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
+              </div>
+            </Link>
           </motion.div>
           
           {/* Right side buttons */}
@@ -93,147 +84,145 @@ export default function Navbar() {
                   Welcome, <span className="font-medium">{user.fullName}</span>
                 </div>
                 <div className="hidden md:block">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/search')}
-                  >
-                    Search
-                  </Button>
+                  <Link href="/search">
+                    <Button variant="ghost" size="sm">
+                      Search
+                    </Button>
+                  </Link>
                 </div>
                 <div className="hidden md:block">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => navigate('/dashboard')}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Button>
+                  <Link href="/dashboard">
+                    <Button variant="outline" size="sm">
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
                 </div>
                 <div className="hidden md:block">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/my-details')}
-                  >
-                    My Details
-                  </Button>
+                  <Link href="/my-details">
+                    <Button variant="ghost" size="sm">
+                      My Details
+                    </Button>
+                  </Link>
                 </div>
                 <div className="hidden md:block">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/learning-resources')}
-                  >
-                    Learning Resources
-                  </Button>
+                  <Link href="/learning-resources">
+                    <Button variant="ghost" size="sm">
+                      Learning Resources
+                    </Button>
+                  </Link>
                 </div>
                 <div className="hidden md:block">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/saved-resources')}
-                  >
-                    Saved Resources
-                  </Button>
+                  <Link href="/saved-resources">
+                    <Button variant="ghost" size="sm">
+                      Saved Resources
+                    </Button>
+                  </Link>
                 </div>
                 
                 {/* Profile dropdown menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button variant="ghost" size="icon" className="relative rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {user?.fullName?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => navigate('/my-details')}>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>My Details</span>
-                      </DropdownMenuItem>
+                <div className="relative">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="" alt={user?.fullName || 'User'} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {user?.fullName?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
                       
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>Settings</span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuSubContent className="w-56">
-                            <DropdownMenuItem onClick={() => handleSettingsClick('/settings/profile')}>
-                              <UserCog className="mr-2 h-4 w-4" />
-                              <span>Profile Settings</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSettingsClick('/settings/security')}>
-                              <Lock className="mr-2 h-4 w-4" />
-                              <span>Security</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSettingsClick('/settings/notifications')}>
-                              <Bell className="mr-2 h-4 w-4" />
-                              <span>Notifications</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSettingsClick('/settings/2fa')}>
-                              <Shield className="mr-2 h-4 w-4" />
-                              <span>Email 2FA</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                      </DropdownMenuSub>
+                      <DropdownMenuGroup>
+                        <Link href="/my-details">
+                          <DropdownMenuItem>
+                            <User className="mr-2 h-4 w-4" />
+                            <span>My Details</span>
+                          </DropdownMenuItem>
+                        </Link>
+                        
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent className="w-56">
+                              <Link href="/settings/profile">
+                                <DropdownMenuItem>
+                                  <UserCog className="mr-2 h-4 w-4" />
+                                  <span>Profile Settings</span>
+                                </DropdownMenuItem>
+                              </Link>
+                              <Link href="/settings/security">
+                                <DropdownMenuItem>
+                                  <Lock className="mr-2 h-4 w-4" />
+                                  <span>Security</span>
+                                </DropdownMenuItem>
+                              </Link>
+                              <Link href="/settings/notifications">
+                                <DropdownMenuItem>
+                                  <Bell className="mr-2 h-4 w-4" />
+                                  <span>Notifications</span>
+                                </DropdownMenuItem>
+                              </Link>
+                              <Link href="/settings/2fa">
+                                <DropdownMenuItem>
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  <span>Email 2FA</span>
+                                </DropdownMenuItem>
+                              </Link>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        
+                        <Link href="/notifications">
+                          <DropdownMenuItem>
+                            <Bell className="mr-2 h-4 w-4" />
+                            <span>Notifications</span>
+                          </DropdownMenuItem>
+                        </Link>
+                      </DropdownMenuGroup>
                       
-                      <DropdownMenuItem onClick={() => navigate('/notifications')}>
-                        <Bell className="mr-2 h-4 w-4" />
-                        <span>Notifications</span>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        disabled={logoutMutation.isPending}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Logout</span>
                       </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      disabled={logoutMutation.isPending}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Logout</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </>
             ) : (
               <>
                 {/* Logged out state */}
                 <div className="hidden md:block">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => navigate('/search')}
-                  >
-                    Search
-                  </Button>
+                  <Link href="/search">
+                    <Button variant="ghost" size="sm">
+                      Search
+                    </Button>
+                  </Link>
                 </div>
                 <div className="hidden md:block">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => navigate('/auth')}
-                  >
-                    Sign In
-                  </Button>
+                  <Link href="/auth">
+                    <Button variant="ghost" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
                 </div>
                 <div>
-                  <ButtonHighlighted 
-                    variant="default" 
-                    size="default"
-                    onClick={() => navigate('/auth')}
-                  >
-                    Get Started
-                  </ButtonHighlighted>
+                  <Link href="/auth">
+                    <ButtonHighlighted variant="default" size="default">
+                      Get Started
+                    </ButtonHighlighted>
+                  </Link>
                 </div>
               </>
             )}
@@ -252,14 +241,11 @@ export default function Navbar() {
               <SheetContent>
                 <div className="flex flex-col gap-6 mt-6">
                   {/* Logo in mobile menu */}
-                  <div onClick={handleLogoClick} className="w-full">
-                    <Button 
-                      variant="link" 
-                      className="w-full justify-start p-0"
-                    >
+                  <Link href="/">
+                    <div className="w-full">
                       <span className="font-bold text-xl text-primary-dark">Skill<span className="text-secondary-dark">genix</span></span>
-                    </Button>
-                  </div>
+                    </div>
+                  </Link>
                   
                   {user ? (
                     <>
@@ -267,42 +253,32 @@ export default function Navbar() {
                       <div className="text-sm text-muted-foreground">
                         Welcome, <span className="font-medium">{user.fullName}</span>
                       </div>
-                      <Button 
-                        className="w-full justify-start" 
-                        variant="ghost"
-                        onClick={() => navigate('/search')}
-                      >
-                        Search
-                      </Button>
-                      <Button 
-                        className="w-full justify-start" 
-                        variant="outline"
-                        onClick={() => navigate('/dashboard')}
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </Button>
-                      <Button 
-                        className="w-full justify-start" 
-                        variant="ghost"
-                        onClick={() => navigate('/my-details')}
-                      >
-                        My Details
-                      </Button>
-                      <Button 
-                        className="w-full justify-start" 
-                        variant="ghost"
-                        onClick={() => navigate('/learning-resources')}
-                      >
-                        Learning Resources
-                      </Button>
-                      <Button 
-                        className="w-full justify-start" 
-                        variant="ghost"
-                        onClick={() => navigate('/saved-resources')}
-                      >
-                        Saved Resources
-                      </Button>
+                      <Link href="/search">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Search
+                        </Button>
+                      </Link>
+                      <Link href="/dashboard">
+                        <Button className="w-full justify-start" variant="outline">
+                          <User className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Link href="/my-details">
+                        <Button className="w-full justify-start" variant="ghost">
+                          My Details
+                        </Button>
+                      </Link>
+                      <Link href="/learning-resources">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Learning Resources
+                        </Button>
+                      </Link>
+                      <Link href="/saved-resources">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Saved Resources
+                        </Button>
+                      </Link>
                       <Button 
                         variant="destructive" 
                         className="w-full justify-start" 
@@ -316,28 +292,21 @@ export default function Navbar() {
                   ) : (
                     <>
                       {/* Logged out mobile menu */}
-                      <Button 
-                        className="w-full justify-start" 
-                        variant="ghost"
-                        onClick={() => navigate('/search')}
-                      >
-                        Search
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => navigate('/auth')}
-                      >
-                        Sign In
-                      </Button>
-                      <ButtonHighlighted 
-                        variant="default" 
-                        size="lg" 
-                        className="w-full"
-                        onClick={() => navigate('/auth')}
-                      >
-                        Get Started
-                      </ButtonHighlighted>
+                      <Link href="/search">
+                        <Button className="w-full justify-start" variant="ghost">
+                          Search
+                        </Button>
+                      </Link>
+                      <Link href="/auth">
+                        <Button variant="outline" className="w-full">
+                          Sign In
+                        </Button>
+                      </Link>
+                      <Link href="/auth">
+                        <ButtonHighlighted variant="default" size="lg" className="w-full">
+                          Get Started
+                        </ButtonHighlighted>
+                      </Link>
                     </>
                   )}
                 </div>
