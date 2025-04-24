@@ -13,6 +13,13 @@ import {
 } from "./learning-resources-service";
 import { seedDatabase } from "./seed-data";
 import * as CareerDataService from "./mongodb-career-data-service";
+import { 
+  getErrorLogs, 
+  getAPIRequestLogs, 
+  getUserActivityHistory, 
+  logUserActivity,
+  logError
+} from "./services/logging-service";
 
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
   // Use provided storage or fallback to in-memory storage
@@ -1509,6 +1516,175 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       console.error('Error updating user progress:', error);
       res.status(500).json({
         error: 'Failed to update progress',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Admin/Developer logging endpoints (these should be protected in production)
+  app.get('/api/logs/errors', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      // For now, simple authentication based on user role/email
+      // In production, these routes should be protected by proper admin authorization
+      if (req.user.email !== 'admin@skillgenix.com' && req.user.email !== 'demo@skillgenix.com') {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const { 
+        level, 
+        userId, 
+        endpoint, 
+        startDate, 
+        endDate, 
+        limit = '100' 
+      } = req.query;
+      
+      // Filter by various criteria
+      const logs = await getErrorLogs({
+        level: level as string,
+        userId: userId as string,
+        endpoint: endpoint as string,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        limit: parseInt(limit as string, 10),
+      });
+      
+      res.json(logs);
+    } catch (error) {
+      console.error('Error fetching error logs:', error);
+      res.status(500).json({
+        error: 'Failed to fetch error logs',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  app.get('/api/logs/api-requests', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      // For now, simple authentication based on user role/email
+      if (req.user.email !== 'admin@skillgenix.com' && req.user.email !== 'demo@skillgenix.com') {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const { 
+        endpoint, 
+        method, 
+        userId, 
+        statusCode, 
+        minResponseTime, 
+        startDate, 
+        endDate, 
+        limit = '100' 
+      } = req.query;
+      
+      // Filter by various criteria
+      const logs = await getAPIRequestLogs({
+        endpoint: endpoint as string,
+        method: method as string,
+        userId: userId as string,
+        statusCode: statusCode ? parseInt(statusCode as string, 10) : undefined,
+        minResponseTime: minResponseTime ? parseInt(minResponseTime as string, 10) : undefined,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        limit: parseInt(limit as string, 10),
+      });
+      
+      res.json(logs);
+    } catch (error) {
+      console.error('Error fetching API request logs:', error);
+      res.status(500).json({
+        error: 'Failed to fetch API request logs',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  app.get('/api/logs/user-activity/:userId', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { userId } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      
+      // Only allow users to view their own activity or admins to view any user's activity
+      if (
+        req.user.id !== userId && 
+        req.user.email !== 'admin@skillgenix.com' && 
+        req.user.email !== 'demo@skillgenix.com'
+      ) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const activities = await getUserActivityHistory(userId, limit);
+      res.json(activities);
+    } catch (error) {
+      console.error('Error fetching user activity history:', error);
+      res.status(500).json({
+        error: 'Failed to fetch user activity history',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // User history endpoints - for regular users to view their own activity
+  app.get('/api/user/history/login', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+      
+      // Get login history for the user (from the UserActivity collection)
+      const loginHistory = await UserActivityModel.find({ 
+        userId, 
+        activityType: 'login' 
+      })
+      .sort({ timestamp: -1 })
+      .limit(10);
+      
+      res.json(loginHistory);
+    } catch (error) {
+      console.error('Error fetching login history:', error);
+      res.status(500).json({
+        error: 'Failed to fetch login history',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  app.get('/api/user/history/activity', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+      
+      // Get recent activity for the user (from the UserActivity collection)
+      const activityHistory = await getUserActivityHistory(userId, 20);
+      
+      res.json(activityHistory);
+    } catch (error) {
+      console.error('Error fetching activity history:', error);
+      res.status(500).json({
+        error: 'Failed to fetch activity history',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }

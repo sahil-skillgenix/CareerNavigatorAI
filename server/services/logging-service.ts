@@ -166,27 +166,55 @@ export function authEventLogger() {
     const originalLogout = req.logout;
     
     // Override login method to log successful logins
-    req.login = function(user, options, done) {
+    // Handle all the function overloads
+    req.login = function(user: any, optionsOrDone?: any, done?: any) {
+      let options: any;
+      let callback: (err: any) => void;
+      
+      // Handle different call signatures
+      if (typeof optionsOrDone === 'function') {
+        options = {};
+        callback = optionsOrDone;
+      } else {
+        options = optionsOrDone || {};
+        callback = done;
+      }
+      
       // Call original login method
       return originalLogin.call(this, user, options, (err: any) => {
         if (!err && user) {
           // Log successful login
-          logUserActivity({
-            userId: user.id,
-            activityType: 'login',
-            req
-          });
+          const userId = user.id?.toString() || '';
+          if (userId) {
+            logUserActivity({
+              userId,
+              activityType: 'login',
+              req
+            });
+          }
         }
         
         // Continue with original callback
-        if (done) return done(err);
+        if (callback) return callback(err);
       });
     };
     
     // Override logout method to log logouts
-    req.logout = function(options, done) {
+    req.logout = function(optionsOrDone?: any, done?: any) {
       // Get user ID before logout
-      const userId = req.user?.id;
+      const userId = req.user?.id?.toString() || '';
+      
+      // Handle different call signatures
+      let options: any;
+      let callback: (err: any) => void;
+      
+      if (typeof optionsOrDone === 'function') {
+        options = {};
+        callback = optionsOrDone;
+      } else {
+        options = optionsOrDone || {};
+        callback = done;
+      }
       
       // Call original logout method
       return originalLogout.call(this, options, (err: any) => {
@@ -200,7 +228,7 @@ export function authEventLogger() {
         }
         
         // Continue with original callback
-        if (done) return done(err);
+        if (callback) return callback(err);
       });
     };
     

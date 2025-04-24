@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { connectToDatabase } from "./db/mongodb";
 import { registerRoutes } from "./routes";
 import { MongoDBStorage } from "./mongodb-storage";
+import { apiRequestLogger, errorLogger, authEventLogger } from "./services/logging-service";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -13,7 +14,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Simple logging middleware
+// MongoDB-based API request logging middleware
+app.use(apiRequestLogger());
+
+// Authentication event logging middleware
+app.use(authEventLogger());
+
+// Simple console logging middleware (kept for immediate feedback)
 app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
@@ -55,8 +62,11 @@ app.get("/api/health", (_req, res) => {
       await registerRoutes(app);
     }
     
-    // Error handler
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    // Database error logging middleware
+    app.use(errorLogger());
+    
+    // Final error handler
+    app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
       console.error("Error:", err);
