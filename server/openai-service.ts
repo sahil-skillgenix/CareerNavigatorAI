@@ -183,7 +183,51 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       You are an expert career analyst specialized in SFIA 9 and DigComp 2.2 frameworks. 
       Analyze this career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights.
       
-      Format your entire response as a JSON object. Include all analysis sections as structured JSON data.
+      Format your entire response as a JSON object following this exact structure:
+      
+      {
+        "executiveSummary": "string",
+        "skillMapping": {
+          "sfia9": [{"skill": "string", "level": "string", "description": "string"}],
+          "digcomp22": [{"competency": "string", "level": "string", "description": "string"}]
+        },
+        "skillGapAnalysis": {
+          "gaps": [{"skill": "string", "importance": "string", "description": "string"}],
+          "strengths": [{"skill": "string", "level": "string", "relevance": "string", "description": "string"}],
+          "aiAnalysis": "string",
+          "recommendations": [{"area": "string", "suggestion": "string", "impactLevel": "string"}]
+        },
+        "careerPathway": {
+          "withDegree": [{"step": 1, "role": "string", "timeframe": "string", "keySkillsNeeded": ["string"], "description": "string"}],
+          "withoutDegree": [{"step": 1, "role": "string", "timeframe": "string", "keySkillsNeeded": ["string"], "description": "string"}],
+          "aiRecommendations": "string"
+        },
+        "developmentPlan": {
+          "skillsToAcquire": [{"skill": "string", "priority": "string", "resources": ["string"]}],
+          "recommendedCertifications": {
+            "university": ["string"],
+            "vocational": ["string"],
+            "online": ["string"]
+          },
+          "suggestedProjects": ["string"],
+          "learningPath": "string",
+          "roadmapStages": [{"stage": 1, "title": "string", "timeframe": "string", "focusAreas": ["string"], "milestones": ["string"], "description": "string"}],
+          "microLearningTips": [{"skillArea": "string", "tip": "string", "estimatedTimeMinutes": 30, "impactLevel": "high"}],
+          "personalizedGrowthInsights": "string"
+        },
+        "similarRoles": [{"role": "string", "similarityScore": 0.8, "keySkillsOverlap": ["string"], "uniqueRequirements": ["string"], "potentialSalaryRange": "string", "locationSpecificDemand": "string"}],
+        "socialSkills": {
+          "criticalSoftSkills": [{"skill": "string", "importance": "string", "developmentStrategies": ["string"]}],
+          "communicationRecommendations": "string",
+          "leadershipDevelopment": "string",
+          "teamworkStrategies": "string",
+          "networkingOpportunities": [{"type": "string", "specificRecommendation": "string", "location": "string"}]
+        },
+        "reviewNotes": {
+          "firstReview": "string",
+          "secondReview": "string"
+        }
+      }
       
       Current Professional Level: ${input.professionalLevel}
       Current Skills: ${input.currentSkills}
@@ -193,7 +237,7 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
       State/Province: ${input.state || 'Not specified'}
       Country: ${input.country || 'Not specified'}
       
-      STRICTLY follow this enhanced 8-step process in order and provide the results as a JSON object:
+      STRICTLY follow this enhanced 8-step process in order and provide the results in the exact JSON format specified above:
       
       1. INPUT ANALYSIS USING FRAMEWORKS:
       - Clearly assess all provided inputs
