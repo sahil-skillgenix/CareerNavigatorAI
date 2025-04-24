@@ -12,6 +12,9 @@ import UserModel from "./user";
 import CareerAnalysisModel from "./careerAnalysis";
 import UserBadgeModel from "./userBadge";
 import UserProgressModel from "./userProgress";
+import ErrorLogModel from "./errorLog";
+import UserActivityModel from "./userActivity";
+import APIRequestLogModel from "./apiRequestLog";
 
 // Export document types
 export type { 
@@ -28,6 +31,9 @@ export type { UserDocument } from "./user";
 export type { CareerAnalysisDocument } from "./careerAnalysis";
 export type { UserBadgeDocument } from "./userBadge";
 export type { UserProgressDocument } from "./userProgress";
+export type { ErrorLogDocument } from "./errorLog";
+export type { UserActivityDocument } from "./userActivity";
+export type { APIRequestLogDocument } from "./apiRequestLog";
 
 // Re-export models for easy imports elsewhere
 export { 
@@ -43,5 +49,8 @@ export {
   UserModel,
   CareerAnalysisModel,
   UserBadgeModel,
-  UserProgressModel
+  UserProgressModel,
+  ErrorLogModel,
+  UserActivityModel,
+  APIRequestLogModel
 };
