@@ -103,66 +103,10 @@ export default function Navbar() {
                       <DropdownMenuSeparator />
                       
                       <DropdownMenuGroup>
-                        <Link href="/dashboard">
+                        <Link href="/settings">
                           <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Dashboard</span>
-                          </DropdownMenuItem>
-                        </Link>
-                        
-                        <Link href="/my-details">
-                          <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>My Details</span>
-                          </DropdownMenuItem>
-                        </Link>
-                        
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger>
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span>
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuPortal>
-                            <DropdownMenuSubContent className="w-56">
-                              <Link href="/settings/profile">
-                                <DropdownMenuItem>
-                                  <UserCog className="mr-2 h-4 w-4" />
-                                  <span>Profile Settings</span>
-                                </DropdownMenuItem>
-                              </Link>
-                              <Link href="/settings/security">
-                                <DropdownMenuItem>
-                                  <Lock className="mr-2 h-4 w-4" />
-                                  <span>Security</span>
-                                </DropdownMenuItem>
-                              </Link>
-                              <Link href="/settings/notifications">
-                                <DropdownMenuItem>
-                                  <Bell className="mr-2 h-4 w-4" />
-                                  <span>Notifications</span>
-                                </DropdownMenuItem>
-                              </Link>
-                              <Link href="/settings/2fa">
-                                <DropdownMenuItem>
-                                  <Shield className="mr-2 h-4 w-4" />
-                                  <span>Email 2FA</span>
-                                </DropdownMenuItem>
-                              </Link>
-                            </DropdownMenuSubContent>
-                          </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                        
-                        <Link href="/learning-resources">
-                          <DropdownMenuItem>
-                            <Mail className="mr-2 h-4 w-4" />
-                            <span>Learning Resources</span>
-                          </DropdownMenuItem>
-                        </Link>
-                        
-                        <Link href="/saved-resources">
-                          <DropdownMenuItem>
-                            <Briefcase className="mr-2 h-4 w-4" />
-                            <span>Saved Resources</span>
                           </DropdownMenuItem>
                         </Link>
                       </DropdownMenuGroup>
@@ -232,19 +176,10 @@ export default function Navbar() {
                           Dashboard
                         </Button>
                       </Link>
-                      <Link href="/my-details">
+                      <Link href="/settings">
                         <Button className="w-full justify-start" variant="ghost">
-                          My Details
-                        </Button>
-                      </Link>
-                      <Link href="/learning-resources">
-                        <Button className="w-full justify-start" variant="ghost">
-                          Learning Resources
-                        </Button>
-                      </Link>
-                      <Link href="/saved-resources">
-                        <Button className="w-full justify-start" variant="ghost">
-                          Saved Resources
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
                         </Button>
                       </Link>
                       <Button 
