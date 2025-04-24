@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { SkillRadarChart } from "@/components/career-pathway/SkillRadarChart";
 import { ComparativeBarChart } from "@/components/career-pathway/ComparativeBarChart";
+import { AIRecommendationsPanel } from "@/components/career-pathway/AIRecommendationsPanel";
 
 interface SavedAnalysis {
   id: string;
@@ -325,20 +326,35 @@ export function SavedAnalyses() {
                       
                       {/* Skill Visualization Charts */}
                       <div className="mt-6 space-y-8">
-                        {/* Skill Radar Chart */}
-                        <div className="border rounded-md p-3 bg-muted/20">
-                          <h4 className="text-sm font-medium mb-3 text-center">Skill Gap Visualization</h4>
-                          <div className="w-full" style={{ height: '300px' }}>
-                            {latestAnalysis.result && <SkillRadarChart results={latestAnalysis.result} />}
+                        {/* Skill Visualization Section */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Skill Radar Chart */}
+                          <div className="border rounded-md p-3 bg-muted/20">
+                            <h4 className="text-sm font-medium mb-3 text-center">Skill Gap Visualization</h4>
+                            <div className="w-full" style={{ height: '300px' }}>
+                              {latestAnalysis.result && <SkillRadarChart results={latestAnalysis.result} />}
+                            </div>
+                          </div>
+                          
+                          {/* Comparative Bar Chart */}
+                          <div className="border rounded-md p-3 bg-muted/20">
+                            <h4 className="text-sm font-medium mb-3 text-center">Skills Comparison</h4>
+                            <div className="w-full" style={{ height: '300px' }}>
+                              {latestAnalysis.result && <ComparativeBarChart results={latestAnalysis.result} />}
+                            </div>
                           </div>
                         </div>
                         
-                        {/* Comparative Bar Chart */}
-                        <div className="border rounded-md p-3 bg-muted/20">
-                          <h4 className="text-sm font-medium mb-3 text-center">Skills Comparison</h4>
-                          <div className="w-full" style={{ height: '300px' }}>
-                            {latestAnalysis.result && <ComparativeBarChart results={latestAnalysis.result} />}
-                          </div>
+                        {/* AI Recommendations Section - Only show if expanded */}
+                        <div>
+                          {latestAnalysis.result && 
+                            (latestAnalysis.result.skillGapAnalysis?.aiAnalysis ||
+                             latestAnalysis.result.careerPathway?.aiRecommendations ||
+                             latestAnalysis.result.developmentPlan?.personalizedGrowthInsights) && (
+                            <div className="mt-6">
+                              {latestAnalysis.result && <AIRecommendationsPanel results={latestAnalysis.result} />}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
