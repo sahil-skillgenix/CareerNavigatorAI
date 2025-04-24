@@ -75,8 +75,10 @@ async function repairProblematicIndexes() {
           if (idx.name !== '_id_' && (idx.name === 'id_1' || (idx.key && idx.key.id))) {
             log(`Dropping index ${idx.name} from ${collectionName}`, "mongodb");
             try {
-              await collection.dropIndex(idx.name);
-              log(`Successfully dropped index ${idx.name} from ${collectionName}`, "mongodb");
+              // Ensure idx.name is always a string
+              const indexName = idx.name ? String(idx.name) : '_id_';
+              await collection.dropIndex(indexName);
+              log(`Successfully dropped index ${indexName} from ${collectionName}`, "mongodb");
             } catch (indexError) {
               log(`Error dropping index ${idx.name}: ${indexError}`, "mongodb");
             }

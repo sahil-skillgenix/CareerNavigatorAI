@@ -103,324 +103,199 @@ export interface CareerAnalysisOutput {
   };
 }
 
-export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<CareerAnalysisOutput> {
-  try {
-    const prompt = `
-    You are an expert career analyst specialized in SFIA 9 and DigComp 2.2 frameworks. 
-    Analyze this career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights:
-    
-    Current Professional Level: ${input.professionalLevel}
-    Current Skills: ${input.currentSkills}
-    Educational Background: ${input.educationalBackground}
-    Career History: ${input.careerHistory}
-    Desired Role or Career Goal: ${input.desiredRole}
-    State/Province: ${input.state || 'Not specified'}
-    Country: ${input.country || 'Not specified'}
-    
-    STRICTLY follow this enhanced 8-step process in order:
-    
-    1. INPUT ANALYSIS USING FRAMEWORKS:
-    - Clearly assess all provided inputs, explicitly noting any assumptions or ambiguities
-    - Thoroughly analyze the user's input using both SFIA 9 and DigComp 2.2 frameworks
-    - Identify specific competency areas and levels from both frameworks that apply to the user
-    - Create a comprehensive assessment of the user's current position within these frameworks
-    - Explicitly consider location (state and country), personal interests, passions, and lifestyle preferences
-    
-    2. MAP EXISTING SKILLS:
-    - For SFIA 9: Map each skill to the appropriate category and assign a level (1-7), with detailed descriptions
-    - For DigComp 2.2: Map skills to the appropriate competence area and proficiency level with detailed explanations
-    - Be specific about which competencies and levels are already met, with justification
-    - Clearly identify skill strengths, rating them (high, medium, low) based on evidence provided
-    
-    3. PERFORM SKILL GAP ANALYSIS:
-    - Compare current skills against requirements for desired role using both frameworks
-    - Identify specific skill gaps with importance ratings (high, medium, low) and detailed descriptions
-    - Highlight existing strengths with relevance to desired role and detailed explanations
-    - Provide comprehensive analysis of missing competencies and levels across both frameworks
-    - Prioritize gaps based on criticality for the desired role
-    
-    4. GENERATE CAREER PATHWAY:
-    - Create TWO distinct pathway options:
-      a) WITH Degree + Skills + Experience: Traditional pathway assuming university education
-      b) WITHOUT Degree, using vocational qualifications + Skills + Experience: Alternative pathway for non-university route (use appropriate local terms: TAFE in Australia, Community College in USA, Further Education in UK, etc.)
-    - For each pathway option, create a logical progression of roles/steps toward the goal
-    - Include realistic timeframe estimates for each step
-    - List specific key skills needed for each step
-    - Provide detailed descriptions of each role/step
-    - For the degree pathway, include specific qualification requirements from universities in the user's location
-    - For the non-degree pathway, include alternative qualifications from vocational institutions available in the user's location
-    
-    5. IDENTIFY SIMILAR ROLES:
-    - Analyze the job market specifically in the user's location (state/province and country)
-    - Identify 4-6 alternative roles that share significant skill overlap with the desired role
-    - For each similar role, provide:
-      a) A similarity score (percentage of skill overlap)
-      b) List of overlapping key skills
-      c) Unique requirements not shared with the desired role
-      d) Location-specific salary information based on state/province and country (include currency and ranges)
-      e) Assessment of local job market demand (high/medium/low with explanation specific to the location)
-      f) Transition difficulty assessment (easy, moderate, challenging)
-    
-    6. DEVELOP SOCIAL & SOFT SKILLS PLAN:
-    - Identify critical soft skills needed for success in the desired role and industry
-    - Provide specific, actionable strategies for developing each skill
-    - Include location-specific communication recommendations (accounting for regional business culture)
-    - Provide tailored leadership development advice relevant to the industry and career level
-    - Suggest teamwork strategies specific to the role
-    - Recommend networking opportunities that are specific to the user's location, naming actual organizations, events, or meetups
-    - Address risk tolerance, emotional intelligence, and work-life balance considerations
-    
-    7. CREATE PERSONALIZED DEVELOPMENT PLAN:
-    - List specific skills to acquire or improve with priority levels (high, medium, low)
-    - Recommend multiple types of learning resources:
-      a) Location-specific university courses and programs - ONLY from institutions in the user's state/province
-      b) Location-specific technical/vocational education - ONLY from institutions in the user's state/province
-      c) Online learning platforms and courses accessible in the user's location
-    - Suggest specific experiences or projects to pursue with actionable steps
-    - Outline a clear learning path with milestones and timeframes
-    - Include strategies for maintaining mental health and well-being during career transitions
-    - Recommend mentorship and coaching opportunities available in the user's location
-    - Provide specific guidance on career pivots, transitions, or lateral moves
-    
-    8. QUALITY ASSURANCE (Two Review Stages):
-    - First Review: Validate input data and interpretations for accuracy and consistency
-    - Second Review: Re-check all sections for completeness, coherence, and alignment with the frameworks
-    - Ensure all location-specific recommendations are accurate and relevant to the provided state/province and country
-    - Verify that all pathways and recommendations are realistic and achievable
-    
-    Return the result as a JSON object with these EXACT sections:
-    - executiveSummary: A concise overview of the analysis
-    - skillMapping: {
-        sfia9: [{skill, level, description}],
-        digcomp22: [{competency, level, description}]
-      }
-    - skillGapAnalysis: {
-        gaps: [{skill, importance, description}],
-        strengths: [{skill, level, relevance, description}],
-        aiAnalysis: "A detailed GenAI analysis of the skill gaps, explaining patterns, underlying issues, and strategic insights beyond the framework-based analysis",
-        recommendations: [{area, suggestion, impactLevel}]
-      }
-    - careerPathway: {
-        withDegree: [{
-          step, 
-          role, 
-          timeframe, 
-          keySkillsNeeded, 
-          description, 
-          requiredQualification,
-          recommendedProjects: [{name, description, skillsGained}],
-          jobOpportunities: [{roleType, description, skillsUtilized}]
-        }],
-        withoutDegree: [{
-          step, 
-          role, 
-          timeframe, 
-          keySkillsNeeded, 
-          description, 
-          alternativeQualification,
-          recommendedProjects: [{name, description, skillsGained}],
-          jobOpportunities: [{roleType, description, skillsUtilized}]
-        }],
-        aiRecommendations: "Strategic GenAI recommendations for optimizing the career pathway, including fast-tracking options, unique opportunities to consider, and creative approaches to career development"
-      }
-    - developmentPlan: {
-        skillsToAcquire: [{skill, priority, resources}],
-        recommendedCertifications: {
-          university: [],
-          vocational: [], // TAFE in Australia, Community College in USA, Further Education in UK, etc.
-          online: []
-        },
-        suggestedProjects: [],
-        learningPath,
-        roadmapStages: [{
-          stage, 
-          title, 
-          timeframe, 
-          focusAreas, 
-          milestones, 
-          description
-        }],
-        microLearningTips: [{
-          skillArea,
-          tip,
-          estimatedTimeMinutes,
-          impactLevel,
-          source
-        }],
-        platformSpecificCourses: {
-          microsoft: [{title, url, level, duration}],
-          udemy: [{title, url, instructorName, rating, studentsCount}],
-          linkedinLearning: [{title, url, author, level, duration}],
-          coursera: [{title, url, partner, certificationType, duration}]
-        },
-        personalizedGrowthInsights
-      }
-    - similarRoles: [{
-        role,
-        similarityScore,
-        keySkillsOverlap,
-        uniqueRequirements,
-        potentialSalaryRange,
-        locationSpecificDemand
-      }]
-    - socialSkills: {
-        criticalSoftSkills: [{skill, importance, developmentStrategies}],
-        communicationRecommendations,
-        leadershipDevelopment,
-        teamworkStrategies,
-        networkingOpportunities: [{type, specificRecommendation, location}]
-      }
-    - reviewNotes: {
-        firstReview,
-        secondReview
-      }
-    
-    CRITICAL LOCATION-SPECIFIC INSTRUCTIONS (HIGHEST PRIORITY): 
-    - Every section must contain explicit location-specific information directly mentioning the user's state/province and country
-    - ALL educational program recommendations MUST ONLY come from the user's exact location (state/province and country)
-    
-    For Educational Programs:
-    - Based on the user's provided location (country and state/province):
-      * If Australia - Victoria: Recommend Melbourne University, RMIT, Monash, Victoria University, Deakin, Swinburne, etc.
-      * If Australia - New South Wales: Recommend UNSW, Sydney University, UTS, Macquarie, Western Sydney University, etc.
-      * If UK - England: Recommend universities specific to their region (London, Manchester, etc.)
-      * If USA - California: Recommend universities specific to California (UCLA, Stanford, UC Berkeley, etc.)
-      * If Canada - Ontario: Recommend universities specific to Ontario (University of Toronto, York University, etc.)
-      * For ANY other country or region: ONLY recommend actual educational institutions from that specific location
-    
-    - Always include the full location name in recommendations (e.g., "RMIT University, Melbourne, Victoria, Australia" or "University of Manchester, Manchester, UK")
-    
-    For Similar Roles:
-    - Provide salary ranges with the EXACT local currency and format for the user's location:
-      * If Australia: "AUD 90,000-110,000 in Melbourne, Victoria"
-      * If UK: "GBP 45,000-60,000 in Manchester, England"
-      * If USA: "USD 80,000-95,000 in San Francisco, California"
-      * If Germany: "EUR 60,000-75,000 in Berlin"
-    - Specify demand levels with the exact location name:
-      * "High demand in the Greater London area, UK"
-      * "Moderate demand in Toronto metropolitan area, Ontario, Canada"
-    
-    For Social Skills & Networking:
-    - Name actual professional organizations that exist in the user's specific country and region
-    - Recommend networking opportunities relevant to the user's exact location (city/region)
-    - Include location-specific cultural context for communication style
-    
-    DO NOT default to Australian options unless the user specifies Australia as their country.
-    If location is not specified, CLEARLY state this limitation in your recommendations.`;
+// Rate limiting implementation to prevent overuse of the OpenAI API
+const API_CALL_INTERVAL = 1000; // Minimum interval between API calls in ms
+const MAX_RETRIES = 3; // Maximum number of retry attempts for API calls
+let lastAPICallTime = 0; // Timestamp of the last API call
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways worldwide.
-          
-          SFIA 9 (Skills Framework for the Information Age) defines IT skills across 7 levels of responsibility and numerous skill categories. The 7 levels represent progressive levels of autonomy, influence, complexity, and business skills.
-          
-          DigComp 2.2 (European Digital Competence Framework) covers 5 competence areas: Information and data literacy, Communication and collaboration, Digital content creation, Safety, and Problem solving. Each area has proficiency levels from foundation to highly specialized.
-          
-          Your task is to analyze career information using both frameworks and provide comprehensive, structured career guidance following this exact 8-step process:
-          
-          1. ANALYZE INPUT USING FRAMEWORKS:
-          - Thoroughly analyze the user's skills against both SFIA 9 and DigComp 2.2
-          - Map current capabilities to specific competency levels in both frameworks
-          - Identify strengths and areas for development
-          
-          2. MAP EXISTING SKILLS:
-          - Create detailed mappings with specific level assignments
-          - Provide justifications for each mapping
-          - Consider both technical and soft skills
-          
-          3. PERFORM SKILL GAP ANALYSIS:
-          - Identify specific gaps between current skills and desired role requirements
-          - Rate importance of each gap
-          - Provide detailed context for how each gap impacts career progression
-          - Include deeper AI analysis of patterns across skill gaps, giving insightful recommendations beyond the framework-based assessment
-          - Provide clear, actionable recommendations for addressing each gap area
-          
-          4. GENERATE CAREER PATHWAY:
-          - Create TWO distinct pathway options:
-            a) WITH university degree + skills + experience
-            b) WITHOUT degree, using vocational/technical qualifications + skills + experience (using country-appropriate terms: TAFE in Australia, Community College in USA, Further Education in UK, etc.)
-          - Design logical progression steps for each pathway
-          - Include role descriptions, timeframes, and required skills for each step
-          - For each pathway step, add recommended practical projects to gain experience and job opportunities to apply for
-          - Provide comprehensive AI-powered recommendations for optimizing and fast-tracking the career journey
-          
-          5. IDENTIFY SIMILAR ROLES:
-          - Analyze the job market in the user's specified location (state/province and country)
-          - Identify 4-6 alternative roles that share significant skill overlap with the desired role
-          - For each similar role, provide similarity score, key skill overlap, unique requirements, and location-specific demand
-          
-          6. DEVELOP SOCIAL & SOFT SKILLS PLAN:
-          - Identify critical soft skills needed for success in the desired role and industry
-          - Provide specific, actionable strategies for developing each skill
-          - Include location-specific communication and leadership development recommendations
-          - Suggest networking opportunities specific to the user's location
-          
-          7. CREATE PERSONALIZED DEVELOPMENT PLAN:
-          - Consider the user's location (state/province and country) when making recommendations
-          - For Australia: Recommend specific university courses and TAFE programs relevant to the state
-          - For other countries: Recommend appropriate local educational institutions and programs
-          - Include quality online learning resources that are accessible globally
-          - Provide a structured learning roadmap with clear milestones tailored to location
-          - Create a detailed, multi-stage career development roadmap with specific milestones, focus areas and timeframes
-          - Include visual-friendly structure for roadmap stages that can be animated in a timeline visualization
-          - Create 5-7 concise micro-learning tips (2-5 minute activities) for rapid skill development
-          - Provide personalized growth insights that highlight expected skill progression trajectory and milestones
-          - Include platform-specific course recommendations from Microsoft Learning, Udemy, LinkedIn Learning, and Coursera with accurate URLs
-          
-          8. CONDUCT QUALITY ASSURANCE:
-          - Perform two-stage review to ensure accuracy and completeness
-          - Validate all recommendations against education standards for the user's location
-          - Ensure pathways are realistic and achievable in the specified location
-          
-          MANDATORY GLOBAL LOCATION-SPECIFIC REQUIREMENTS:
-          - NEVER provide generic location recommendations - all must be specific to the user's state/province and country
-          - For educational institution recommendations:
-            * If Australia - Victoria: ONLY recommend Melbourne-based institutions (Melbourne Uni, RMIT, Monash, etc.)
-            * If Australia - New South Wales: ONLY recommend NSW-based institutions (UNSW, Sydney Uni, UTS, etc.)
-            * If UK - England: ONLY recommend universities in the specific region (London, Manchester, etc.)
-            * If USA - California: ONLY recommend Californian institutions (UCLA, Stanford, USC, etc.)
-            * For ANY location worldwide: ONLY recommend institutions that actually exist in that specific region/country
-          
-          - For similar roles analysis:
-            * ALL salary information must include the correct local currency and format for that country:
-              - Australia: "AUD 85,000-95,000 in Melbourne"
-              - UK: "GBP 45,000-60,000 in London"
-              - USA: "USD 90,000-120,000 in New York"
-              - Germany: "EUR 65,000-80,000 in Berlin"
-            * ALL demand assessments must specify exact locations with region/city names
-          
-          - For networking recommendations:
-            * Name ACTUAL professional organizations that exist in the user's specific country and region
-            * Suggest SPECIFIC events, meetups or communities relevant to the user's exact location
+/**
+ * Sleep function for rate limiting
+ * @param ms Milliseconds to sleep
+ */
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-          EVERY recommendation MUST explicitly mention the user's actual location by name, including both city/region and country
+/**
+ * Rate limiter to ensure we don't exceed OpenAI's rate limits
+ * This creates a controlled delay between API calls
+ */
+async function enforceRateLimit() {
+  const now = Date.now();
+  const timeElapsed = now - lastAPICallTime;
+  
+  if (timeElapsed < API_CALL_INTERVAL) {
+    // If we've made a request too recently, wait the appropriate amount of time
+    const waitTime = API_CALL_INTERVAL - timeElapsed;
+    console.log(`Rate limiting: Waiting ${waitTime}ms before next OpenAI API call`);
+    await sleep(waitTime);
+  }
+  
+  lastAPICallTime = Date.now();
+}
 
-          DO NOT default to Australian options unless the user specifically indicates Australia.
-          If location is not specified, CLEARLY state this limitation in your recommendations.
-          
-          Only return output that follows the specified JSON format after both review stages are passed.`
-        },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.5, // Lower temperature for more consistent results
-      max_tokens: 4000,
-    });
-
-    const content = response.choices[0].message.content || "";
-    if (!content) {
-      throw new Error("Empty response from OpenAI API");
+/**
+ * Process and sanitize OpenAI API errors for better debugging and user feedback
+ * @param error Error thrown by OpenAI API
+ */
+function processOpenAIError(error: unknown): Error {
+  console.error("OpenAI API Error:", error);
+  
+  // Error from the OpenAI SDK has specific structure
+  if (typeof error === 'object' && error !== null) {
+    // Handle rate limiting errors specifically
+    if ('status' in error && error.status === 429) {
+      return new Error("OpenAI API rate limit exceeded. Please try again in a moment.");
     }
-    return JSON.parse(content) as CareerAnalysisOutput;
-  } catch (error: unknown) {
-    console.error("Error analyzing career pathway:", error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to analyze career pathway: ${error.message}`);
-    } else {
-      throw new Error("Failed to analyze career pathway: Unknown error");
+    
+    // Handle authentication errors
+    if ('status' in error && error.status === 401) {
+      return new Error("API key authentication error. Please check your OpenAI API key configuration.");
+    }
+    
+    // Handle API availability errors
+    if ('status' in error && (error.status === 503 || error.status === 500)) {
+      return new Error("OpenAI service is currently unavailable. Please try again later.");
+    }
+    
+    // Extract error message if available
+    if ('message' in error && typeof error.message === 'string') {
+      return new Error(`OpenAI API error: ${error.message}`);
     }
   }
+  
+  // Default error message if we can't extract specifics
+  return new Error("An error occurred while processing your request with the AI service.");
+}
+
+/**
+ * Analyzes career pathway with error handling and retry logic
+ * @param input The career analysis input data
+ * @returns A structured career analysis output
+ */
+export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<CareerAnalysisOutput> {
+  let retries = 0;
+  
+  while (retries <= MAX_RETRIES) {
+    try {
+      // Apply rate limiting
+      await enforceRateLimit();
+      
+      const prompt = `
+      You are an expert career analyst specialized in SFIA 9 and DigComp 2.2 frameworks. 
+      Analyze this career information deeply and contextually, explicitly taking into account the provided state and country to deliver localized insights:
+      
+      Current Professional Level: ${input.professionalLevel}
+      Current Skills: ${input.currentSkills}
+      Educational Background: ${input.educationalBackground}
+      Career History: ${input.careerHistory}
+      Desired Role or Career Goal: ${input.desiredRole}
+      State/Province: ${input.state || 'Not specified'}
+      Country: ${input.country || 'Not specified'}
+      
+      STRICTLY follow this enhanced 8-step process in order:
+      
+      1. INPUT ANALYSIS USING FRAMEWORKS:
+      - Clearly assess all provided inputs
+      - Thoroughly analyze using both SFIA 9 and DigComp 2.2 
+      - Identify competency areas and levels
+      - Create assessment of current position within frameworks
+      
+      2. MAP EXISTING SKILLS:
+      - Map skills to SFIA 9 and DigComp 2.2 frameworks
+      - Assign appropriate levels with justification
+      - Identify strengths clearly
+      
+      3. PERFORM SKILL GAP ANALYSIS:
+      - Compare current skills against desired role requirements
+      - Identify specific gaps with importance ratings
+      - Highlight existing strengths relevant to desired role
+      - Provide comprehensive analysis of missing competencies
+      
+      4. GENERATE CAREER PATHWAY:
+      - Create two distinct pathway options (with/without degree)
+      - Design logical progression steps
+      - Include timeframes, skills, and descriptions
+      - Provide qualification details appropriate to location
+      
+      5. IDENTIFY SIMILAR ROLES:
+      - Analyze job market in the user's location
+      - Identify alternative roles with skill overlap
+      - Include similarity scores, skills, requirements
+      - Provide location-specific salary information
+      
+      6. DEVELOP SOCIAL SKILLS PLAN:
+      - Identify critical soft skills
+      - Provide development strategies
+      - Include location-specific recommendations
+      - Suggest location-specific networking opportunities
+      
+      7. CREATE PERSONALIZED DEVELOPMENT PLAN:
+      - List skills to acquire with priority levels
+      - Recommend learning resources specific to location
+      - Suggest projects and experiences
+      - Create a clear roadmap with milestones
+      
+      8. QUALITY ASSURANCE:
+      - Validate all input interpretations
+      - Ensure all recommendations are location-specific
+      - Verify pathways are realistic and achievable
+      
+      All recommendations must be specific to the user's state/province and country.`;
+
+      console.log(`Making OpenAI API call (attempt ${retries + 1}/${MAX_RETRIES + 1})`);
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+        messages: [
+          { 
+            role: "system", 
+            content: `You are an expert career analyst specializing in the SFIA 9 and DigComp 2.2 frameworks with deep knowledge of global education and career pathways worldwide.`
+          },
+          { role: "user", content: prompt }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.5, // Lower temperature for more consistent results
+        max_tokens: 4000,
+      });
+
+      const content = response.choices[0].message.content || "";
+      if (!content) {
+        throw new Error("Empty response from OpenAI API");
+      }
+      
+      try {
+        // Parse JSON with extra validation
+        const parsedResponse = JSON.parse(content) as CareerAnalysisOutput;
+        
+        // Validate essential fields to ensure we have a complete analysis
+        const requiredFields = ['executiveSummary', 'skillMapping', 'skillGapAnalysis', 'careerPathway', 'developmentPlan'];
+        const missingFields = requiredFields.filter(field => !parsedResponse[field as keyof CareerAnalysisOutput]);
+        
+        if (missingFields.length > 0) {
+          throw new Error(`Incomplete analysis response. Missing fields: ${missingFields.join(', ')}`);
+        }
+        
+        console.log("Career analysis generated successfully");
+        return parsedResponse;
+      } catch (parseError) {
+        throw new Error(`Failed to parse OpenAI response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON format'}`);
+      }
+    } catch (error) {
+      // Increment retry counter
+      retries++;
+      
+      if (retries <= MAX_RETRIES) {
+        // Exponential backoff for retries: 2^retry * 1000ms (2s, 4s, 8s, etc.)
+        const backoffTime = Math.pow(2, retries) * 1000;
+        console.log(`OpenAI API call failed. Retrying in ${backoffTime}ms...`);
+        await sleep(backoffTime);
+        continue;
+      }
+      
+      // If we've exhausted all retries, throw a processed error
+      throw processOpenAIError(error);
+    }
+  }
+  
+  // Should never reach here, but TypeScript requires a return
+  throw new Error("Failed to analyze career pathway after multiple attempts");
 }
