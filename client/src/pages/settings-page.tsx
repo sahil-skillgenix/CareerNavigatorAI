@@ -32,12 +32,14 @@ export default function SettingsPage() {
           
           <Separator />
           
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-            <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-              <aside className="lg:w-1/5">
-                <SettingsTabs />
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
+              <aside className="lg:col-span-3">
+                <div className="sticky top-20">
+                  <SettingsTabs />
+                </div>
               </aside>
-              <div className="flex-1 lg:max-w-3xl">
+              <div className="lg:col-span-9">
                 <TabsContent value="profile">
                   <ProfileSettings />
                 </TabsContent>
@@ -61,24 +63,26 @@ export default function SettingsPage() {
 
 function SettingsTabs() {
   return (
-    <TabsList className="flex flex-col w-full space-y-1">
-      <TabsTrigger value="profile" className="justify-start w-full">
-        <UserCog className="h-4 w-4 mr-2" />
-        Profile
-      </TabsTrigger>
-      <TabsTrigger value="security" className="justify-start w-full">
-        <Lock className="h-4 w-4 mr-2" />
-        Security
-      </TabsTrigger>
-      <TabsTrigger value="notifications" className="justify-start w-full">
-        <Bell className="h-4 w-4 mr-2" />
-        Notifications
-      </TabsTrigger>
-      <TabsTrigger value="2fa" className="justify-start w-full">
-        <Shield className="h-4 w-4 mr-2" />
-        Email 2FA
-      </TabsTrigger>
-    </TabsList>
+    <Card className="shadow-sm">
+      <TabsList className="flex flex-col w-full space-y-1 p-2 h-auto bg-white">
+        <TabsTrigger value="profile" className="justify-start w-full p-3 text-left data-[state=active]:bg-primary/10">
+          <UserCog className="h-4 w-4 mr-3" />
+          Profile
+        </TabsTrigger>
+        <TabsTrigger value="security" className="justify-start w-full p-3 text-left data-[state=active]:bg-primary/10">
+          <Lock className="h-4 w-4 mr-3" />
+          Security
+        </TabsTrigger>
+        <TabsTrigger value="notifications" className="justify-start w-full p-3 text-left data-[state=active]:bg-primary/10">
+          <Bell className="h-4 w-4 mr-3" />
+          Notifications
+        </TabsTrigger>
+        <TabsTrigger value="2fa" className="justify-start w-full p-3 text-left data-[state=active]:bg-primary/10">
+          <Shield className="h-4 w-4 mr-3" />
+          Email 2FA
+        </TabsTrigger>
+      </TabsList>
+    </Card>
   );
 }
 
