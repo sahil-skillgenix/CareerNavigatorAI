@@ -2752,10 +2752,16 @@ function CareerAnalysisResults({
                     // Save analysis to dashboard through API
                     console.log("Attempting to save career analysis to dashboard...");
                     
-                    // Simplify the form data object with minimal required information
+                    // Prepare the form data with all required fields for MongoDB
                     const formDataToSave = {
-                      // Only include user ID and results
                       userId: user?.id,
+                      professionalLevel: formData.professionalLevel,
+                      currentSkills: formData.currentSkills,
+                      educationalBackground: formData.educationalBackground,
+                      careerHistory: formData.careerHistory,
+                      desiredRole: formData.desiredRole,
+                      state: formData.state,
+                      country: formData.country,
                       result: results // Include the full analysis results
                     };
                     
