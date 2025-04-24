@@ -66,9 +66,16 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await storageInstance.getUser(id);
+      if (!user) {
+        // If user not found (possibly due to database repair), logout
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
-      done(error, null);
+      console.error("Error deserializing user:", error);
+      // For session deserialization issues, just return false rather than error
+      // This will log the user out without crashing the application
+      done(null, false);
     }
   });
 
