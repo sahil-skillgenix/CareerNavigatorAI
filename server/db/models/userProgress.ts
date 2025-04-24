@@ -36,15 +36,18 @@ const UserProgressSchema = new Schema<UserProgressDocument>(
   },
   { 
     timestamps: { createdAt: true, updatedAt: true },
-    // Don't use any virtual ID field or automatic ID creation
-    // Just rely on MongoDB's native _id handling
+    // Use MongoDB's native _id without additional virtual fields
     toJSON: {
       transform: (doc, ret) => {
         ret.id = ret._id.toString(); // Convert MongoDB ObjectId to string
         delete ret.__v;
         return ret;
       }
-    }
+    },
+    // IMPORTANT: This disables creating additional id fields
+    id: false,
+    // Disable the automatic id virtual getter/setter
+    _id: true
   }
 );
 

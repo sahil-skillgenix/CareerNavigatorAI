@@ -20,13 +20,16 @@ const UserSchema = new Schema<UserDocument>(
     timestamps: true,
     toJSON: {
       transform: (doc, ret) => {
-        ret.id = ret._id; // Map _id to id for consistency with our schema
-        delete ret._id;
+        ret.id = ret._id.toString(); // Convert MongoDB ObjectId to string
         delete ret.__v;
         delete ret.password; // Don't expose password in JSON
         return ret;
       }
-    }
+    },
+    // IMPORTANT: This disables creating additional id fields
+    id: false,
+    // Disable the automatic id virtual getter/setter
+    _id: true
   }
 );
 
