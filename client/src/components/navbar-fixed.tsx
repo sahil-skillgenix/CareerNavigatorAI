@@ -58,7 +58,7 @@ export default function Navbar() {
       className={`w-full ${isScrolled ? 'bg-white bg-opacity-95 backdrop-blur-sm shadow-sm' : 'bg-white'} z-50 transition-all duration-300`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/">

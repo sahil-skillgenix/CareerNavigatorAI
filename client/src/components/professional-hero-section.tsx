@@ -24,11 +24,11 @@ const fadeInVariants = {
 
 export default function ProfessionalHeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center bg-white overflow-hidden pt-16">
+    <section className="relative min-h-[85vh] flex items-center bg-white overflow-hidden pt-8">
       {/* Professional grid background */}
       <div className="absolute inset-0 bg-grid-professional opacity-[0.03] z-0"></div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           <div className="lg:col-span-6">
             <motion.div
