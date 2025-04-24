@@ -26,16 +26,25 @@ import { Loader2, AlertCircle, FileText, Clock, ArrowUpRight } from "lucide-reac
 interface CareerAnalysis {
   _id: string;
   userId: string;
-  title: string;
-  input: {
-    currentRole: string;
-    targetRole: string;
-    experience: string;
-    education: string;
-    skills: string;
-    industries: string;
+  professionalLevel: string;
+  currentSkills: string;
+  educationalBackground: string;
+  careerHistory: string;
+  desiredRole: string;
+  state?: string;
+  country?: string;
+  result?: {
+    executiveSummary: string;
+    skillMapping: any;
+    skillGapAnalysis: any;
+    careerPathway: any;
+    developmentPlan: any;
+    similarRoles: any[];
+    socialSkillsDevelopment: any;
+    qualityReview: string;
   };
   progress: number;
+  badges?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -146,9 +155,9 @@ function UserCareerAnalyses({ showAll = false }: { showAll?: boolean }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Current Role</TableHead>
-                <TableHead>Target Role</TableHead>
+                <TableHead>Professional Level</TableHead>
+                <TableHead>Current Skills</TableHead>
+                <TableHead>Desired Role</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Progress</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -157,9 +166,12 @@ function UserCareerAnalyses({ showAll = false }: { showAll?: boolean }) {
             <TableBody>
               {displayedAnalyses?.map((analysis) => (
                 <TableRow key={analysis._id}>
-                  <TableCell className="font-medium">{analysis.title}</TableCell>
-                  <TableCell>{analysis.input.currentRole}</TableCell>
-                  <TableCell>{analysis.input.targetRole}</TableCell>
+                  <TableCell className="font-medium">{analysis.professionalLevel}</TableCell>
+                  <TableCell>{analysis.currentSkills.length > 30 
+                    ? analysis.currentSkills.substring(0, 30) + '...' 
+                    : analysis.currentSkills}
+                  </TableCell>
+                  <TableCell>{analysis.desiredRole}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
