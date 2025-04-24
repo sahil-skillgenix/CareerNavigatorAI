@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '@/components/navbar';
+import Navbar from '@/components/navbar-fixed';
 import Footer from '@/components/footer';
 import SkillRoleIndustrySearch from '@/components/search/SkillRoleIndustrySearch';
 import { useEffect } from 'react';

@@ -1,4 +1,4 @@
-import Navbar from '@/components/navbar';
+import Navbar from '@/components/navbar-fixed';
 import ProfessionalHeroSection from '@/components/professional-hero-section';
 import ProfessionalJourneySection from '@/components/professional-journey-section';
 import ProfessionalSearchSection from '@/components/professional-search-section';
