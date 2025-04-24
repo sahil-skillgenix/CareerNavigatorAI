@@ -10,7 +10,8 @@ import {
   UserCog, 
   Lock, 
   Mail, 
-  Shield
+  Shield,
+  History
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -174,6 +175,13 @@ export default function Navbar() {
                           <span>Notifications</span>
                         </Link>
                       </DropdownMenuItem>
+                      
+                      <DropdownMenuItem asChild>
+                        <Link href="/history">
+                          <History className="mr-2 h-4 w-4" />
+                          <span>History & Logs</span>
+                        </Link>
+                      </DropdownMenuItem>
                     </DropdownMenuGroup>
                     
                     <DropdownMenuSeparator />
@@ -257,6 +265,12 @@ export default function Navbar() {
                       <Link href="/saved-resources" className="w-full">
                         <Button className="w-full justify-start" variant="ghost">
                           Saved Resources
+                        </Button>
+                      </Link>
+                      <Link href="/history" className="w-full">
+                        <Button className="w-full justify-start" variant="ghost">
+                          <History className="mr-2 h-4 w-4" />
+                          History & Logs
                         </Button>
                       </Link>
                       <Button 
