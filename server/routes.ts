@@ -34,6 +34,137 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     res.json({ status: 'ok', message: 'Skillgenix server is running' });
   });
   
+  // User profile settings endpoints
+  app.patch('/api/user/profile', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { email, phone } = req.body;
+      
+      if (email !== undefined) req.user.email = email;
+      if (phone !== undefined) req.user.phone = phone;
+      
+      // In a real implementation, we would call:
+      // await storageInstance.updateUser(req.user.id, { email, phone });
+      
+      res.json({
+        success: true,
+        user: req.user
+      });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to update profile', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
+  app.post('/api/user/change-password', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ 
+          error: 'Missing required fields',
+          message: 'Current password and new password are required'
+        });
+      }
+      
+      // In a real implementation, we would verify the current password:
+      // const isCorrectPassword = await comparePasswords(currentPassword, req.user.password);
+      // if (!isCorrectPassword) {
+      //   return res.status(400).json({ error: 'Current password is incorrect' });
+      // }
+      
+      // And then update the password:
+      // const hashedPassword = await hashPassword(newPassword);
+      // await storageInstance.updateUser(req.user.id, { password: hashedPassword });
+      
+      // For now, just simulate success
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      res.status(500).json({ 
+        error: 'Failed to change password', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
+  app.patch('/api/user/notifications', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { emailNotifications, smsNotifications, pushNotifications } = req.body;
+      
+      // In a real implementation, we would update the user's notification preferences:
+      // await storageInstance.updateUserNotifications(req.user.id, {
+      //   emailNotifications,
+      //   smsNotifications,
+      //   pushNotifications
+      // });
+      
+      // For now, just simulate success
+      res.json({
+        success: true,
+        preferences: {
+          emailNotifications,
+          smsNotifications,
+          pushNotifications
+        }
+      });
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+      res.status(500).json({ 
+        error: 'Failed to update notification preferences', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
+  app.post('/api/user/2fa', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    try {
+      const { enabled, verificationCode } = req.body;
+      
+      if (enabled === true && !verificationCode) {
+        return res.status(400).json({ 
+          error: 'Verification code required',
+          message: 'Verification code is required to enable 2FA'
+        });
+      }
+      
+      // In a real implementation, we would:
+      // 1. If enabling, verify the code sent to the user's email
+      // 2. Update the user's 2FA settings in the database
+      // await storageInstance.updateUser2FA(req.user.id, { enabled });
+      
+      // For now, just simulate success
+      res.json({
+        success: true,
+        twoFactorEnabled: enabled
+      });
+    } catch (error) {
+      console.error('Error updating 2FA settings:', error);
+      res.status(500).json({ 
+        error: 'Failed to update 2FA settings', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+  
   // User details endpoint
   app.get('/api/user/details', (req, res) => {
     if (!req.isAuthenticated()) {
