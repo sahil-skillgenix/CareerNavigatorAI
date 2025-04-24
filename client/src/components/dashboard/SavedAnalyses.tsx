@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   Card, 
@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, ChartBarIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { SkillRadarChart } from "@/components/career-pathway/SkillRadarChart";
+import { ComparativeBarChart } from "@/components/career-pathway/ComparativeBarChart";
 
 interface SavedAnalysis {
   id: string;
@@ -308,7 +310,7 @@ export function SavedAnalyses() {
                           <ul className="space-y-1">
                             {latestAnalysis.result.skillGapAnalysis.strengths.slice(0, 3).map((strength: any, index: number) => (
                               <li key={index} className="flex items-start">
-                                <Badge variant="success" className="mr-2 mt-0.5 bg-green-600">
+                                <Badge variant="secondary" className="mr-2 mt-0.5 bg-green-600 hover:bg-green-700 text-white">
                                   {strength.level}
                                 </Badge>
                                 <div>
@@ -320,6 +322,25 @@ export function SavedAnalyses() {
                           </ul>
                         </div>
                       )}
+                      
+                      {/* Skill Visualization Charts */}
+                      <div className="mt-6 space-y-8">
+                        {/* Skill Radar Chart */}
+                        <div className="border rounded-md p-3 bg-muted/20">
+                          <h4 className="text-sm font-medium mb-3 text-center">Skill Gap Visualization</h4>
+                          <div className="w-full" style={{ height: '300px' }}>
+                            {latestAnalysis.result && <SkillRadarChart results={latestAnalysis.result} />}
+                          </div>
+                        </div>
+                        
+                        {/* Comparative Bar Chart */}
+                        <div className="border rounded-md p-3 bg-muted/20">
+                          <h4 className="text-sm font-medium mb-3 text-center">Skills Comparison</h4>
+                          <div className="w-full" style={{ height: '300px' }}>
+                            {latestAnalysis.result && <ComparativeBarChart results={latestAnalysis.result} />}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                   

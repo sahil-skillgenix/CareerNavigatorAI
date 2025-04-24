@@ -13,3 +13,5 @@ export * from './Navigation';
 export * from './SavedAnalyses';
 export * from './BadgeCard';
 export * from './SkillJourneyTracker';
+export { default as UserCareerAnalyses } from './UserCareerAnalyses';
+export { default as UserActivityHistory } from './UserActivityHistory';

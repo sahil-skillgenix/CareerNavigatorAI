@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { CareerAnalysisResult } from './CareerPathwayForm';
 import { SkillRadarChart } from './SkillRadarChart';
@@ -507,58 +508,92 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
   };
 
   return (
-    <>
-      <Button 
-        onClick={generatePDF} 
-        size="lg" 
-        className={`${
-          isGenerating 
-            ? 'bg-blue-100 text-blue-800' 
-            : 'bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900'
-        } shadow-lg text-base gap-2 transition-all duration-200`}
-        disabled={isGenerating || !chartsReady}
-      >
-        {isGenerating ? (
-          <>
-            <svg 
-              className="h-5 w-5 animate-spin text-blue-600" 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24"
-            >
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
-                strokeWidth="4"
-              />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            Generating Visual PDF...
-          </>
-        ) : (
-          <>
-            <Download className="h-5 w-5" />
-            Download PDF Analysis
-          </>
-        )}
-      </Button>
+    <div className="w-full">
+      <div className="border rounded-lg p-4 bg-muted/10 shadow-sm">
+        <div className="flex items-center mb-4">
+          <FileText className="h-5 w-5 mr-2 text-primary" />
+          <h3 className="text-lg font-semibold">Complete Analysis Report</h3>
+        </div>
+        
+        <p className="text-sm text-muted-foreground mb-4">
+          Your complete career analysis contains all sections including executive summary, 
+          skill mapping, gap analysis, career pathways, and development plan with 
+          recommended resources in a professionally designed report.
+        </p>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center text-xs text-muted-foreground">
+            <span className="inline-flex items-center mr-3">
+              <FileText className="h-3 w-3 mr-1" /> PDF Format
+            </span>
+            <span className="inline-flex items-center">
+              <svg viewBox="0 0 24 24" className="h-3 w-3 mr-1 fill-current">
+                <path d="M12 16l-5-5h3V7h4v4h3l-5 5zm0-14a10 10 0 100 20 10 10 0 000-20z" />
+              </svg>
+              {isGenerating ? 'Preparing...' : 'Ready for download'}
+            </span>
+          </div>
+          
+          <Button 
+            onClick={generatePDF} 
+            size="sm" 
+            className={`${
+              isGenerating 
+                ? 'bg-primary/20 text-primary' 
+                : 'bg-primary text-white hover:bg-primary/90'
+            } font-medium gap-2 transition-all`}
+            disabled={isGenerating || !chartsReady}
+          >
+            {isGenerating ? (
+              <>
+                <svg 
+                  className="h-4 w-4 animate-spin text-primary" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                >
+                  <circle 
+                    className="opacity-25" 
+                    cx="12" 
+                    cy="12" 
+                    r="10" 
+                    stroke="currentColor" 
+                    strokeWidth="4"
+                  />
+                  <path 
+                    className="opacity-75" 
+                    fill="currentColor" 
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Generating Report...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>Download PDF Report</span>
+              </>
+            )}
+          </Button>
+        </div>
+        
+        <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
+          <p>
+            Your report includes professionally designed data visualizations and 
+            comprehensive development recommendations based on SFIA 9 and DigComp 2.2 frameworks.
+          </p>
+        </div>
+      </div>
       
       {/* Hidden divs for chart rendering - these will be captured for the PDF */}
       <div style={{ position: 'absolute', left: '-9999px', width: '800px' }}>
-        <div ref={radarChartRef}>
+        <div ref={radarChartRef} style={{ backgroundColor: '#fff', padding: '20px' }}>
           <SkillRadarChart results={results} />
         </div>
-        <div ref={barChartRef}>
+        <div ref={barChartRef} style={{ backgroundColor: '#fff', padding: '20px' }}>
           <ComparativeBarChart results={results} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

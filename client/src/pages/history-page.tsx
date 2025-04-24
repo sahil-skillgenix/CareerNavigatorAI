@@ -2,8 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Redirect } from "wouter";
 import { AuthenticatedLayout } from "@/components/layouts";
-import UserActivityHistory from "@/components/dashboard/UserActivityHistory";
-import UserCareerAnalyses from "@/components/dashboard/UserCareerAnalyses";
+import { UserActivityHistory, UserCareerAnalyses } from "@/components/dashboard";
 import {
   Tabs,
   TabsContent,
