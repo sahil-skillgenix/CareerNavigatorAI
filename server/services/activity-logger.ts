@@ -39,7 +39,7 @@ export async function logUserActivity({
     });
     
     await activity.save();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error logging user activity (${action}):`, error);
     
     // Don't rethrow - logging should never break application flow
@@ -54,7 +54,7 @@ export async function logUserActivity({
 export async function getUserLoginHistory(userId: string, limit: number = 10): Promise<any[]> {
   try {
     // Query using the standardized action field
-    const activities = await UserActivityModel.find({ 
+    const activities = await UserActivityLogModel.find({ 
       userId, 
       action: { $in: ['login_success', 'register'] } // Include both login and register events
     })
@@ -74,7 +74,7 @@ export async function getUserLoginHistory(userId: string, limit: number = 10): P
       device: extractDeviceInfo(doc.userAgent || ''),
       location: doc.metadata?.location || 'unknown',
     }));
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting user login history:', error);
     return [];
   }
@@ -109,7 +109,7 @@ function extractDeviceInfo(userAgent: string): { type: string; browser: string }
     }
     
     return { type, browser };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error extracting device info:', error);
     return { type: 'Unknown', browser: 'Unknown' };
   }
@@ -138,7 +138,7 @@ export async function getUserActivity(
       ];
     }
     
-    const activities = await UserActivityModel.find(query)
+    const activities = await UserActivityLogModel.find(query)
       .sort({ timestamp: -1 })
       .limit(limit)
       .lean();
@@ -159,7 +159,7 @@ export async function getUserActivity(
       // Format the timestamp for display
       formattedTime: formatTimestamp(doc.timestamp),
     }));
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting user activity:', error);
     return [];
   }
@@ -203,7 +203,7 @@ function formatTimestamp(timestamp: Date): string {
       hour: '2-digit',
       minute: '2-digit'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error formatting timestamp:', error);
     return String(timestamp);
   }
@@ -241,7 +241,7 @@ export function apiRequestLogger() {
       apiLog.responseTime = responseTime;
       
       // Save asynchronously - don't block response
-      apiLog.save().catch(error => {
+      apiLog.save().catch((error: Error) => {
         console.error('Error saving API request log:', error);
       });
     };
@@ -300,7 +300,7 @@ export function authEventLogger() {
               email: req.body?.email,
               statusCode: res.statusCode
             }
-          }).catch(error => {
+          }).catch((error: Error) => {
             console.error('Error logging auth event:', error);
           });
         }
@@ -322,7 +322,7 @@ export function authEventLogger() {
             details: 'User logged out',
             ipAddress: req.ip,
             userAgent: req.headers['user-agent'] as string
-          }).catch(error => {
+          }).catch((error: Error) => {
             console.error('Error logging logout event:', error);
           });
         }
