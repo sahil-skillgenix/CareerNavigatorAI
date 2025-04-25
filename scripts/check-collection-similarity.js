@@ -48,13 +48,36 @@ async function extractCollectionNames() {
       const filePath = path.join(modelsDir, file);
       const content = await fs.readFile(filePath, 'utf8');
       
-      // Extract collection name using regex
-      const collectionMatch = content.match(/mongoose\.model\([^,]+,[^,]+,\s*["']([^"']+)["']/);
+      // Extract collection name using different regex patterns
       
-      if (collectionMatch) {
+      // Pattern 1: mongoose.model(X, Y, "collection_name")
+      const collectionMatch1 = content.match(/mongoose\.model\([^,]+,[^,]+,\s*["']([^"']+)["']/);
+      
+      // Pattern 2: mongoose.model('collection_name', schema)
+      const collectionMatch2 = content.match(/mongoose\.model\(["']([^"']+)["'],\s*\w+Schema\)/);
+      
+      // Pattern 3: mongoose.models.Model || mongoose.model
+      const modelRefMatch = content.match(/mongoose\.models\.(\w+)\s*\|\|\s*mongoose\.model/);
+      
+      if (collectionMatch1) {
         collectionNames.push({
           file,
-          collectionName: collectionMatch[1]
+          collectionName: collectionMatch1[1]
+        });
+      } else if (collectionMatch2) {
+        // If the model uses the name as collection, add 'skillgenix_' prefix for consistency check
+        const name = collectionMatch2[1];
+        collectionNames.push({
+          file,
+          collectionName: name.startsWith('skillgenix_') ? name : `skillgenix_${name.toLowerCase()}`
+        });
+      } else if (modelRefMatch) {
+        // For models that use the mongoose.models.X syntax, infer the collection name
+        const modelName = modelRefMatch[1];
+        collectionNames.push({
+          file,
+          collectionName: `skillgenix_${modelName.toLowerCase()}`,
+          inferred: true
         });
       }
     }
