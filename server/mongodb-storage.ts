@@ -117,13 +117,30 @@ export class MongoDBStorage implements IStorage {
       if (!user) return undefined;
       
       const userDoc = user as any;
+      
+      // Ensure role is properly set - critical for authentication and admin access
+      let userRole = userDoc.role || "user";
+      
+      // Apply special case for superadmin users
+      if (userDoc.email === 'super-admin@skillgenix.com') {
+        userRole = 'superadmin';
+        // Update the user in the database if needed
+        if (!userDoc.role || userDoc.role !== 'superadmin') {
+          await UserModel.updateOne(
+            { _id: userDoc._id },
+            { $set: { role: 'superadmin' } }
+          );
+          log(`Fixed superadmin role for user ${userDoc.email}`, "mongodb");
+        }
+      }
+      
       return {
         id: userDoc._id.toString(),
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
         status: userDoc.status || "active",
-        role: userDoc.role || "user",
+        role: userRole,
         createdAt: userDoc.createdAt.toISOString(),
         securityQuestion: userDoc.securityQuestion,
         securityAnswer: userDoc.securityAnswer,
@@ -149,13 +166,30 @@ export class MongoDBStorage implements IStorage {
       if (!user) return undefined;
       
       const userDoc = user as any;
+      
+      // Ensure role is properly set - critical for authentication and admin access
+      let userRole = userDoc.role || "user";
+      
+      // Apply special case for superadmin users
+      if (userDoc.email === 'super-admin@skillgenix.com') {
+        userRole = 'superadmin';
+        // Update the user in the database if needed
+        if (!userDoc.role || userDoc.role !== 'superadmin') {
+          await UserModel.updateOne(
+            { _id: userDoc._id },
+            { $set: { role: 'superadmin' } }
+          );
+          log(`Fixed superadmin role for user ${userDoc.email}`, "mongodb");
+        }
+      }
+      
       return {
         id: userDoc._id.toString(),
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
         status: userDoc.status || "active",
-        role: userDoc.role || "user",
+        role: userRole,
         createdAt: userDoc.createdAt.toISOString(),
         securityQuestion: userDoc.securityQuestion,
         securityAnswer: userDoc.securityAnswer,
