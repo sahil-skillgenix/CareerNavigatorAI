@@ -25,6 +25,7 @@ import {
   logUserActivityWithParams
 } from "./services/logging-service";
 import { UserActivityModel } from "./db/models";
+import { getUserLoginHistory, getUserActivity } from "./services/activity-logger";
 import { getDatabaseStatus } from "./db/mongodb";
 import adminRoutes from "./routes/admin-routes";
 
@@ -1920,7 +1921,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(403).json({ message: 'Access denied' });
       }
       
-      const activities = await getUserActivityHistory(userId, limit);
+      const activities = await getUserActivity(userId, limit);
       res.json(activities);
     } catch (error) {
       console.error('Error fetching user activity history:', error);
@@ -1972,10 +1973,19 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(400).json({ message: 'Invalid user ID' });
       }
       
-      // Get recent activity for the user (from the UserActivity collection)
-      const activityHistory = await getUserActivityHistory(userId, 20);
+      // Get recent activity for the user using our enhanced function
+      const activityHistory = await getUserActivity(userId, 20);
       
-      res.json(activityHistory);
+      res.json({
+        success: true,
+        data: activityHistory,
+        count: activityHistory.length,
+        message: 'Activity history retrieved successfully',
+        metadata: {
+          enhancedFields: ['formattedTime', 'device', 'location'],
+          userId: userId
+        }
+      });
     } catch (error) {
       console.error('Error fetching activity history:', error);
       res.status(500).json({
