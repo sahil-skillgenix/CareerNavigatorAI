@@ -352,7 +352,7 @@ export function authEventLogger() {
                 email: req.body?.email,
                 method: 'registration'
               }
-            }).catch(error => {
+            }).catch((error: Error) => {
               console.error('Error logging registration event:', error);
             });
           }
@@ -401,7 +401,7 @@ export function errorLogger() {
         params: req.params,
         body: req.method !== 'GET' ? req.body : undefined
       }
-    }).catch(logError => {
+    }).catch((logError: Error) => {
       console.error('Error logging error:', logError);
     });
     
