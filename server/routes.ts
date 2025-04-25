@@ -34,6 +34,10 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   // Setup authentication
   setupAuth(app, storageInstance);
 
+  // Mount admin routes
+  app.use('/api/admin', jwtAuthMiddleware, adminRoutes);
+  console.log('Admin routes mounted at /api/admin');
+
   // Seed database with initial data (will only run if database is empty)
   try {
     await seedDatabase();

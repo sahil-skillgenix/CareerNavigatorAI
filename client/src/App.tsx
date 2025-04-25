@@ -25,6 +25,7 @@ import IndustryDetailPage from "@/pages/industry-detail-page";
 import SearchPage from "@/pages/search-page";
 import SettingsPage from "@/pages/settings-page";
 import HistoryPage from "@/pages/history-page";
+import AdminDashboard from "@/pages/admin-dashboard";
 
 function Router() {
   return (
@@ -41,6 +42,7 @@ function Router() {
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       <ProtectedRoute path="/history" component={HistoryPage} />
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
+      <ProtectedRoute path="/admin" component={AdminDashboard} />
       
       {/* Settings routes */}
       <ProtectedRoute path="/settings" component={SettingsPage} />
