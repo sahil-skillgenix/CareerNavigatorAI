@@ -28,72 +28,65 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, AlertCircle, ClipboardList, Activity } from "lucide-react";
+import { Loader2, AlertCircle, ClipboardList, Activity, Key, Shield, UserCog } from "lucide-react";
 
 interface UserActivity {
-  _id: string;
-  userId: string;
+  id: string;
+  action: string;
   timestamp: string;
-  activityType: string;
-  details?: string;
+  status: 'success' | 'failure' | 'warning' | 'info';
+  details?: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
-}
-
-interface LoginActivity {
-  _id: string;
-  userId: string;
-  timestamp: string;
-  ipAddress?: string;
-  userAgent?: string;
-  success: boolean;
 }
 
 // Helper function to get icon and color for activity type
-function getActivityBadge(activityType: string) {
-  const typeMap: Record<string, {color: string, icon: JSX.Element}> = {
-    'login': { 
-      color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', 
-      icon: <Activity className="h-3.5 w-3.5 mr-1" /> 
-    },
-    'logout': { 
-      color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300', 
-      icon: <Activity className="h-3.5 w-3.5 mr-1" /> 
-    },
-    'careerAnalysis': { 
-      color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', 
-      icon: <ClipboardList className="h-3.5 w-3.5 mr-1" /> 
-    },
-    'failed_login': { 
-      color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', 
-      icon: <Activity className="h-3.5 w-3.5 mr-1" /> 
-    },
-    'accountCreation': { 
-      color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300', 
-      icon: <Activity className="h-3.5 w-3.5 mr-1" /> 
-    },
-    'profileUpdate': { 
-      color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', 
-      icon: <Activity className="h-3.5 w-3.5 mr-1" /> 
-    },
-  };
+function getActivityBadge(actionType: string, status: string) {
+  // First determine the status-based color
+  let statusColor = '';
+  switch (status) {
+    case 'success':
+      statusColor = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      break;
+    case 'failure':
+      statusColor = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      break;
+    case 'warning':
+      statusColor = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      break;
+    default:
+      statusColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+  }
 
-  return typeMap[activityType] || { 
-    color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', 
-    icon: <Activity className="h-3.5 w-3.5 mr-1" /> 
-  };
+  // Then determine the action-based icon
+  let icon = <Activity className="h-3.5 w-3.5 mr-1" />;
+  
+  if (actionType.includes('login')) {
+    icon = <Key className="h-3.5 w-3.5 mr-1" />;
+  } else if (actionType.includes('logout')) {
+    icon = <Key className="h-3.5 w-3.5 mr-1" />;
+  } else if (actionType.includes('register')) {
+    icon = <UserCog className="h-3.5 w-3.5 mr-1" />;
+  } else if (actionType.includes('password') || actionType.includes('security')) {
+    icon = <Shield className="h-3.5 w-3.5 mr-1" />;
+  } else if (actionType.includes('career')) {
+    icon = <ClipboardList className="h-3.5 w-3.5 mr-1" />;
+  }
+
+  return { color: statusColor, icon };
 }
 
 // Function to format activity type for display
 function formatActivityType(type: string): string {
   switch (type) {
     case 'login': return 'Login';
+    case 'login_attempt': return 'Login Attempt';
     case 'logout': return 'Logout';
+    case 'register': return 'Account Registration';
+    case 'password_reset_complete': return 'Password Reset';
+    case 'security_answer_verification': return 'Security Answer Verification';
     case 'careerAnalysis': return 'Career Analysis';
-    case 'failed_login': return 'Failed Login Attempt';
-    case 'accountCreation': return 'Account Created';
-    case 'profileUpdate': return 'Profile Updated';
-    default: return type.charAt(0).toUpperCase() + type.slice(1).replace(/([A-Z])/g, ' $1');
+    default: return type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ');
   }
 }
 
@@ -122,13 +115,13 @@ export default function UserActivityHistory() {
   const [activityFilter, setActivityFilter] = useState<string>('all');
   
   const { data: activities, isLoading, error } = useQuery<UserActivity[]>({
-    queryKey: ['/api/user-activities'],
+    queryKey: ['/api/activity'],
     enabled: !!user,
   });
   
   // Apply filtering
   const filteredActivities = activities?.filter(activity => 
-    activityFilter === 'all' || activity.activityType === activityFilter
+    activityFilter === 'all' || activity.action === activityFilter
   );
 
   if (isLoading) {
@@ -190,7 +183,7 @@ export default function UserActivityHistory() {
   }
 
   // Get unique activity types for filter
-  const activityTypes = Array.from(new Set(activities.map(a => a.activityType)));
+  const activityTypes = Array.from(new Set(activities?.map(a => a.action) || []));
 
   return (
     <Card>
@@ -234,18 +227,18 @@ export default function UserActivityHistory() {
             </TableHeader>
             <TableBody>
               {filteredActivities?.map((activity) => {
-                const { color, icon } = getActivityBadge(activity.activityType);
+                const { color, icon } = getActivityBadge(activity.action, activity.status);
                 
                 return (
-                  <TableRow key={activity._id}>
+                  <TableRow key={activity.id}>
                     <TableCell>
                       <Badge variant="outline" className={`flex items-center w-fit ${color}`}>
                         {icon}
-                        <span>{formatActivityType(activity.activityType)}</span>
+                        <span>{formatActivityType(activity.action)}</span>
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">
-                      {activity.details || 'No details available'}
+                      {activity.details ? JSON.stringify(activity.details) : 'No details available'}
                     </TableCell>
                     <TableCell>
                       {format(new Date(activity.timestamp), 'MMM d, yyyy HH:mm')}
