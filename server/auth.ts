@@ -18,7 +18,7 @@ import {
 } from "./services/jwt-service";
 import { encryptFields, decryptFields } from "./services/encryption-service";
 import { log } from "./vite";
-import { logUserActivity } from "./services/logging-service";
+import { logUserActivity, authEventLogger } from "./services/activity-logger";
 
 declare global {
   namespace Express {
@@ -57,6 +57,9 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Apply authentication event logging middleware
+  app.use(authEventLogger());
 
   passport.use(
     new LocalStrategy(
@@ -154,13 +157,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       
       // Log the successful registration activity
       try {
-        await logUserActivity(
-          user.id as string,
-          'register',
-          'success',
-          req,
-          { email: userData.email }
-        );
+        await logUserActivity({
+          userId: user.id as string,
+          action: 'login_success',
+          details: 'New user registered and logged in',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { email: userData.email, method: 'registration' }
+        });
       } catch (error) {
         log(`Error logging registration activity: ${error}`, "auth");
         // Don't block registration if activity logging fails
@@ -254,13 +258,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         log(`Password reset: Incorrect security answer for ${email}`, "auth");
         
         // Log failed security answer attempt
-        await logUserActivity(
-          user.id as string,
-          'security_answer_verification',
-          'failure',
-          req,
-          { email }
-        );
+        await logUserActivity({
+          userId: user.id as string,
+          action: 'security_question_update',
+          details: 'Incorrect security answer during password reset',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { email, result: 'failure' }
+        });
         
         return res.status(400).json({ message: "Incorrect security answer" });
       }
@@ -272,13 +277,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       );
       
       // Log successful security answer verification
-      await logUserActivity(
-        user.id as string,
-        'security_answer_verification',
-        'success',
-        req,
-        { email }
-      );
+      await logUserActivity({
+        userId: user.id as string,
+        action: 'security_question_update',
+        details: 'Security answer verified for password reset',
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+        metadata: { email, result: 'success' }
+      });
       
       log(`Password reset: Security answer verified for ${email}, reset token generated`, "auth");
       
@@ -364,13 +370,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       log(`Password reset successful for user ${user.email}`, "auth");
       
       // Log the successful password reset
-      await logUserActivity(
-        userId,
-        'password_reset_complete',
-        'success',
-        req,
-        { email: user.email }
-      );
+      await logUserActivity({
+        userId: userId,
+        action: 'password_reset',
+        details: 'Password reset completed successfully',
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+        metadata: { email: user.email }
+      });
       
       // Invalidate all existing sessions for this user for security
       // (This is a mock as we don't have direct session invalidation)
@@ -397,48 +404,53 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     passport.authenticate("local", async (err: any, user: SelectUser | false, info: any) => {
       if (err) {
         // Log authentication error
-        await logUserActivity(
-          'system', // We don't have a user ID yet
-          'login_attempt',
-          'failure',
-          req,
-          { email, error: err.message }
-        );
+        await logUserActivity({
+          userId: 'anonymous',
+          action: 'login_failure',
+          details: 'Authentication error during login',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { email, error: err.message }
+        });
         return next(err);
       }
       
       if (!user) {
         // Log failed login attempt
-        await logUserActivity(
-          'system' as string, // We don't have a user ID yet
-          'login_attempt',
-          'failure',
-          req,
-          { email, reason: 'Invalid email or password' }
-        );
+        await logUserActivity({
+          userId: 'anonymous',
+          action: 'login_failure',
+          details: 'Invalid credentials provided',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { email, reason: 'Invalid email or password' }
+        });
         return res.status(401).json({ message: "Invalid email or password" });
       }
       
       req.login(user, async (err) => {
         if (err) {
           // Log session creation error
-          await logUserActivity(
-            user.id as string,
-            'login_attempt',
-            'failure',
-            req,
-            { email, error: err.message }
-          );
+          await logUserActivity({
+            userId: user.id as string,
+            action: 'login_failure',
+            details: 'Session creation error during login',
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'] as string,
+            metadata: { email, error: err.message }
+          });
           return next(err);
         }
         
         // Log successful login
-        await logUserActivity(
-          user.id as string,
-          'login',
-          'success',
-          req
-        );
+        await logUserActivity({
+          userId: user.id as string,
+          action: 'login_success',
+          details: 'User logged in successfully',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { email }
+        });
         
         // Generate JWT token with 2 hour expiration
         const token = generateToken(user);
