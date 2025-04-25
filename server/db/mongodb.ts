@@ -72,10 +72,11 @@ async function repairProblematicIndexes() {
         
         // NEVER drop the users collection to preserve user data
         // Fix problematic collections without dropping them
-        if ((collectionName === 'userbadges' || collectionName === 'careeranalyses') && 
-            collectionsToCheck !== 'users') {
-          // Instead of dropping the collection, we'll just fix the indexes
-          log(`Fixing problematic collection ${collectionName} indexes`, "mongodb");
+        if (collectionName === 'userbadges' || collectionName === 'careeranalyses') {
+          // Only fix indexes for non-user collections
+          if (collectionName !== 'users') {
+            log(`Fixing problematic collection ${collectionName} indexes`, "mongodb");
+          }
         }
         
         // Get all indexes

@@ -17,6 +17,7 @@ import {
   jwtAuthMiddleware 
 } from "./services/jwt-service";
 import { encryptFields, decryptFields } from "./services/encryption-service";
+import { log } from "./vite";
 
 declare global {
   namespace Express {
@@ -92,20 +93,70 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
 
   app.post("/api/register", registerRateLimiter, async (req, res, next) => {
     try {
+      // Log the registration attempt but not the full password data
+      log(`Registration attempt for email: ${req.body.email}`, "auth");
+      
       const { confirmPassword, ...userData } = req.body;
       
+      // Validate required fields
+      const requiredFields = ['email', 'fullName', 'password', 'securityQuestion', 'securityAnswer'];
+      const missingFields = requiredFields.filter(field => !userData[field]);
+      
+      if (missingFields.length > 0) {
+        return res.status(400).json({ 
+          message: `Missing required fields: ${missingFields.join(', ')}`,
+          fields: missingFields
+        });
+      }
+      
+      // Validate password matches confirmation
+      if (userData.password !== confirmPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
+      }
+      
+      // Validate password strength
+      const passwordRegex = {
+        uppercase: /[A-Z]/,
+        lowercase: /[a-z]/,
+        number: /[0-9]/,
+        special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/
+      };
+      
+      const passwordIssues = [];
+      if (userData.password.length < 8) passwordIssues.push("at least 8 characters");
+      if (!passwordRegex.uppercase.test(userData.password)) passwordIssues.push("uppercase letter");
+      if (!passwordRegex.lowercase.test(userData.password)) passwordIssues.push("lowercase letter");
+      if (!passwordRegex.number.test(userData.password)) passwordIssues.push("number");
+      if (!passwordRegex.special.test(userData.password)) passwordIssues.push("special character");
+      
+      if (passwordIssues.length > 0) {
+        return res.status(400).json({ 
+          message: `Password must contain ${passwordIssues.join(", ")}`,
+          issues: passwordIssues
+        });
+      }
+      
+      // Check if user already exists
       const existingUser = await storageInstance.getUserByEmail(userData.email);
       if (existingUser) {
+        log(`Registration failed: Email ${userData.email} already exists`, "auth");
         return res.status(400).json({ message: "Email already exists" });
       }
 
+      // Create the user with hashed password
       const user = await storageInstance.createUser({
         ...userData,
         password: await hashPassword(userData.password),
       });
+      
+      log(`User registered successfully: ${userData.email} (${user.id})`, "auth");
 
+      // Log them in automatically
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          log(`Auto-login failed after registration: ${err}`, "auth");
+          return next(err);
+        }
         
         // Generate JWT token with 2 hour expiration
         const token = generateToken(user);
@@ -120,6 +171,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         });
       });
     } catch (error) {
+      log(`Registration error: ${error}`, "auth");
       next(error);
     }
   });
