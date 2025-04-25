@@ -18,6 +18,7 @@ import {
 } from "./services/jwt-service";
 import { encryptFields, decryptFields } from "./services/encryption-service";
 import { log } from "./vite";
+import { logUserActivity } from "./models/UserActivityModel";
 
 declare global {
   namespace Express {
@@ -150,6 +151,20 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       });
       
       log(`User registered successfully: ${userData.email} (${user.id})`, "auth");
+      
+      // Log the successful registration activity
+      try {
+        await logUserActivity(
+          user.id as string,
+          'register',
+          'success',
+          req,
+          { email: userData.email }
+        );
+      } catch (error) {
+        log(`Error logging registration activity: ${error}`, "auth");
+        // Don't block registration if activity logging fails
+      }
 
       // Log them in automatically
       req.login(user, (err) => {
@@ -346,18 +361,64 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   });
 
   app.post("/api/login", loginRateLimiter, (req, res, next) => {
-    passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid email or password" });
+    const { email } = req.body;
+    
+    // Log login attempt
+    log(`Login attempt for: ${email}`, "auth");
+    
+    passport.authenticate("local", async (err: any, user: SelectUser | false, info: any) => {
+      if (err) {
+        // Log authentication error
+        await logUserActivity(
+          'system', // We don't have a user ID yet
+          'login_attempt',
+          'failure',
+          req,
+          { email, error: err.message }
+        );
+        return next(err);
+      }
       
-      req.login(user, (err) => {
-        if (err) return next(err);
+      if (!user) {
+        // Log failed login attempt
+        await logUserActivity(
+          'system', // We don't have a user ID yet
+          'login_attempt',
+          'failure',
+          req,
+          { email, reason: 'Invalid email or password' }
+        );
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      
+      req.login(user, async (err) => {
+        if (err) {
+          // Log session creation error
+          await logUserActivity(
+            user.id as string,
+            'login_attempt',
+            'failure',
+            req,
+            { email, error: err.message }
+          );
+          return next(err);
+        }
+        
+        // Log successful login
+        await logUserActivity(
+          user.id as string,
+          'login',
+          'success',
+          req
+        );
         
         // Generate JWT token with 2 hour expiration
         const token = generateToken(user);
         
         // Remove sensitive data before sending response
         const { password, securityAnswer, ...userWithoutPassword } = user;
+        
+        log(`User ${email} logged in successfully`, "auth");
         
         // Send token and user data
         return res.status(200).json({
@@ -368,9 +429,35 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     })(req, res, next);
   });
 
-  app.post("/api/logout", (req, res, next) => {
+  app.post("/api/logout", async (req, res, next) => {
+    // Get the user ID before logging out
+    const userId = req.user?.id as string;
+    const userEmail = req.user?.email as string;
+    
+    // Log the logout request
+    log(`Logout request for: ${userEmail || 'unknown user'}`, "auth");
+    
+    if (userId) {
+      try {
+        // Log successful logout
+        await logUserActivity(
+          userId,
+          'logout',
+          'success',
+          req
+        );
+      } catch (error) {
+        // Don't block the logout if logging fails
+        log(`Error logging logout activity: ${error}`, "auth");
+      }
+    }
+    
     req.logout((err) => {
-      if (err) return next(err);
+      if (err) {
+        log(`Error during logout: ${err}`, "auth");
+        return next(err);
+      }
+      log(`User ${userEmail || 'unknown'} logged out successfully`, "auth");
       res.sendStatus(200);
     });
   });

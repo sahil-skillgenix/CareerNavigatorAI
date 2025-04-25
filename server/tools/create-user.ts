@@ -3,6 +3,7 @@ import { connectToDatabase } from "../db/mongodb";
 import { log } from "../vite";
 import * as readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
+import { SECURITY_QUESTIONS } from '@shared/schema';
 
 /**
  * Command-line tool to create a new user with admin-provided credentials
@@ -64,8 +65,8 @@ const createTestUser = async (storage: MongoDBStorage) => {
       email: testEmail,
       fullName: "Test User",
       password: await hashPassword("Test1234!"),
-      securityQuestion: "What is your favorite color?",
-      securityAnswer: "blue"
+      securityQuestion: "What is your favorite movie?", // Use one from the shared schema
+      securityAnswer: "The Matrix"
     });
     
     log(`Test user created successfully: ${user.email} (${user.id})`, "user-tool");
@@ -126,41 +127,23 @@ const createInteractiveUser = async (storage: MongoDBStorage) => {
       isValidPassword = true;
     }
     
-    // Security question with validation
-    const securityQuestionOptions = [
-      "What was the name of your first pet?",
-      "In what city were you born?",
-      "What was your childhood nickname?",
-      "What is your mother's maiden name?",
-      "What high school did you attend?",
-      "What was your first car?",
-      "What is your favorite movie?",
-      "What is your favorite color?",
-      "What is your favorite food?",
-      "Custom question"
-    ];
-    
+    // Use the predefined security questions from schema
     log("Security questions:", "user-tool");
-    securityQuestionOptions.forEach((q, i) => {
+    SECURITY_QUESTIONS.forEach((q, i) => {
       log(`${i + 1}. ${q}`, "user-tool");
     });
     
-    let securityQuestion = "";
+    let securityQuestion: typeof SECURITY_QUESTIONS[number] | undefined = undefined;
     while (!securityQuestion) {
-      const choiceInput = await question("Select a security question (1-10): ");
+      const choiceInput = await question(`Select a security question (1-${SECURITY_QUESTIONS.length}): `);
       const choice = parseInt(choiceInput);
       
-      if (isNaN(choice) || choice < 1 || choice > 10) {
-        log("Invalid selection. Please enter a number between 1 and 10.", "user-tool");
+      if (isNaN(choice) || choice < 1 || choice > SECURITY_QUESTIONS.length) {
+        log(`Invalid selection. Please enter a number between 1 and ${SECURITY_QUESTIONS.length}.`, "user-tool");
         continue;
       }
       
-      if (choice === 10) {
-        // Custom question
-        securityQuestion = await question("Enter your custom security question: ");
-      } else {
-        securityQuestion = securityQuestionOptions[choice - 1];
-      }
+      securityQuestion = SECURITY_QUESTIONS[choice - 1];
     }
     
     let securityAnswer = "";
