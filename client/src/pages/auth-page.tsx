@@ -149,9 +149,10 @@ export default function AuthPage() {
       setSecurityQuestion(data.securityQuestion);
       setRecoveryStep('security-question');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Please check your email and try again';
       toast({
         title: 'Account not found',
-        description: error.message || 'Please check your email and try again',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -177,9 +178,10 @@ export default function AuthPage() {
       
       setRecoveryStep('reset-password');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Please check your answer and try again';
       toast({
         title: 'Verification failed',
-        description: error.message || 'Please check your answer and try again',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -221,9 +223,10 @@ export default function AuthPage() {
       securityAnswerForm.reset();
       resetPasswordForm.reset();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Please try again';
       toast({
         title: 'Password reset failed',
-        description: error.message || 'Please try again',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -368,8 +371,9 @@ export default function AuthPage() {
                     </Button>
                     
                     <Button
-                      variant="ghost"
-                      className="w-full"
+                      variant="link"
+                      type="button"
+                      className="w-full text-muted-foreground hover:text-primary"
                       onClick={() => setShowRecoveryDialog(true)}
                     >
                       Forgot Password?
@@ -586,6 +590,150 @@ export default function AuthPage() {
           </div>
         </motion.div>
       </div>
+      {/* Password Recovery Dialog */}
+      <Dialog open={showRecoveryDialog} onOpenChange={handleRecoveryDialogClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              Account Recovery
+            </DialogTitle>
+            <DialogDescription>
+              {recoveryStep === "find-account" && "Enter your email to find your account."}
+              {recoveryStep === "security-question" && "Answer your security question to verify your identity."}
+              {recoveryStep === "reset-password" && "Create a new password for your account."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {recoveryStep === "find-account" && (
+            <Form {...findAccountForm}>
+              <form onSubmit={findAccountForm.handleSubmit(onFindAccountSubmit)} className="space-y-4">
+                <FormField
+                  control={findAccountForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your email address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end">
+                  <Button type="submit" className="flex items-center gap-2">
+                    Continue
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
+          
+          {recoveryStep === "security-question" && (
+            <Form {...securityAnswerForm}>
+              <form onSubmit={securityAnswerForm.handleSubmit(onSecurityAnswerSubmit)} className="space-y-4">
+                <Alert>
+                  <AlertDescription>
+                    We found an account associated with <strong>{recoveryEmail}</strong>
+                  </AlertDescription>
+                </Alert>
+                
+                <FormField
+                  control={securityAnswerForm.control}
+                  name="answer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Security Question: {securityQuestion}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your answer" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Answer the security question you set up when you created your account.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end">
+                  <Button type="submit" className="flex items-center gap-2">
+                    Verify
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
+          
+          {recoveryStep === "reset-password" && (
+            <Form {...resetPasswordForm}>
+              <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
+                <Alert>
+                  <AlertDescription className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Security verification successful!
+                  </AlertDescription>
+                </Alert>
+                
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input 
+                            placeholder="Create a new password" 
+                            type={showResetPassword ? "text" : "password"} 
+                            {...field} 
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-1/2 -translate-y-1/2"
+                            onClick={() => setShowResetPassword(!showResetPassword)}
+                          >
+                            {showResetPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Confirm your new password" 
+                          type="password" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end">
+                  <Button type="submit" className="flex items-center gap-2">
+                    Reset Password
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
