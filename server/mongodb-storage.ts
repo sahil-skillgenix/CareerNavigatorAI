@@ -76,6 +76,8 @@ export class MongoDBStorage implements IStorage {
           password: await hashPassword("demo123456"),
           securityQuestion: "What was the name of your first pet?",
           securityAnswer: "Buddy",
+          role: "user",
+          status: "active"
         });
         
         await demoUser.save();
@@ -83,8 +85,29 @@ export class MongoDBStorage implements IStorage {
       } else {
         log("Demo user already exists, preserving user data", "mongodb");
       }
+      
+      // Check if super admin user exists
+      const existingSuperAdmin = await UserModel.findOne({ email: "super-admin@skillgenix.com" });
+      
+      if (!existingSuperAdmin) {
+        // Create super admin user
+        const superAdminUser = new UserModel({
+          fullName: "Super Admin",
+          email: "super-admin@skillgenix.com",
+          password: await hashPassword("SuperAdmin1234!"),
+          securityQuestion: "What is your favorite movie?",
+          securityAnswer: "Inception",
+          role: "superadmin",
+          status: "active"
+        });
+        
+        await superAdminUser.save();
+        log("Super admin user created: super-admin@skillgenix.com", "mongodb");
+      } else {
+        log("Super admin user already exists, preserving user data", "mongodb");
+      }
     } catch (error) {
-      log(`Error creating demo user: ${error}`, "mongodb");
+      log(`Error creating users: ${error}`, "mongodb");
     }
   }
 
@@ -99,7 +122,20 @@ export class MongoDBStorage implements IStorage {
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
-        createdAt: userDoc.createdAt.toISOString()
+        status: userDoc.status || "active",
+        role: userDoc.role || "user",
+        createdAt: userDoc.createdAt.toISOString(),
+        securityQuestion: userDoc.securityQuestion,
+        securityAnswer: userDoc.securityAnswer,
+        location: userDoc.location,
+        phone: userDoc.phone,
+        bio: userDoc.bio,
+        currentRole: userDoc.currentRole,
+        experience: userDoc.experience,
+        education: userDoc.education,
+        skills: userDoc.skills,
+        interests: userDoc.interests,
+        avatarUrl: userDoc.avatarUrl
       };
     } catch (error) {
       log(`Error getting user by ID: ${error}`, "mongodb");
@@ -118,7 +154,20 @@ export class MongoDBStorage implements IStorage {
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
-        createdAt: userDoc.createdAt.toISOString()
+        status: userDoc.status || "active",
+        role: userDoc.role || "user",
+        createdAt: userDoc.createdAt.toISOString(),
+        securityQuestion: userDoc.securityQuestion,
+        securityAnswer: userDoc.securityAnswer,
+        location: userDoc.location,
+        phone: userDoc.phone,
+        bio: userDoc.bio,
+        currentRole: userDoc.currentRole,
+        experience: userDoc.experience,
+        education: userDoc.education,
+        skills: userDoc.skills,
+        interests: userDoc.interests,
+        avatarUrl: userDoc.avatarUrl
       };
     } catch (error) {
       log(`Error getting user by email: ${error}`, "mongodb");
@@ -142,19 +191,24 @@ export class MongoDBStorage implements IStorage {
         education: insertUser.education,
         skills: insertUser.skills,
         interests: insertUser.interests,
-        avatarUrl: insertUser.avatarUrl
+        avatarUrl: insertUser.avatarUrl,
+        // Set default role and status for new users unless specified
+        role: insertUser.role || "user",
+        status: insertUser.status || "active"
       });
       
       const savedUser = await newUser.save();
       const userDoc = savedUser as any;
       
-      log(`Created new user: ${insertUser.email}`, "mongodb");
+      log(`Created new user: ${insertUser.email} with role ${insertUser.role || "user"}`, "mongodb");
       
       return {
         id: userDoc._id.toString(),
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
+        status: userDoc.status,
+        role: userDoc.role,
         createdAt: userDoc.createdAt.toISOString(),
         securityQuestion: userDoc.securityQuestion,
         securityAnswer: userDoc.securityAnswer,
@@ -195,6 +249,8 @@ export class MongoDBStorage implements IStorage {
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
+        status: userDoc.status || "active",
+        role: userDoc.role || "user",
         createdAt: userDoc.createdAt.toISOString(),
         securityQuestion: userDoc.securityQuestion,
         securityAnswer: userDoc.securityAnswer,
