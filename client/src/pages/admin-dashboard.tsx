@@ -659,6 +659,20 @@ export default function AdminDashboard() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
 
+  // Debug user role
+  console.log("Admin Dashboard - User:", user);
+
+  // Add notification when admin/superadmin loads this component
+  React.useEffect(() => {
+    if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+      toast({
+        title: `Welcome ${user.role}`,
+        description: `You are logged in as ${user.role} with email ${user.email}`,
+        variant: "default"
+      });
+    }
+  }, [user, toast]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">

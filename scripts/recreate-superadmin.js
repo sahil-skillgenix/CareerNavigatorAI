@@ -1,9 +1,14 @@
 // Script to recreate the super admin user account
 // This should be run only when there are issues with the super admin account
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const dotenv = require('dotenv');
-const path = require('path');
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current file directory in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../.env') });

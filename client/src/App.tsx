@@ -1,4 +1,5 @@
-import { Switch, Route, Redirect } from "wouter";
+import React from "react";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,11 +31,19 @@ import AdminDashboard from "@/pages/admin-dashboard";
 function Router() {
   const { user } = useAuth();
   
-  // If the user is a superadmin or admin, redirect to /admin from dashboard
-  if (user && (user.role === 'superadmin' || user.role === 'admin') && 
-      window.location.pathname === '/dashboard') {
-    window.location.href = '/admin';
-  }
+  // Debug authentication state
+  console.log("App Router - User:", user);
+  console.log("Current Path:", window.location.pathname);
+  
+  // If the user is a superadmin or admin, redirect to /admin from dashboard or root
+  React.useEffect(() => {
+    if (user && (user.role === 'superadmin' || user.role === 'admin')) {
+      if (window.location.pathname === '/dashboard' || window.location.pathname === '/') {
+        console.log(`Redirecting admin/superadmin: ${user.role} to /admin`);
+        window.location.href = '/admin';
+      }
+    }
+  }, [user]);
   
   return (
     <Switch>

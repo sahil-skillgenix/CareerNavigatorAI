@@ -4,13 +4,19 @@ import { logUserActivityWithParams } from '../services/logging-service';
 // Middleware to check if user is admin or superadmin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('[admin-middleware] Checking admin access...');
+    console.log('[admin-middleware] isAuthenticated:', req.isAuthenticated());
+    console.log('[admin-middleware] User:', req.user);
+    
     if (!req.isAuthenticated()) {
+      console.log('[admin-middleware] Not authenticated');
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
     const user = req.user;
     
     if (!user) {
+      console.log('[admin-middleware] User not found');
       logUserActivityWithParams({
         userId: req.user?.id || 'unknown',
         action: 'admin_access_denied',
@@ -22,7 +28,11 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
+    // Check user role and print it for debugging
+    console.log('[admin-middleware] User role:', user.role);
+    
     if (user.role !== 'admin' && user.role !== 'superadmin') {
+      console.log('[admin-middleware] Insufficient privileges');
       logUserActivityWithParams({
         userId: user.id,
         action: 'admin_access_denied',
@@ -34,6 +44,11 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       return res.status(403).json({ error: 'Insufficient privileges' });
     }
 
+    console.log('[admin-middleware] Admin access granted for:', user.email);
+    
+    // Add role to response headers for debugging
+    res.setHeader('X-User-Role', user.role);
+    
     next();
   } catch (error) {
     console.error('Admin middleware error:', error);
