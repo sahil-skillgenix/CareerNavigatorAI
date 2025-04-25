@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose';
+import { UserActivityLogModel } from '../db/models';
 
 // Possible user activity types
 export type UserActivityType = 
@@ -145,7 +146,8 @@ export async function getRecentUserActivity(
   limit: number = 10
 ): Promise<UserActivity[]> {
   try {
-    const activities = await UserActivityModel.find({ userId })
+    // Use the standardized UserActivityLogModel
+    const activities = await UserActivityLogModel.find({ userId })
       .sort({ timestamp: -1 })
       .limit(limit)
       .lean();
@@ -153,13 +155,14 @@ export async function getRecentUserActivity(
     return activities.map((doc: any) => ({
       id: doc._id.toString(),
       userId: doc.userId,
-      action: doc.action,
-      details: doc.details,
+      // Support both new and legacy field names
+      action: doc.action || doc.activityType,
+      details: typeof doc.details === 'string' ? doc.details : JSON.stringify(doc.details || {}),
       timestamp: doc.timestamp,
       targetUserId: doc.targetUserId,
       metadata: doc.metadata || {},
-      ipAddress: doc.ipAddress,
-      userAgent: doc.userAgent
+      ipAddress: doc.ipAddress || 'unknown',
+      userAgent: doc.userAgent || 'unknown'
     }));
   } catch (error) {
     console.error('Error getting recent user activity:', error);
@@ -178,7 +181,11 @@ export async function getUserActivityCount(
     const query: any = { userId };
     
     if (action) {
-      query.action = action;
+      // Support both field names during transition
+      query.$or = [
+        { action: action },
+        { activityType: action }
+      ];
     }
     
     if (startDate || endDate) {
@@ -193,7 +200,8 @@ export async function getUserActivityCount(
       }
     }
     
-    return await UserActivityModel.countDocuments(query);
+    // Use the standardized UserActivityLogModel
+    return await UserActivityLogModel.countDocuments(query);
   } catch (error) {
     console.error('Error getting user activity count:', error);
     return 0;

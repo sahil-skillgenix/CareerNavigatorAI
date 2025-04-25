@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { UserActivityModel, UserActivityLogModel, SystemErrorLogModel } from '../db/models';
+import { UserActivityLogModel, SystemErrorLogModel } from '../db/models';
 
 // Define Activity category directly here to avoid module import issues
 export const ACTIVITY_CATEGORIES = ['ADMIN', 'USER', 'AUTH', 'API', 'FEATURE', 'SYSTEM'] as const;
