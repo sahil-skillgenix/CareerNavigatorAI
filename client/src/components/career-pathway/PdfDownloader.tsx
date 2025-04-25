@@ -20,6 +20,11 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
   const radarChartRef = useRef<HTMLDivElement>(null);
   const barChartRef = useRef<HTMLDivElement>(null);
   const [chartsReady, setChartsReady] = useState(false);
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
 
   // Render the charts but hide them so we can capture them
   useEffect(() => {
@@ -81,10 +86,9 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       pdf.text("Skillgenix Career Analysis", pageWidth/2, 20, { align: "center" });
       
       // Add date and user name
-      const today = new Date().toLocaleDateString();
       pdf.setFontSize(10);
       pdf.setTextColor(100, 100, 100);
-      pdf.text(`Generated on: ${today}`, 15, 30);
+      pdf.text(`Generated on: ${currentDate}`, 15, 30);
       pdf.text(`Prepared for: ${userName}`, 15, 36);
       
       // Section: Executive Summary
@@ -539,9 +543,9 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
             size="sm" 
             className={`${
               isGenerating 
-                ? 'bg-primary/20 text-primary' 
-                : 'bg-primary text-white hover:bg-primary/90'
-            } font-medium gap-2 transition-all`}
+                ? 'bg-primary/10 text-primary border border-primary/30' 
+                : 'bg-primary text-white hover:bg-primary/90 shadow-md'
+            } font-medium gap-2 transition-all rounded-md`}
             disabled={isGenerating || !chartsReady}
           >
             {isGenerating ? (
