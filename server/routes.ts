@@ -5,6 +5,7 @@ import { setupAuth } from "./auth";
 import { hashPassword } from "./mongodb-storage";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service";
 import { analyzeOrganizationPathway, OrganizationPathwayInput } from "./organization-service";
+import { jwtAuthMiddleware } from "./services/jwt-service";
 import { 
   getResourceRecommendations, 
   generateLearningPath, 
@@ -1579,6 +1580,59 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       console.error('Error updating career analysis progress:', error);
       res.status(500).json({
         error: 'Failed to update progress',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
+  // User Activity and Security Endpoints
+  
+  // Get user activity history
+  app.get('/api/activity', jwtAuthMiddleware({ requireAuth: true }), async (req: Request, res: Response) => {
+    try {
+      // Use the user from the authenticated session
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const userId = req.user.id as string;
+      
+      // Get parameters from query string
+      const limit = parseInt(req.query.limit as string) || 20; // Default to 20 entries
+      const actionType = req.query.type as string; // Optional filter by action type
+      
+      // Import at the route level to avoid circular dependencies
+      const { getUserActivity, getUserLoginHistory } = await import('./models/UserActivityModel');
+      
+      let activities;
+      
+      if (actionType === 'login') {
+        // Get only login history
+        activities = await getUserLoginHistory(userId, limit);
+      } else if (actionType) {
+        // Get specific activity type
+        activities = await getUserActivity(userId, limit, [actionType]);
+      } else {
+        // Get all activities
+        activities = await getUserActivity(userId, limit);
+      }
+      
+      // Format the activities for the client
+      const formattedActivities = activities.map(activity => ({
+        id: activity._id,
+        action: activity.action,
+        timestamp: activity.timestamp,
+        status: activity.status,
+        ipAddress: activity.ipAddress,
+        userAgent: activity.userAgent ? activity.userAgent.substring(0, 100) : null, // Trim long user agents
+        details: activity.details
+      }));
+      
+      return res.json(formattedActivities);
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
+      return res.status(500).json({ 
+        error: 'Failed to fetch activity history',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }

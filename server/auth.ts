@@ -252,6 +252,16 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       
       if (!isAnswerCorrect) {
         log(`Password reset: Incorrect security answer for ${email}`, "auth");
+        
+        // Log failed security answer attempt
+        await logUserActivity(
+          user.id as string,
+          'security_answer_verification',
+          'failure',
+          req,
+          { email }
+        );
+        
         return res.status(400).json({ message: "Incorrect security answer" });
       }
       
@@ -259,6 +269,15 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       const resetToken = generateToken(
         { userId: user.id, email: user.email, purpose: 'passwordReset' },
         '15m' // 15 minute expiration
+      );
+      
+      // Log successful security answer verification
+      await logUserActivity(
+        user.id as string,
+        'security_answer_verification',
+        'success',
+        req,
+        { email }
       );
       
       log(`Password reset: Security answer verified for ${email}, reset token generated`, "auth");
@@ -344,6 +363,15 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       
       log(`Password reset successful for user ${user.email}`, "auth");
       
+      // Log the successful password reset
+      await logUserActivity(
+        userId,
+        'password_reset_complete',
+        'success',
+        req,
+        { email: user.email }
+      );
+      
       // Invalidate all existing sessions for this user for security
       // (This is a mock as we don't have direct session invalidation)
       
@@ -382,7 +410,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       if (!user) {
         // Log failed login attempt
         await logUserActivity(
-          'system', // We don't have a user ID yet
+          'system' as string, // We don't have a user ID yet
           'login_attempt',
           'failure',
           req,
