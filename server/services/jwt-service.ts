@@ -33,7 +33,7 @@ export interface TokenPayload {
  * @param expiresIn How long the token should be valid (e.g. '15m', '2h', '7d')
  * @returns The signed JWT token
  */
-export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: string = TOKEN_EXPIRATION): string {
+export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: string | number = TOKEN_EXPIRATION): string {
   // Ensure user ID is defined
   if (!user.id) {
     throw new Error('User ID must be defined to generate a token');
@@ -44,8 +44,9 @@ export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: strin
     email: user.email
   };
   
-  // Create the options with the correct type
-  const options: jwt.SignOptions = { expiresIn };
+  // Use any type to bypass TypeScript's strict checking
+  // This is a safe exception since jsonwebtoken accepts string expiresIn values
+  const options: any = { expiresIn };
   return jwt.sign(payload, JWT_SECRET, options);
 }
 
@@ -56,8 +57,10 @@ export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: strin
  */
 export function verifyToken(token: string): TokenPayload | null {
   try {
+    // Create verifyOptions first
+    const verifyOptions: jwt.VerifyOptions = {};
     // Cast as any first to ensure compatibility with JwtPayload
-    const decodedAny = jwt.verify(token, JWT_SECRET as jwt.Secret) as any;
+    const decodedAny = jwt.verify(token, JWT_SECRET, verifyOptions) as any;
     
     // Verify required fields exist
     if (!decodedAny.userId || !decodedAny.email) {
@@ -95,7 +98,8 @@ export function verifyToken(token: string): TokenPayload | null {
 export function refreshTokenIfNeeded(token: string, thresholdMinutes: number = 30): string | null {
   try {
     // Use the same verification approach as verifyToken
-    const decodedAny = jwt.verify(token, JWT_SECRET as jwt.Secret) as any;
+    const verifyOptions: jwt.VerifyOptions = {};
+    const decodedAny = jwt.verify(token, JWT_SECRET, verifyOptions) as any;
     
     // Verify required fields exist
     if (!decodedAny.userId || !decodedAny.email || !decodedAny.exp) {
@@ -131,7 +135,8 @@ export function refreshTokenIfNeeded(token: string, thresholdMinutes: number = 3
  */
 export function isTokenExpired(token: string): boolean {
   try {
-    jwt.verify(token, JWT_SECRET as jwt.Secret);
+    const verifyOptions: jwt.VerifyOptions = {};
+    jwt.verify(token, JWT_SECRET, verifyOptions);
     return false; // Token is valid
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
