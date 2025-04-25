@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUserSchema, loginUserSchema, SECURITY_QUESTIONS } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  loginUserSchema, 
+  findAccountSchema,
+  verifySecurityAnswerSchema,
+  resetPasswordSchema,
+  SECURITY_QUESTIONS 
+} from "@shared/schema";
 import { Redirect, Link as WouterLink } from "wouter";
 import { motion } from "framer-motion";
 import { z } from "zod";
@@ -27,16 +35,27 @@ import {
   SelectTrigger,
   SelectValue 
 } from "@/components/ui/select";
-import { Loader2, ArrowLeft, Briefcase, Eye, EyeOff } from "lucide-react";
+import { Loader2, ArrowLeft, Briefcase, Eye, EyeOff, KeyRound, ArrowRight, Check } from "lucide-react";
 import { fadeInLeft, fadeInRight } from "@/lib/animations";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import careerGrowthAiSvg from "@/assets/images/career-growth-ai.svg";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
+  const { toast } = useToast();
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  
+  // Password recovery state
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
+  const [recoveryStep, setRecoveryStep] = useState<"find-account" | "security-question" | "reset-password">("find-account");
+  const [recoveryUserId, setRecoveryUserId] = useState<string>("");
+  const [recoveryEmail, setRecoveryEmail] = useState<string>("");
+  const [securityQuestion, setSecurityQuestion] = useState<string>("");
   
   // We'll handle redirect after all hooks
   const shouldRedirect = !!user;
@@ -83,6 +102,145 @@ export default function AuthPage() {
     registerForm.setValue("email", "demo.user@skillgenix.com");
     registerForm.setValue("password", "demo123456");
     registerForm.setValue("confirmPassword", "demo123456");
+  };
+  
+  // Find account form
+  const findAccountForm = useForm<z.infer<typeof findAccountSchema>>({
+    resolver: zodResolver(findAccountSchema),
+    defaultValues: {
+      email: ""
+    }
+  });
+  
+  // Security question form
+  const securityAnswerForm = useForm<z.infer<typeof verifySecurityAnswerSchema>>({
+    resolver: zodResolver(verifySecurityAnswerSchema),
+    defaultValues: {
+      answer: ""
+    }
+  });
+  
+  // Reset password form
+  const resetPasswordForm = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: ""
+    }
+  });
+  
+  // Handle find account submission
+  const onFindAccountSubmit = async (values: z.infer<typeof findAccountSchema>) => {
+    try {
+      const response = await fetch('/api/auth/find-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to find account');
+      }
+      
+      setRecoveryUserId(data.userId);
+      setRecoveryEmail(values.email);
+      setSecurityQuestion(data.securityQuestion);
+      setRecoveryStep('security-question');
+    } catch (error) {
+      toast({
+        title: 'Account not found',
+        description: error.message || 'Please check your email and try again',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Handle security question verification
+  const onSecurityAnswerSubmit = async (values: z.infer<typeof verifySecurityAnswerSchema>) => {
+    try {
+      const response = await fetch('/api/auth/verify-security-answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: recoveryUserId,
+          answer: values.answer
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Security answer verification failed');
+      }
+      
+      setRecoveryStep('reset-password');
+    } catch (error) {
+      toast({
+        title: 'Verification failed',
+        description: error.message || 'Please check your answer and try again',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Handle password reset
+  const onResetPasswordSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: recoveryUserId,
+          password: values.password
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Password reset failed');
+      }
+      
+      toast({
+        title: 'Password reset successful',
+        description: 'You can now log in with your new password',
+        variant: 'default'
+      });
+      
+      // Close dialog and reset state
+      setShowRecoveryDialog(false);
+      setRecoveryStep('find-account');
+      setRecoveryUserId('');
+      setRecoveryEmail('');
+      setSecurityQuestion('');
+      
+      // Reset all forms
+      findAccountForm.reset();
+      securityAnswerForm.reset();
+      resetPasswordForm.reset();
+    } catch (error) {
+      toast({
+        title: 'Password reset failed',
+        description: error.message || 'Please try again',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Reset the recovery flow when dialog is closed
+  const handleRecoveryDialogClose = () => {
+    setShowRecoveryDialog(false);
+    setRecoveryStep('find-account');
+    setRecoveryUserId('');
+    setRecoveryEmail('');
+    setSecurityQuestion('');
+    
+    // Reset all forms
+    findAccountForm.reset();
+    securityAnswerForm.reset();
+    resetPasswordForm.reset();
   };
 
   // Now safe to redirect after all hook calls
@@ -200,13 +358,23 @@ export default function AuthPage() {
                     </div>
                   </div>
                   
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-4"
-                    onClick={fillDemoCredentials}
-                  >
-                    Use Demo Credentials
-                  </Button>
+                  <div className="grid grid-cols-1 gap-4 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={fillDemoCredentials}
+                    >
+                      Use Demo Credentials
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => setShowRecoveryDialog(true)}
+                    >
+                      Forgot Password?
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
               
