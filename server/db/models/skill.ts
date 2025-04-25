@@ -103,4 +103,4 @@ const SkillSchema = new Schema<SkillDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.Skill || mongoose.model<SkillDocument>("Skill", SkillSchema);
+export default mongoose.models.Skill || mongoose.model<SkillDocument>("Skill", SkillSchema, "skillgenix_skill");

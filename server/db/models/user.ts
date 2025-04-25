@@ -60,4 +60,4 @@ const UserSchema = new Schema<UserDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.User || mongoose.model<UserDocument>("User", UserSchema);
+export default mongoose.models.User || mongoose.model<UserDocument>("User", UserSchema, "skillgenix_user");

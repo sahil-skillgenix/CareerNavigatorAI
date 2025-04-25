@@ -40,4 +40,4 @@ const UserBadgeSchema = new Schema<UserBadgeDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.UserBadge || mongoose.model<UserBadgeDocument>("UserBadge", UserBadgeSchema);
+export default mongoose.models.UserBadge || mongoose.model<UserBadgeDocument>("UserBadge", UserBadgeSchema, "skillgenix_userbadge");

@@ -68,4 +68,4 @@ const CareerPathwaySchema = new Schema<CareerPathwayDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.CareerPathway || mongoose.model<CareerPathwayDocument>("CareerPathway", CareerPathwaySchema);
+export default mongoose.models.CareerPathway || mongoose.model<CareerPathwayDocument>("CareerPathway", CareerPathwaySchema, "skillgenix_careerpathway");

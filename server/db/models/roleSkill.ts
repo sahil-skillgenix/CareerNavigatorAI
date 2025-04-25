@@ -44,4 +44,4 @@ const RoleSkillSchema = new Schema<RoleSkillDocument>(
 RoleSkillSchema.index({ roleId: 1, skillId: 1 }, { unique: true });
 
 // Ensure the model is only registered once
-export default mongoose.models.RoleSkill || mongoose.model<RoleSkillDocument>("RoleSkill", RoleSkillSchema);
+export default mongoose.models.RoleSkill || mongoose.model<RoleSkillDocument>("RoleSkill", RoleSkillSchema, "skillgenix_roleskill");

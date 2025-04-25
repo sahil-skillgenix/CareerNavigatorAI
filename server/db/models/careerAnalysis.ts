@@ -74,4 +74,4 @@ const CareerAnalysisSchema = new Schema<CareerAnalysisDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.CareerAnalysis || mongoose.model<CareerAnalysisDocument>("CareerAnalysis", CareerAnalysisSchema);
+export default mongoose.models.CareerAnalysis || mongoose.model<CareerAnalysisDocument>("CareerAnalysis", CareerAnalysisSchema, "skillgenix_careeranalysis");

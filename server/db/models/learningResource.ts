@@ -76,4 +76,4 @@ const LearningResourceSchema = new Schema<LearningResourceDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.LearningResource || mongoose.model<LearningResourceDocument>("LearningResource", LearningResourceSchema);
+export default mongoose.models.LearningResource || mongoose.model<LearningResourceDocument>("LearningResource", LearningResourceSchema, "skillgenix_learningresource");

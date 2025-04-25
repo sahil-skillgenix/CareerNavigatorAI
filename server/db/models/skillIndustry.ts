@@ -43,4 +43,4 @@ const SkillIndustrySchema = new Schema<SkillIndustryDocument>(
 SkillIndustrySchema.index({ skillId: 1, industryId: 1 }, { unique: true });
 
 // Ensure the model is only registered once
-export default mongoose.models.SkillIndustry || mongoose.model<SkillIndustryDocument>("SkillIndustry", SkillIndustrySchema);
+export default mongoose.models.SkillIndustry || mongoose.model<SkillIndustryDocument>("SkillIndustry", SkillIndustrySchema, "skillgenix_skillindustry");

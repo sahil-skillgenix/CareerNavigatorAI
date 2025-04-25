@@ -54,4 +54,4 @@ const ErrorLogSchema = new Schema<ErrorLogDocument>(
 ErrorLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 
 // Ensure the model is only registered once
-export default mongoose.models.ErrorLog || mongoose.model<ErrorLogDocument>("ErrorLog", ErrorLogSchema);
+export default mongoose.models.ErrorLog || mongoose.model<ErrorLogDocument>("ErrorLog", ErrorLogSchema, "skillgenix_errorlog");

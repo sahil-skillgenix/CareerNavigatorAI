@@ -90,4 +90,4 @@ UserActivitySchema.index({ userId: 1, timestamp: -1 });
 UserActivitySchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 
 // Ensure the model is only registered once
-export default mongoose.models.UserActivity || mongoose.model<UserActivityDocument>("UserActivity", UserActivitySchema);
+export default mongoose.models.UserActivity || mongoose.model<UserActivityDocument>("UserActivity", UserActivitySchema, "skillgenix_useractivity");

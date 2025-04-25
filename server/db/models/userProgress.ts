@@ -52,4 +52,4 @@ const UserProgressSchema = new Schema<UserProgressDocument>(
 );
 
 // Ensure the model is only registered once
-export default mongoose.models.UserProgress || mongoose.model<UserProgressDocument>("UserProgress", UserProgressSchema);
+export default mongoose.models.UserProgress || mongoose.model<UserProgressDocument>("UserProgress", UserProgressSchema, "skillgenix_userprogress");

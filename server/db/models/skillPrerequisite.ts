@@ -37,4 +37,4 @@ const SkillPrerequisiteSchema = new Schema<SkillPrerequisiteDocument>(
 SkillPrerequisiteSchema.index({ skillId: 1, prerequisiteId: 1 }, { unique: true });
 
 // Ensure the model is only registered once
-export default mongoose.models.SkillPrerequisite || mongoose.model<SkillPrerequisiteDocument>("SkillPrerequisite", SkillPrerequisiteSchema);
+export default mongoose.models.SkillPrerequisite || mongoose.model<SkillPrerequisiteDocument>("SkillPrerequisite", SkillPrerequisiteSchema, "skillgenix_skillprerequisite");
