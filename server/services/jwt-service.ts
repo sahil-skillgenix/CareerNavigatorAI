@@ -23,6 +23,7 @@ if (!process.env.JWT_SECRET) {
 export interface TokenPayload {
   userId: string | number;
   email: string;
+  role?: string; // User role: 'user', 'admin', or 'superadmin'
   purpose?: string; // Optional purpose field for specialized tokens like password reset
   iat?: number; // Issued at (automatically added by sign)
   exp?: number; // Expiration (automatically calculated based on expiresIn)
@@ -35,7 +36,7 @@ export interface TokenPayload {
  * @returns The signed JWT token
  */
 export function generateToken(
-  userOrPayload: Pick<User, 'id' | 'email'> | TokenPayload, 
+  userOrPayload: Pick<User, 'id' | 'email' | 'role'> | TokenPayload, 
   expiresIn: string | number = TOKEN_EXPIRATION
 ): string {
   let payload: TokenPayload;
@@ -45,7 +46,7 @@ export function generateToken(
     payload = userOrPayload as TokenPayload;
   } else {
     // This is a standard user authentication token
-    const user = userOrPayload as Pick<User, 'id' | 'email'>;
+    const user = userOrPayload as Pick<User, 'id' | 'email' | 'role'>;
     
     // Ensure user ID is defined
     if (!user.id) {
@@ -54,7 +55,8 @@ export function generateToken(
     
     payload = {
       userId: user.id,
-      email: user.email
+      email: user.email,
+      role: user.role || 'user' // Include the user's role, default to 'user' if not specified
     };
   }
   
@@ -88,6 +90,7 @@ export function verifyToken(token: string): TokenPayload | null {
     const decoded: TokenPayload = {
       userId: decodedAny.userId,
       email: decodedAny.email,
+      role: decodedAny.role, // Include user role
       purpose: decodedAny.purpose, // Include purpose for password reset tokens
       iat: decodedAny.iat,
       exp: decodedAny.exp
@@ -133,7 +136,8 @@ export function refreshTokenIfNeeded(token: string, thresholdMinutes: number = 3
       if (typeof decodedAny.userId === 'string' || typeof decodedAny.userId === 'number') {
         return generateToken({ 
           id: decodedAny.userId, 
-          email: decodedAny.email 
+          email: decodedAny.email,
+          role: decodedAny.role || 'user' // Include the role, default to 'user' if missing
         });
       }
     }
