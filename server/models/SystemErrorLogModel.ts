@@ -1,9 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { SYSTEM_ERROR_LEVELS } from '../../shared/schema';
-import { incrementStats } from './SystemUsageStatsModel';
+
+// Error level type
+export const SYSTEM_ERROR_LEVELS = ['debug', 'info', 'warning', 'error', 'critical'] as const;
+export type ErrorLevel = typeof SYSTEM_ERROR_LEVELS[number];
 
 export interface SystemErrorLog extends Document {
-  level: typeof SYSTEM_ERROR_LEVELS[number];
+  level: ErrorLevel;
   message: string;
   stack?: string;
   userId?: string;
@@ -11,37 +13,27 @@ export interface SystemErrorLog extends Document {
   timestamp: Date;
 }
 
-// Define system error log schema
 const SystemErrorLogSchema = new Schema<SystemErrorLog>({
-  level: { 
-    type: String, 
+  level: {
+    type: String,
+    required: true,
     enum: SYSTEM_ERROR_LEVELS,
-    required: true
+    default: 'error'
   },
-  message: { 
-    type: String, 
-    required: true 
-  },
-  stack: { 
-    type: String 
-  },
-  userId: { 
-    type: String 
-  },
-  request: { 
-    type: Schema.Types.Mixed 
-  },
-  timestamp: { 
-    type: Date, 
-    default: Date.now 
-  }
+  message: { type: String, required: true },
+  stack: { type: String },
+  userId: { type: String },
+  request: { type: Schema.Types.Mixed }, // Store details about the request
+  timestamp: { type: Date, default: Date.now }
+}, {
+  timestamps: { createdAt: 'timestamp', updatedAt: false },
+  collection: 'systemErrorLogs'
 });
 
-// Create indices for faster lookups
+// Create indexes for efficient querying
 SystemErrorLogSchema.index({ level: 1, timestamp: -1 });
 SystemErrorLogSchema.index({ userId: 1, timestamp: -1 });
 
-// Create system error log model
 export const SystemErrorLogModel = mongoose.model<SystemErrorLog>('SystemErrorLog', SystemErrorLogSchema);
 
 /**
@@ -50,47 +42,27 @@ export const SystemErrorLogModel = mongoose.model<SystemErrorLog>('SystemErrorLo
 function sanitizeRequest(req: any): Record<string, any> {
   if (!req) return {};
   
-  // Create a safe copy of the request object
   const sanitized: Record<string, any> = {
     method: req.method,
     url: req.url,
     path: req.path,
-    params: req.params || {},
-    query: req.query || {},
-    headers: { ...req.headers }
+    query: req.query,
+    headers: {
+      ...req.headers,
+      // Remove sensitive headers
+      authorization: req.headers?.authorization ? '[REDACTED]' : undefined,
+      cookie: req.headers?.cookie ? '[REDACTED]' : undefined
+    },
+    ip: req.ip
   };
   
-  // Remove sensitive headers
-  const sensitiveHeaders = [
-    'authorization', 
-    'cookie', 
-    'set-cookie'
-  ];
-  
-  sensitiveHeaders.forEach(header => {
-    if (sanitized.headers[header]) {
-      sanitized.headers[header] = '[REDACTED]';
-    }
-  });
-  
-  // Remove password and sensitive fields from body
+  // Remove sensitive body fields if present
   if (req.body) {
     sanitized.body = { ...req.body };
-    const sensitiveFields = [
-      'password',
-      'confirmPassword',
-      'newPassword',
-      'secret',
-      'token',
-      'apiKey',
-      'securityAnswer'
-    ];
-    
-    sensitiveFields.forEach(field => {
-      if (typeof sanitized.body[field] !== 'undefined') {
-        sanitized.body[field] = '[REDACTED]';
-      }
-    });
+    // Redact sensitive fields
+    if (sanitized.body.password) sanitized.body.password = '[REDACTED]';
+    if (sanitized.body.securityAnswer) sanitized.body.securityAnswer = '[REDACTED]';
+    if (sanitized.body.token) sanitized.body.token = '[REDACTED]';
   }
   
   return sanitized;
@@ -100,49 +72,25 @@ function sanitizeRequest(req: any): Record<string, any> {
  * Log a system error
  */
 export async function logSystemError(
-  level: typeof SYSTEM_ERROR_LEVELS[number],
+  level: ErrorLevel,
   message: string,
   options?: {
-    stack?: string;
+    error?: Error;
     userId?: string;
-    req?: any;
+    request?: any;
   }
 ): Promise<SystemErrorLog> {
-  try {
-    // Create new error log record
-    const errorLog = new SystemErrorLogModel({
-      level,
-      message,
-      stack: options?.stack,
-      userId: options?.userId,
-      request: options?.req ? sanitizeRequest(options.req) : undefined,
-      timestamp: new Date()
-    });
-    
-    await errorLog.save();
-    
-    // Increment error count in stats
-    await incrementStats({ errorCount: 1 });
-    
-    return errorLog;
-  } catch (error) {
-    console.error('Error logging system error:', error);
-    
-    // Failsafe - create minimally viable error log
-    const fallbackLog = new SystemErrorLogModel({
-      level: 'critical',
-      message: 'Error logging system error: ' + error,
-      timestamp: new Date()
-    });
-    
-    try {
-      await fallbackLog.save();
-    } catch (innerError) {
-      console.error('Failed to save fallback error log:', innerError);
-    }
-    
-    return fallbackLog;
-  }
+  const errorData: Partial<SystemErrorLog> = {
+    level,
+    message,
+    stack: options?.error?.stack,
+    userId: options?.userId,
+    request: options?.request ? sanitizeRequest(options.request) : undefined
+  };
+  
+  const errorLog = new SystemErrorLogModel(errorData);
+  await errorLog.save();
+  return errorLog;
 }
 
 /**
@@ -151,46 +99,43 @@ export async function logSystemError(
 export async function getErrorLogs(
   page: number = 1,
   limit: number = 50,
-  level?: typeof SYSTEM_ERROR_LEVELS[number],
+  level?: ErrorLevel,
   userId?: string,
   startDate?: Date,
   endDate?: Date
 ): Promise<{ logs: SystemErrorLog[], total: number }> {
-  try {
-    const query: any = {};
-    
-    if (level) {
-      query.level = level;
-    }
-    
-    if (userId) {
-      query.userId = userId;
-    }
-    
-    if (startDate || endDate) {
-      query.timestamp = {};
-      
-      if (startDate) {
-        query.timestamp.$gte = startDate;
-      }
-      
-      if (endDate) {
-        query.timestamp.$lte = endDate;
-      }
-    }
-    
-    const total = await SystemErrorLogModel.countDocuments(query);
-    const logs = await SystemErrorLogModel.find(query)
-      .sort({ timestamp: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .exec();
-    
-    return { logs, total };
-  } catch (error) {
-    console.error('Error getting error logs:', error);
-    return { logs: [], total: 0 };
+  const query: any = {};
+  
+  if (level) {
+    query.level = level;
   }
+  
+  if (userId) {
+    query.userId = userId;
+  }
+  
+  if (startDate || endDate) {
+    query.timestamp = {};
+    
+    if (startDate) {
+      query.timestamp.$gte = startDate;
+    }
+    
+    if (endDate) {
+      query.timestamp.$lte = endDate;
+    }
+  }
+  
+  // Get total count
+  const total = await SystemErrorLogModel.countDocuments(query);
+  
+  // Get paginated logs
+  const logs = await SystemErrorLogModel.find(query)
+    .sort({ timestamp: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
+  
+  return { logs, total };
 }
 
 /**
@@ -201,69 +146,70 @@ export async function getUserErrorLogs(
   page: number = 1,
   limit: number = 20
 ): Promise<{ logs: SystemErrorLog[], total: number }> {
-  return getErrorLogs(page, limit, undefined, userId);
+  // Get total count
+  const total = await SystemErrorLogModel.countDocuments({ userId });
+  
+  // Get paginated logs
+  const logs = await SystemErrorLogModel.find({ userId })
+    .sort({ timestamp: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
+  
+  return { logs, total };
 }
 
 /**
  * Get critical errors
  */
 export async function getCriticalErrors(
-  page: number = 1,
   limit: number = 20
-): Promise<{ logs: SystemErrorLog[], total: number }> {
-  return getErrorLogs(page, limit, 'critical');
+): Promise<SystemErrorLog[]> {
+  return SystemErrorLogModel.find({ level: 'critical' })
+    .sort({ timestamp: -1 })
+    .limit(limit);
 }
 
 /**
  * Get error summary for admin dashboard
  */
 export async function getErrorSummary(
-  days: number = 7
+  days: number = 30
 ): Promise<{
+  byLevel: Record<ErrorLevel, number>;
+  recent: SystemErrorLog[];
   total: number;
-  byLevel: Record<string, number>;
-  recentErrors: SystemErrorLog[];
 }> {
-  try {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-    
-    // Count total errors in the period
-    const total = await SystemErrorLogModel.countDocuments({
-      timestamp: { $gte: startDate }
-    });
-    
-    // Count errors by level
-    const byLevelPipeline = [
-      { 
-        $match: { 
-          timestamp: { $gte: startDate } 
-        } 
-      },
-      { 
-        $group: { 
-          _id: '$level', 
-          count: { $sum: 1 } 
-        } 
-      }
-    ];
-    
-    const byLevelResults = await SystemErrorLogModel.aggregate(byLevelPipeline);
-    
-    const byLevel: Record<string, number> = {};
-    byLevelResults.forEach(result => {
-      byLevel[result._id] = result.count;
-    });
-    
-    // Get most recent errors
-    const recentErrors = await SystemErrorLogModel.find()
-      .sort({ timestamp: -1 })
-      .limit(10)
-      .exec();
-    
-    return { total, byLevel, recentErrors };
-  } catch (error) {
-    console.error('Error getting error summary:', error);
-    return { total: 0, byLevel: {}, recentErrors: [] };
-  }
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  
+  // Count errors by level
+  const byLevelAggregation = await SystemErrorLogModel.aggregate([
+    { $match: { timestamp: { $gte: cutoffDate } } },
+    { $group: { _id: '$level', count: { $sum: 1 } } }
+  ]);
+  
+  // Transform to object with level as key
+  const byLevel = byLevelAggregation.reduce((acc, item) => {
+    acc[item._id as ErrorLevel] = item.count;
+    return acc;
+  }, {} as Record<ErrorLevel, number>);
+  
+  // Add missing levels with 0 count
+  SYSTEM_ERROR_LEVELS.forEach(level => {
+    if (!byLevel[level]) {
+      byLevel[level] = 0;
+    }
+  });
+  
+  // Get most recent errors
+  const recent = await SystemErrorLogModel.find()
+    .sort({ timestamp: -1 })
+    .limit(10);
+  
+  // Get total count in period
+  const total = await SystemErrorLogModel.countDocuments({
+    timestamp: { $gte: cutoffDate }
+  });
+  
+  return { byLevel, recent, total };
 }

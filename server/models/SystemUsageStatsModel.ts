@@ -1,277 +1,325 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface SystemUsageStats extends Document {
-  date: string; // ISO date string YYYY-MM-DD
-  registeredUsers: number;
-  activeUsers: number;
-  careerAnalysisCount: number;
-  learningResourcesAccessed: number;
-  loginCount: number;
-  apiRequestCount: number;
-  avgResponseTime?: number;
-  errorCount: number;
+  date: Date;
+  users: {
+    signups: number;
+    activeUsers: number;
+    loginCount: number;
+  };
+  api: {
+    totalRequests: number;
+    successCount: number;
+    errorCount: number;
+    avgResponseTime: number;
+  };
+  features: {
+    careerAnalysisCount: number;
+    careerPathwayCount: number;
+    organizationPathwayCount: number;
+    skillSearchCount: number;
+    roleSearchCount: number;
+    industrySearchCount: number;
+    learningResourcesCount: number;
+  };
+  errors: {
+    criticalCount: number;
+    errorCount: number;
+    warningCount: number;
+  };
 }
 
-// Define system usage stats schema
 const SystemUsageStatsSchema = new Schema<SystemUsageStats>({
-  date: { 
-    type: String, 
-    required: true,
-    unique: true
+  date: { type: Date, required: true, default: Date.now, index: true },
+  
+  users: {
+    signups: { type: Number, default: 0 },
+    activeUsers: { type: Number, default: 0 },
+    loginCount: { type: Number, default: 0 }
   },
-  registeredUsers: { 
-    type: Number, 
-    default: 0 
+  
+  api: {
+    totalRequests: { type: Number, default: 0 },
+    successCount: { type: Number, default: 0 },
+    errorCount: { type: Number, default: 0 },
+    avgResponseTime: { type: Number, default: 0 }
   },
-  activeUsers: { 
-    type: Number, 
-    default: 0 
+  
+  features: {
+    careerAnalysisCount: { type: Number, default: 0 },
+    careerPathwayCount: { type: Number, default: 0 },
+    organizationPathwayCount: { type: Number, default: 0 },
+    skillSearchCount: { type: Number, default: 0 },
+    roleSearchCount: { type: Number, default: 0 },
+    industrySearchCount: { type: Number, default: 0 },
+    learningResourcesCount: { type: Number, default: 0 }
   },
-  careerAnalysisCount: { 
-    type: Number, 
-    default: 0 
-  },
-  learningResourcesAccessed: { 
-    type: Number, 
-    default: 0 
-  },
-  loginCount: { 
-    type: Number, 
-    default: 0 
-  },
-  apiRequestCount: { 
-    type: Number, 
-    default: 0 
-  },
-  avgResponseTime: { 
-    type: Number 
-  },
-  errorCount: { 
-    type: Number, 
-    default: 0 
+  
+  errors: {
+    criticalCount: { type: Number, default: 0 },
+    errorCount: { type: Number, default: 0 },
+    warningCount: { type: Number, default: 0 }
   }
+}, {
+  collection: 'systemUsageStats'
 });
 
-// Create date index for faster lookups
-SystemUsageStatsSchema.index({ date: 1 });
-
-// Create system usage stats model
 export const SystemUsageStatsModel = mongoose.model<SystemUsageStats>('SystemUsageStats', SystemUsageStatsSchema);
 
 /**
- * Update or create usage stats for today
+ * Increment a specific usage statistic
  */
-export async function updateTodayStats(statsUpdate: Partial<SystemUsageStats>): Promise<SystemUsageStats> {
-  try {
-    const today = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD
-    
-    // Find today's stats document
-    let todayStats = await SystemUsageStatsModel.findOne({ date: today });
-    
-    if (todayStats) {
-      // Update existing document with increments
-      Object.keys(statsUpdate).forEach(key => {
-        if (key !== 'date' && typeof statsUpdate[key] === 'number') {
-          todayStats[key] += statsUpdate[key];
-        }
-      });
-      
-      await todayStats.save();
-    } else {
-      // Create new document for today
-      todayStats = new SystemUsageStatsModel({
-        date: today,
-        ...statsUpdate
-      });
-      
-      await todayStats.save();
-    }
-    
-    return todayStats;
-  } catch (error) {
-    console.error('Error updating today stats:', error);
-    throw error;
+export async function incrementUsageStat(
+  statPath: string,
+  incrementBy: number = 1
+): Promise<boolean> {
+  // Get today's date with time set to midnight for consistent day tracking
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Find or create today's stats record
+  let todayStats = await SystemUsageStatsModel.findOne({ date: today });
+  
+  if (!todayStats) {
+    todayStats = new SystemUsageStatsModel({ date: today });
+    await todayStats.save();
   }
+  
+  // Construct update object with the nested path
+  const updateObj: any = {};
+  updateObj[statPath] = incrementBy;
+  
+  // Update the specified statistic
+  const result = await SystemUsageStatsModel.updateOne(
+    { _id: todayStats._id },
+    { $inc: updateObj }
+  );
+  
+  return result.modifiedCount > 0;
 }
 
 /**
- * Increment specific stat counters for today
+ * Record user signup
  */
-export async function incrementStats(
-  stats: {
-    registeredUsers?: number;
-    activeUsers?: number;
-    careerAnalysisCount?: number;
-    learningResourcesAccessed?: number;
-    loginCount?: number;
-    apiRequestCount?: number;
-    errorCount?: number;
-  }
-): Promise<void> {
-  try {
-    await updateTodayStats(stats);
-  } catch (error) {
-    console.error('Error incrementing stats:', error);
-  }
+export async function recordSignup(): Promise<boolean> {
+  return incrementUsageStat('users.signups');
 }
 
 /**
- * Record API response time and calculate new average
+ * Record active user login
  */
-export async function recordApiResponseTime(responseTimeMs: number): Promise<void> {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Find today's stats document
-    let todayStats = await SystemUsageStatsModel.findOne({ date: today });
-    
-    if (todayStats) {
-      // Update average response time
-      if (todayStats.avgResponseTime) {
-        // Calculate new average
-        todayStats.avgResponseTime = 
-          (todayStats.avgResponseTime * todayStats.apiRequestCount + responseTimeMs) / 
-          (todayStats.apiRequestCount + 1);
-      } else {
-        // First response time of the day
-        todayStats.avgResponseTime = responseTimeMs;
-      }
-      
-      // Increment API request count
-      todayStats.apiRequestCount += 1;
-      
-      await todayStats.save();
-    } else {
-      // Create new document for today
-      todayStats = new SystemUsageStatsModel({
-        date: today,
-        apiRequestCount: 1,
-        avgResponseTime: responseTimeMs
-      });
-      
-      await todayStats.save();
-    }
-  } catch (error) {
-    console.error('Error recording API response time:', error);
+export async function recordLogin(): Promise<boolean> {
+  // Increment both active users and login count
+  await incrementUsageStat('users.activeUsers');
+  return incrementUsageStat('users.loginCount');
+}
+
+/**
+ * Record API request
+ */
+export async function recordApiRequest(
+  success: boolean,
+  responseTime: number
+): Promise<boolean> {
+  // Update total requests
+  await incrementUsageStat('api.totalRequests');
+  
+  // Update success or error count
+  if (success) {
+    await incrementUsageStat('api.successCount');
+  } else {
+    await incrementUsageStat('api.errorCount');
   }
+  
+  // Update average response time
+  // This is an approximation as a proper average would require more complex calculations
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const stats = await SystemUsageStatsModel.findOne({ date: today });
+  if (stats) {
+    const currentAvg = stats.api.avgResponseTime;
+    const currentTotal = stats.api.totalRequests;
+    
+    // Calculate new average: ((currentAvg * (totalRequests-1)) + newValue) / totalRequests
+    const newAvg = ((currentAvg * (currentTotal - 1)) + responseTime) / currentTotal;
+    
+    await SystemUsageStatsModel.updateOne(
+      { _id: stats._id },
+      { $set: { 'api.avgResponseTime': newAvg } }
+    );
+  }
+  
+  return true;
+}
+
+/**
+ * Record feature usage
+ */
+export async function recordFeatureUsage(
+  feature: keyof SystemUsageStats['features']
+): Promise<boolean> {
+  return incrementUsageStat(`features.${feature}`);
+}
+
+/**
+ * Record error occurrence
+ */
+export async function recordError(
+  level: 'critical' | 'error' | 'warning'
+): Promise<boolean> {
+  return incrementUsageStat(`errors.${level}Count`);
 }
 
 /**
  * Get usage stats for a date range
  */
-export async function getStatsForDateRange(
-  startDate: string, // YYYY-MM-DD format
-  endDate: string // YYYY-MM-DD format
+export async function getUsageStats(
+  startDate: Date,
+  endDate: Date
 ): Promise<SystemUsageStats[]> {
-  try {
-    return await SystemUsageStatsModel.find({
-      date: { $gte: startDate, $lte: endDate }
-    }).sort({ date: 1 }).exec();
-  } catch (error) {
-    console.error('Error getting stats for date range:', error);
-    return [];
-  }
+  return SystemUsageStatsModel.find({
+    date: { $gte: startDate, $lte: endDate }
+  }).sort({ date: 1 });
 }
 
 /**
- * Get usage stats summary for a date range
+ * Get aggregated usage stats for a time period
  */
-export async function getStatsSummary(
-  startDate: string, // YYYY-MM-DD format
-  endDate: string // YYYY-MM-DD format
+export async function getAggregatedStats(
+  days: number = 30
 ): Promise<{
-  totalActiveUsers: number;
-  totalCareerAnalyses: number;
+  totalSignups: number;
+  activeUsers: number;
   totalLogins: number;
-  totalErrors: number;
-  avgDailyActiveUsers: number;
-  dailyStats: SystemUsageStats[];
+  apiRequests: number;
+  apiSuccessRate: number;
+  avgResponseTime: number;
+  featureUsage: Record<string, number>;
+  errorRates: {
+    critical: number;
+    error: number;
+    warning: number;
+  };
+  dailyStats: Array<{
+    date: string;
+    signups: number;
+    activeUsers: number;
+  }>;
 }> {
-  try {
-    const dailyStats = await getStatsForDateRange(startDate, endDate);
-    
-    if (dailyStats.length === 0) {
-      return {
-        totalActiveUsers: 0,
-        totalCareerAnalyses: 0,
-        totalLogins: 0,
-        totalErrors: 0,
-        avgDailyActiveUsers: 0,
-        dailyStats: []
-      };
-    }
-    
-    // Calculate totals
-    const totalActiveUsers = dailyStats.reduce((sum, day) => sum + day.activeUsers, 0);
-    const totalCareerAnalyses = dailyStats.reduce((sum, day) => sum + day.careerAnalysisCount, 0);
-    const totalLogins = dailyStats.reduce((sum, day) => sum + day.loginCount, 0);
-    const totalErrors = dailyStats.reduce((sum, day) => sum + day.errorCount, 0);
-    
-    // Calculate averages
-    const avgDailyActiveUsers = totalActiveUsers / dailyStats.length;
-    
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  cutoffDate.setHours(0, 0, 0, 0);
+  
+  // Get all stats for the period
+  const stats = await SystemUsageStatsModel.find({
+    date: { $gte: cutoffDate }
+  }).sort({ date: 1 });
+  
+  if (stats.length === 0) {
     return {
-      totalActiveUsers,
-      totalCareerAnalyses,
-      totalLogins,
-      totalErrors,
-      avgDailyActiveUsers,
-      dailyStats
-    };
-  } catch (error) {
-    console.error('Error getting stats summary:', error);
-    return {
-      totalActiveUsers: 0,
-      totalCareerAnalyses: 0,
+      totalSignups: 0,
+      activeUsers: 0,
       totalLogins: 0,
-      totalErrors: 0,
-      avgDailyActiveUsers: 0,
+      apiRequests: 0,
+      apiSuccessRate: 0,
+      avgResponseTime: 0,
+      featureUsage: {
+        careerAnalysisCount: 0,
+        careerPathwayCount: 0,
+        organizationPathwayCount: 0,
+        skillSearchCount: 0,
+        roleSearchCount: 0,
+        industrySearchCount: 0,
+        learningResourcesCount: 0
+      },
+      errorRates: {
+        critical: 0,
+        error: 0,
+        warning: 0
+      },
       dailyStats: []
     };
   }
-}
-
-/**
- * Get latest registered users count
- */
-export async function getLatestRegisteredUsersCount(): Promise<number> {
-  try {
-    const latestStats = await SystemUsageStatsModel.findOne().sort({ date: -1 });
-    return latestStats?.registeredUsers || 0;
-  } catch (error) {
-    console.error('Error getting latest registered users count:', error);
-    return 0;
-  }
-}
-
-/**
- * Set absolute value for a specific stat (not incremental)
- */
-export async function setAbsoluteStatValue(
-  statName: keyof SystemUsageStats,
-  value: number
-): Promise<void> {
-  try {
-    if (statName === 'date') return;
+  
+  // Calculate totals
+  let totalSignups = 0;
+  let activeUsers = 0;
+  let totalLogins = 0;
+  let apiRequests = 0;
+  let apiSuccess = 0;
+  let apiErrors = 0;
+  let responseTimeSum = 0;
+  let responseTimeCount = 0;
+  
+  const featureUsage = {
+    careerAnalysisCount: 0,
+    careerPathwayCount: 0,
+    organizationPathwayCount: 0,
+    skillSearchCount: 0,
+    roleSearchCount: 0,
+    industrySearchCount: 0,
+    learningResourcesCount: 0
+  };
+  
+  const errorRates = {
+    critical: 0,
+    error: 0,
+    warning: 0
+  };
+  
+  const dailyStats: Array<{
+    date: string;
+    signups: number;
+    activeUsers: number;
+  }> = [];
+  
+  // Sum up all the data
+  stats.forEach(day => {
+    totalSignups += day.users.signups;
+    activeUsers = Math.max(activeUsers, day.users.activeUsers); // Use highest active user count
+    totalLogins += day.users.loginCount;
     
-    const today = new Date().toISOString().split('T')[0];
+    apiRequests += day.api.totalRequests;
+    apiSuccess += day.api.successCount;
+    apiErrors += day.api.errorCount;
     
-    // Find or create today's stats document
-    let todayStats = await SystemUsageStatsModel.findOne({ date: today });
-    
-    if (todayStats) {
-      // Set the absolute value
-      todayStats[statName] = value;
-      await todayStats.save();
-    } else {
-      // Create new document with this stat
-      const newStats: Partial<SystemUsageStats> = { date: today };
-      newStats[statName] = value;
-      
-      todayStats = new SystemUsageStatsModel(newStats);
-      await todayStats.save();
+    if (day.api.avgResponseTime > 0 && day.api.totalRequests > 0) {
+      responseTimeSum += day.api.avgResponseTime * day.api.totalRequests;
+      responseTimeCount += day.api.totalRequests;
     }
-  } catch (error) {
-    console.error(`Error setting absolute stat value for ${statName}:`, error);
-  }
+    
+    // Feature usage
+    Object.keys(featureUsage).forEach(key => {
+      featureUsage[key as keyof typeof featureUsage] += day.features[key as keyof typeof featureUsage];
+    });
+    
+    // Error rates
+    errorRates.critical += day.errors.criticalCount;
+    errorRates.error += day.errors.errorCount;
+    errorRates.warning += day.errors.warningCount;
+    
+    // Daily stats for graphing
+    dailyStats.push({
+      date: day.date.toISOString().split('T')[0],
+      signups: day.users.signups,
+      activeUsers: day.users.activeUsers
+    });
+  });
+  
+  // Calculate success rate and average response time
+  const apiSuccessRate = apiRequests > 0 ? (apiSuccess / apiRequests) * 100 : 0;
+  const avgResponseTime = responseTimeCount > 0 ? responseTimeSum / responseTimeCount : 0;
+  
+  return {
+    totalSignups,
+    activeUsers,
+    totalLogins,
+    apiRequests,
+    apiSuccessRate,
+    avgResponseTime,
+    featureUsage,
+    errorRates,
+    dailyStats
+  };
 }

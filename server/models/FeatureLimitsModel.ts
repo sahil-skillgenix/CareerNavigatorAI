@@ -1,182 +1,282 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface FeatureLimits extends Document {
-  featureName: string;
-  defaultLimit: number;
+  name: string;
   description: string;
+  defaultLimit: number;
+  defaultFrequency: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'total';
+  userTiers: {
+    free: number;
+    basic: number;
+    premium: number;
+    enterprise: number;
+  };
+  overridable: boolean;
+  active: boolean;
+  createdAt: Date;
   updatedAt: Date;
-  updatedBy?: string;
 }
 
-// Define feature limits schema
+export interface UserFeatureOverride extends Document {
+  userId: string;
+  featureName: string;
+  limit: number;
+  reason: string;
+  expiresAt?: Date;
+  createdAt: Date;
+  createdBy: string;
+}
+
 const FeatureLimitsSchema = new Schema<FeatureLimits>({
-  featureName: { 
-    type: String, 
+  name: { type: String, required: true, unique: true, index: true },
+  description: { type: String, required: true },
+  defaultLimit: { type: Number, required: true },
+  defaultFrequency: {
+    type: String,
     required: true,
-    unique: true 
+    enum: ['daily', 'weekly', 'monthly', 'yearly', 'total']
   },
-  defaultLimit: { 
-    type: Number, 
-    required: true,
-    min: 0
+  userTiers: {
+    free: { type: Number, required: true },
+    basic: { type: Number, required: true },
+    premium: { type: Number, required: true },
+    enterprise: { type: Number, required: true }
   },
-  description: { 
-    type: String, 
-    required: true 
-  },
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
-  },
-  updatedBy: { 
-    type: String 
-  }
+  overridable: { type: Boolean, default: true },
+  active: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true,
+  collection: 'featureLimits'
 });
 
-// Create indices for faster lookups
-FeatureLimitsSchema.index({ featureName: 1 });
+const UserFeatureOverrideSchema = new Schema<UserFeatureOverride>({
+  userId: { type: String, required: true },
+  featureName: { type: String, required: true },
+  limit: { type: Number, required: true },
+  reason: { type: String, required: true },
+  expiresAt: { type: Date },
+  createdAt: { type: Date, default: Date.now },
+  createdBy: { type: String, required: true }
+}, {
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'userFeatureOverrides'
+});
 
-// Create feature limits model
+// Create a compound index for userId + featureName for fast lookups
+UserFeatureOverrideSchema.index({ userId: 1, featureName: 1 }, { unique: true });
+
 export const FeatureLimitsModel = mongoose.model<FeatureLimits>('FeatureLimits', FeatureLimitsSchema);
-
-// Default feature limits
-const DEFAULT_FEATURE_LIMITS = [
-  {
-    featureName: 'careerPathway',
-    defaultLimit: 10,
-    description: 'Number of career pathway analyses a user can generate'
-  },
-  {
-    featureName: 'organizationPathway',
-    defaultLimit: 5,
-    description: 'Number of organization pathway analyses a user can generate'
-  },
-  {
-    featureName: 'learningResources',
-    defaultLimit: 20,
-    description: 'Number of learning resource recommendations a user can generate'
-  },
-  {
-    featureName: 'skillAssessment',
-    defaultLimit: 15,
-    description: 'Number of skill assessments a user can perform'
-  },
-  {
-    featureName: 'pdfExport',
-    defaultLimit: 10,
-    description: 'Number of PDF exports a user can generate'
-  }
-];
-
-/**
- * Seed the feature limits collection with default values if empty
- */
-export async function seedFeatureLimits(): Promise<void> {
-  try {
-    // Check if collection is empty
-    const count = await FeatureLimitsModel.countDocuments();
-    
-    if (count === 0) {
-      // Insert default feature limits
-      await FeatureLimitsModel.insertMany(
-        DEFAULT_FEATURE_LIMITS.map(limit => ({
-          ...limit,
-          updatedAt: new Date()
-        }))
-      );
-      
-      console.log('Feature limits seeded successfully');
-    }
-  } catch (error) {
-    console.error('Error seeding feature limits:', error);
-  }
-}
+export const UserFeatureOverrideModel = mongoose.model<UserFeatureOverride>('UserFeatureOverride', UserFeatureOverrideSchema);
 
 /**
  * Get all feature limits
  */
 export async function getAllFeatureLimits(): Promise<FeatureLimits[]> {
-  try {
-    return await FeatureLimitsModel.find().sort({ featureName: 1 }).exec();
-  } catch (error) {
-    console.error('Error getting feature limits:', error);
-    return [];
-  }
+  return FeatureLimitsModel.find().sort({ name: 1 });
 }
 
 /**
- * Get feature limit by name
+ * Get a feature limit by name
  */
-export async function getFeatureLimit(featureName: string): Promise<FeatureLimits | null> {
-  try {
-    return await FeatureLimitsModel.findOne({ featureName });
-  } catch (error) {
-    console.error(`Error getting feature limit for ${featureName}:`, error);
-    return null;
-  }
+export async function getFeatureLimit(name: string): Promise<FeatureLimits | null> {
+  return FeatureLimitsModel.findOne({ name });
 }
 
 /**
- * Update feature limit
+ * Update a feature limit
  */
 export async function updateFeatureLimit(
-  featureName: string,
-  newLimit: number,
-  description: string,
-  updatedBy: string
+  name: string,
+  updates: Partial<FeatureLimits>
 ): Promise<FeatureLimits | null> {
-  try {
-    // Ensure limit is not negative
-    const safeLimit = Math.max(0, newLimit);
-    
-    const updated = await FeatureLimitsModel.findOneAndUpdate(
-      { featureName },
-      {
-        defaultLimit: safeLimit,
-        description,
-        updatedAt: new Date(),
-        updatedBy
-      },
-      { new: true, upsert: true }
-    );
-    
-    return updated;
-  } catch (error) {
-    console.error(`Error updating feature limit for ${featureName}:`, error);
-    return null;
+  // Add updatedAt date
+  if (!updates.updatedAt) {
+    updates.updatedAt = new Date();
   }
+  
+  return FeatureLimitsModel.findOneAndUpdate(
+    { name },
+    { $set: updates },
+    { new: true }
+  );
+}
+
+/**
+ * Create a new feature limit
+ */
+export async function createFeatureLimit(
+  data: Omit<FeatureLimits, 'createdAt' | 'updatedAt' | '_id'>
+): Promise<FeatureLimits> {
+  const featureLimit = new FeatureLimitsModel(data);
+  await featureLimit.save();
+  return featureLimit;
 }
 
 /**
  * Get user's limit for a specific feature
- * Takes into account both global defaults and user-specific restrictions
  */
 export async function getUserFeatureLimit(
   userId: string,
   featureName: string,
-  getUserFunc: (id: string) => Promise<any>
+  userTier: 'free' | 'basic' | 'premium' | 'enterprise' = 'free'
 ): Promise<number> {
-  try {
-    // Get global feature limit
-    const featureLimit = await getFeatureLimit(featureName);
-    const globalLimit = featureLimit?.defaultLimit || 0;
-    
-    // Get user details to check for restrictions
-    const user = await getUserFunc(userId);
-    
-    if (!user) {
-      return 0; // User not found
+  // First check if there's a user-specific override
+  const override = await UserFeatureOverrideModel.findOne({
+    userId,
+    featureName,
+    // Only get overrides that haven't expired
+    $or: [
+      { expiresAt: { $gt: new Date() } },
+      { expiresAt: null }
+    ]
+  });
+  
+  if (override) {
+    return override.limit;
+  }
+  
+  // No override, get the default limit for the user's tier
+  const featureLimit = await FeatureLimitsModel.findOne({ name: featureName });
+  
+  if (!featureLimit) {
+    // Feature not found, return a default high limit
+    return 1000;
+  }
+  
+  // Return the limit for the user's tier
+  return featureLimit.userTiers[userTier];
+}
+
+/**
+ * Add a user-specific feature limit override
+ */
+export async function setUserFeatureOverride(
+  userId: string,
+  featureName: string,
+  limit: number,
+  reason: string,
+  adminId: string,
+  expiresAt?: Date
+): Promise<UserFeatureOverride> {
+  // Find existing override or create a new one
+  const override = await UserFeatureOverrideModel.findOneAndUpdate(
+    { userId, featureName },
+    {
+      $set: {
+        limit,
+        reason,
+        expiresAt,
+        createdBy: adminId,
+        createdAt: new Date()
+      }
+    },
+    { upsert: true, new: true }
+  );
+  
+  if (!override) {
+    // If no document was returned, create a new one manually 
+    // (this should not happen because of upsert, but just in case)
+    const newOverride = new UserFeatureOverrideModel({
+      userId,
+      featureName,
+      limit,
+      reason,
+      expiresAt,
+      createdBy: adminId
+    });
+    await newOverride.save();
+    return newOverride;
+  }
+  
+  return override;
+}
+
+/**
+ * Remove a user-specific feature limit override
+ */
+export async function removeUserFeatureOverride(
+  userId: string,
+  featureName: string
+): Promise<boolean> {
+  const result = await UserFeatureOverrideModel.deleteOne({
+    userId,
+    featureName
+  });
+  
+  return result.deletedCount > 0;
+}
+
+/**
+ * Initialize default feature limits if they don't exist
+ */
+export async function initializeDefaultFeatureLimits(): Promise<void> {
+  const defaultLimits = [
+    {
+      name: 'careerAnalysis',
+      description: 'Number of career analyses a user can generate',
+      defaultLimit: 3,
+      defaultFrequency: 'monthly' as const,
+      userTiers: {
+        free: 3,
+        basic: 10,
+        premium: 30,
+        enterprise: 100
+      },
+      overridable: true,
+      active: true
+    },
+    {
+      name: 'careerPathway',
+      description: 'Number of career pathways a user can generate',
+      defaultLimit: 5,
+      defaultFrequency: 'monthly' as const,
+      userTiers: {
+        free: 5,
+        basic: 15,
+        premium: 50,
+        enterprise: 150
+      },
+      overridable: true,
+      active: true
+    },
+    {
+      name: 'organizationPathway',
+      description: 'Number of organization pathways a user can generate',
+      defaultLimit: 2,
+      defaultFrequency: 'monthly' as const,
+      userTiers: {
+        free: 2,
+        basic: 5,
+        premium: 15,
+        enterprise: 50
+      },
+      overridable: true,
+      active: true
+    },
+    {
+      name: 'learningResources',
+      description: 'Number of learning resource recommendations a user can generate',
+      defaultLimit: 10,
+      defaultFrequency: 'monthly' as const,
+      userTiers: {
+        free: 10,
+        basic: 30,
+        premium: 100,
+        enterprise: 250
+      },
+      overridable: true,
+      active: true
     }
+  ];
+
+  // Loop through default limits and create or update them
+  for (const limit of defaultLimits) {
+    const existing = await FeatureLimitsModel.findOne({ name: limit.name });
     
-    // If user has specific restrictions, use those instead
-    if (user.restrictions && typeof user.restrictions[`${featureName}Limit`] === 'number') {
-      return user.restrictions[`${featureName}Limit`];
+    if (!existing) {
+      await createFeatureLimit(limit);
     }
-    
-    // Otherwise return global limit
-    return globalLimit;
-  } catch (error) {
-    console.error(`Error getting user feature limit for ${featureName}:`, error);
-    return 0;
   }
 }
