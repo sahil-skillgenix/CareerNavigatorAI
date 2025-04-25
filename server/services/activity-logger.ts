@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import APIRequestLogModel, { APIRequestLog } from '../models/APIRequestLogModel';
-import { UserActivityModel } from '../db/models';
-import { logError, type UserActivityType, type RequestStatus } from './logging-service';
+import { UserActivityLogModel } from '../db/models';
+import { logError, type UserActivityType, type RequestStatus, type ActivityCategory } from './logging-service';
 
 /**
  * Log a user activity 
@@ -10,6 +10,7 @@ import { logError, type UserActivityType, type RequestStatus } from './logging-s
 export async function logUserActivity({
   userId,
   action,
+  category = 'USER',
   details,
   targetUserId,
   metadata = {},
@@ -18,6 +19,7 @@ export async function logUserActivity({
 }: {
   userId: string;
   action: UserActivityType;
+  category?: 'USER' | 'ADMIN' | 'AUTH' | 'API' | 'FEATURE' | 'SYSTEM';
   details?: string;
   targetUserId?: string;
   metadata?: Record<string, any>;
@@ -25,14 +27,15 @@ export async function logUserActivity({
   userAgent?: string;
 }): Promise<void> {
   try {
-    const activity = new UserActivityModel({
+    const activity = new UserActivityLogModel({
       userId,
       action: action, // Use standardized action field
-      category: 'USER', // Default to USER category
-      details: typeof details === 'string' ? { message: details } : details || {}, // Convert string to object if needed
+      category: category, // Use the provided category
+      details: typeof details === 'string' ? details : details || '', // Format as string
       ipAddress,
       userAgent,
-      timestamp: new Date()
+      timestamp: new Date(),
+      metadata: metadata
     });
     
     await activity.save();
@@ -287,6 +290,7 @@ export function authEventLogger() {
         if (userId || action === 'login_failure') {
           logUserActivity({
             userId: userId || 'anonymous',
+            category: 'AUTH',
             action: action as UserActivityType,
             details,
             ipAddress: req.ip,
@@ -313,6 +317,7 @@ export function authEventLogger() {
         if (res.statusCode >= 200 && res.statusCode < 300 && req.user) {
           logUserActivity({
             userId: req.user?.id || 'anonymous',
+            category: 'AUTH',
             action: 'logout',
             details: 'User logged out',
             ipAddress: req.ip,
@@ -338,6 +343,7 @@ export function authEventLogger() {
           if (userId) {
             logUserActivity({
               userId,
+              category: 'AUTH',
               action: 'login_success',
               details: 'New user registered and logged in',
               ipAddress: req.ip,
