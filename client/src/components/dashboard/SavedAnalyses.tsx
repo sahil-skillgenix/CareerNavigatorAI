@@ -221,11 +221,11 @@ export function SavedAnalyses() {
               <p className="text-sm text-muted-foreground mb-1">Professional Level: {latestAnalysis.professionalLevel}</p>
               
               {expandedAnalysis === latestAnalysis.id && latestAnalysis.result && (
-                <div className="mt-4 space-y-6 text-sm divide-y">
+                <div className="mt-4 space-y-6 text-sm divide-y overflow-hidden">
                   {latestAnalysis.result.executiveSummary && (
                     <div className="pb-4">
                       <h3 className="text-base font-semibold mb-2">Executive Summary</h3>
-                      <p className="text-muted-foreground">{latestAnalysis.result.executiveSummary}</p>
+                      <p className="text-muted-foreground break-words">{latestAnalysis.result.executiveSummary}</p>
                     </div>
                   )}
                   
@@ -239,17 +239,24 @@ export function SavedAnalyses() {
                         <div className="mb-3">
                           <h4 className="text-sm font-medium mb-1">SFIA 9 Framework</h4>
                           <ul className="space-y-1">
-                            {latestAnalysis.result.skillMapping.sfia9.map((skill: any, index: number) => (
+                            {latestAnalysis.result.skillMapping.sfia9.slice(0, 5).map((skill: any, index: number) => (
                               <li key={index} className="flex items-start">
-                                <Badge variant="outline" className="mr-2 mt-0.5">
+                                <Badge variant="outline" className="mr-2 mt-0.5 shrink-0">
                                   {skill.level}
                                 </Badge>
-                                <div>
+                                <div className="overflow-hidden">
                                   <span className="font-medium">{skill.skill}</span>
-                                  <p className="text-xs text-muted-foreground">{skill.description}</p>
+                                  <p className="text-xs text-muted-foreground truncate" title={skill.description}>
+                                    {skill.description}
+                                  </p>
                                 </div>
                               </li>
                             ))}
+                            {latestAnalysis.result.skillMapping.sfia9.length > 5 && (
+                              <li className="text-xs text-muted-foreground italic">
+                                And {latestAnalysis.result.skillMapping.sfia9.length - 5} more skills...
+                              </li>
+                            )}
                           </ul>
                         </div>
                       )}
@@ -259,17 +266,24 @@ export function SavedAnalyses() {
                         <div>
                           <h4 className="text-sm font-medium mb-1">DigComp 2.2 Framework</h4>
                           <ul className="space-y-1">
-                            {latestAnalysis.result.skillMapping.digcomp22.map((comp: any, index: number) => (
+                            {latestAnalysis.result.skillMapping.digcomp22.slice(0, 5).map((comp: any, index: number) => (
                               <li key={index} className="flex items-start">
-                                <Badge variant="outline" className="mr-2 mt-0.5">
+                                <Badge variant="outline" className="mr-2 mt-0.5 shrink-0">
                                   {comp.level}
                                 </Badge>
-                                <div>
+                                <div className="overflow-hidden">
                                   <span className="font-medium">{comp.competency}</span>
-                                  <p className="text-xs text-muted-foreground">{comp.description}</p>
+                                  <p className="text-xs text-muted-foreground truncate" title={comp.description}>
+                                    {comp.description}
+                                  </p>
                                 </div>
                               </li>
                             ))}
+                            {latestAnalysis.result.skillMapping.digcomp22.length > 5 && (
+                              <li className="text-xs text-muted-foreground italic">
+                                And {latestAnalysis.result.skillMapping.digcomp22.length - 5} more competencies...
+                              </li>
+                            )}
                           </ul>
                         </div>
                       )}
@@ -284,7 +298,7 @@ export function SavedAnalyses() {
                       {/* Limited AI Analysis */}
                       {latestAnalysis.result.skillGapAnalysis.aiAnalysis && (
                         <div className="mb-4">
-                          <p className="text-muted-foreground text-sm">
+                          <p className="text-muted-foreground text-sm break-words">
                             {latestAnalysis.result.skillGapAnalysis.aiAnalysis.length > 150 ? 
                               `${latestAnalysis.result.skillGapAnalysis.aiAnalysis.substring(0, 150)}...` : 
                               latestAnalysis.result.skillGapAnalysis.aiAnalysis}

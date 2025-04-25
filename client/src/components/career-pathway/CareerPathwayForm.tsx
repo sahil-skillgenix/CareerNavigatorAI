@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Loader2, 
@@ -2812,6 +2812,9 @@ function CareerAnalysisResults({
                     
                     const savedData = await response.json().catch(() => null);
                     console.log("Career analysis saved successfully:", savedData);
+                    
+                    // Invalidate dashboard query cache to trigger a refresh
+                    queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
                     
                     // Show success message
                     toast({
