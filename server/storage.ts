@@ -61,6 +61,11 @@ export class MemStorage implements IStorage {
   private userBadges: Map<string, UserBadge & { id: string }>;
   private userProgress: Map<string, UserProgress & { id: string }>;
   
+  // Type guard to ensure ID exists and is a string
+  private ensureStringId(obj: any): obj is { id: string } {
+    return obj && typeof obj.id === 'string';
+  }
+  
   private userId: number = 1;
   private analysisId: number = 1;
   private badgeId: number = 1;
@@ -91,7 +96,7 @@ export class MemStorage implements IStorage {
     
     const idNum = this.userId++;
     const id = idNum.toString();
-    const user: User = { 
+    const user: User & { id: string } = { 
       ...demoUser, 
       id,
       createdAt: new Date().toISOString() 
@@ -115,7 +120,7 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: Omit<InsertUser, "confirmPassword">): Promise<User> {
     const idNum = this.userId++;
     const id = idNum.toString();
-    const user: User = { 
+    const user: User & { id: string } = { 
       ...insertUser, 
       id, 
       createdAt: new Date().toISOString() 

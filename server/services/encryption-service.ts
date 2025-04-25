@@ -99,18 +99,21 @@ export function decrypt(encryptedData: string, iv: string, authTag: string): str
 export function encryptFields<T extends Record<string, any>>(
   data: T, 
   fieldsToEncrypt: (keyof T)[]
-): T & Record<string, any> {
+): Record<string, any> {
   const result = { ...data };
   
   for (const field of fieldsToEncrypt) {
-    if (data[field] && typeof data[field] === 'string') {
-      const encrypted = encrypt(data[field]);
-      result[field] = undefined; // Remove the plain text field
+    const fieldName = String(field);
+    if (data[fieldName] && typeof data[fieldName] === 'string') {
+      const encrypted = encrypt(data[fieldName] as string);
+      
+      // Delete the original field
+      delete result[fieldName];
       
       // Store encrypted data and metadata as separate fields
-      result[`${field.toString()}_encrypted`] = encrypted.encryptedData;
-      result[`${field.toString()}_iv`] = encrypted.iv;
-      result[`${field.toString()}_auth`] = encrypted.authTag;
+      result[`${fieldName}_encrypted`] = encrypted.encryptedData;
+      result[`${fieldName}_iv`] = encrypted.iv;
+      result[`${fieldName}_auth`] = encrypted.authTag;
     }
   }
   
@@ -127,29 +130,32 @@ export function decryptFields<T extends Record<string, any>>(
   data: T, 
   fieldsToDecrypt: string[]
 ): Record<string, any> {
-  const result = { ...data };
+  // Create a new object to avoid modifying the original
+  const result: Record<string, any> = { ...data };
   
   for (const field of fieldsToDecrypt) {
     const encryptedField = `${field}_encrypted`;
     const ivField = `${field}_iv`;
     const authField = `${field}_auth`;
     
+    // Check if all required encryption fields exist
     if (
-      data[encryptedField] && 
-      data[ivField] && 
-      data[authField]
+      result[encryptedField] && 
+      result[ivField] && 
+      result[authField]
     ) {
+      // Attempt to decrypt the field
       const decrypted = decrypt(
-        data[encryptedField], 
-        data[ivField], 
-        data[authField]
+        result[encryptedField] as string, 
+        result[ivField] as string, 
+        result[authField] as string
       );
       
       if (decrypted) {
         // Add the decrypted value
         result[field] = decrypted;
         
-        // Optionally remove the encrypted fields if not needed
+        // Remove the encrypted fields
         delete result[encryptedField];
         delete result[ivField];
         delete result[authField];

@@ -200,50 +200,31 @@ export function authEventLogger() {
     };
     
     // Override logout method to log logouts
-    req.logout = function(optionsOrDone?: any, done?: any) {
+    req.logout = function(done?: any) {
       // Get user ID before logout
       const userId = req.user?.id?.toString() || '';
       
-      // Handle different call signatures
-      let options: any;
-      let callback: (err: any) => void;
-      
-      if (typeof optionsOrDone === 'function') {
-        options = {};
-        callback = optionsOrDone;
-      } else {
-        options = optionsOrDone || {};
-        callback = done;
+      // Passport.js expects a callback function
+      if (typeof done !== 'function') {
+        done = (err: any) => {
+          if (err) console.error("Error during logout:", err);
+        };
       }
       
-      // Call original logout method with the proper arguments
-      if (callback) {
-        return originalLogout.call(this, options, (err: any) => {
-          if (!err && userId) {
-            // Log successful logout
-            logUserActivity({
-              userId,
-              activityType: 'logout',
-              req
-            });
-          }
-          
-          // Continue with original callback
-          return callback(err);
-        });
-      } else {
-        // If no callback provided, use default empty function
-        return originalLogout.call(this, options, (err: any) => {
-          if (!err && userId) {
-            // Log successful logout
-            logUserActivity({
-              userId,
-              activityType: 'logout',
-              req
-            }).catch(e => console.error("Error logging logout:", e));
-          }
-        });
-      }
+      // Call original logout method with appropriate argument
+      return originalLogout.call(this, (err: any) => {
+        if (!err && userId) {
+          // Log successful logout
+          logUserActivity({
+            userId,
+            activityType: 'logout',
+            req
+          }).catch(e => console.error("Error logging logout:", e));
+        }
+        
+        // Continue with original callback
+        return done(err);
+      });
     };
     
     next();
