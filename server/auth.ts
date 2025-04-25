@@ -95,8 +95,90 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
 
       req.login(user, (err) => {
         if (err) return next(err);
-        const { password, ...userWithoutPassword } = user;
+        const { password, securityAnswer, ...userWithoutPassword } = user;
         res.status(201).json(userWithoutPassword);
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Account recovery endpoints
+  app.post("/api/find-account", async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      
+      const user = await storageInstance.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "Account not found" });
+      }
+      
+      // Return the security question but not the answer
+      const { securityQuestion } = user;
+      
+      if (!securityQuestion) {
+        return res.status(400).json({ 
+          message: "This account doesn't have a security question set up" 
+        });
+      }
+      
+      return res.status(200).json({ 
+        email,
+        securityQuestion 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/verify-security-answer", async (req, res, next) => {
+    try {
+      const { email, securityAnswer } = req.body;
+      
+      const user = await storageInstance.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "Account not found" });
+      }
+      
+      // Case insensitive comparison for security answers
+      const isAnswerCorrect = 
+        user.securityAnswer?.toLowerCase() === securityAnswer.toLowerCase();
+      
+      if (!isAnswerCorrect) {
+        return res.status(400).json({ message: "Incorrect security answer" });
+      }
+      
+      return res.status(200).json({ 
+        message: "Security answer verified" 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/reset-password", async (req, res, next) => {
+    try {
+      const { email, securityAnswer, newPassword } = req.body;
+      
+      const user = await storageInstance.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "Account not found" });
+      }
+      
+      // Case insensitive comparison for security answers
+      const isAnswerCorrect = 
+        user.securityAnswer?.toLowerCase() === securityAnswer.toLowerCase();
+      
+      if (!isAnswerCorrect) {
+        return res.status(400).json({ message: "Incorrect security answer" });
+      }
+      
+      // Update the password
+      const hashedPassword = await hashPassword(newPassword);
+      const updatedUser = await storageInstance.updateUserPassword(user.id, hashedPassword);
+      
+      return res.status(200).json({ 
+        message: "Password reset successful. You can now log in with your new password." 
       });
     } catch (error) {
       next(error);

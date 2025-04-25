@@ -328,6 +328,26 @@ export const loginUserSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+// Account recovery schemas
+export const findAccountSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+export const verifySecurityAnswerSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  securityAnswer: z.string().min(1, "Security answer is required"),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  securityAnswer: z.string().min(1, "Security answer is required"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmNewPassword: z.string().min(6, "Please confirm your new password"),
+}).refine(data => data.newPassword === data.confirmNewPassword, {
+  message: "Passwords do not match",
+  path: ["confirmNewPassword"],
+});
+
 // User registration schema
 export const insertUserSchema = userSchema
   .omit({ id: true, createdAt: true })
@@ -373,6 +393,9 @@ export type CareerAnalysis = z.infer<typeof careerAnalysisSchema>;
 export type UserBadge = z.infer<typeof userBadgeSchema>;
 export type UserProgress = z.infer<typeof userProgressSchema>;
 export type LoginUser = z.infer<typeof loginUserSchema>;
+export type FindAccount = z.infer<typeof findAccountSchema>;
+export type VerifySecurityAnswer = z.infer<typeof verifySecurityAnswerSchema>;
+export type ResetPassword = z.infer<typeof resetPasswordSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertCareerAnalysis = z.infer<typeof insertCareerAnalysisSchema>;
 export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;

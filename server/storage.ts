@@ -24,6 +24,7 @@ export interface IStorage {
   getUser(id: string | number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
+  updateUserPassword(id: string | number, newPassword: string): Promise<User | undefined>;
   
   // Career analysis management
   saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysisWithStringDates>;
@@ -121,6 +122,23 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUserPassword(id: string | number, newPassword: string): Promise<User | undefined> {
+    const stringId = id.toString();
+    const user = this.users.get(stringId);
+    
+    if (!user) {
+      return undefined;
+    }
+    
+    const updatedUser = { 
+      ...user, 
+      password: newPassword 
+    };
+    
+    this.users.set(stringId, updatedUser);
+    return updatedUser;
   }
   
   // Career Analysis Management
