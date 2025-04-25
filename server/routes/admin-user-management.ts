@@ -78,10 +78,12 @@ router.post('/create-admin', requireSuperAdmin, adminActionRateLimiter(), async 
     
     // Log the admin creation
     await logUserActivity({
-      userId: req.user.id,
+      userId: req.user?.id || 'anonymous',
       action: 'created_admin_user',
       details: `Created new ${role} user: ${email}`,
-      targetUserId: newUser.id
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: { targetUserId: newUser.id, role }
     });
     
     // Return success
@@ -148,7 +150,13 @@ router.patch('/update-role/:userId', requireSuperAdmin, adminActionRateLimiter()
       userId: req.user.id,
       action: 'updated_user_role',
       details: `Changed user role to ${role}`,
-      targetUserId: userId
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: { 
+        targetUserId: userId, 
+        oldRole: user.role, 
+        newRole: role 
+      }
     });
     
     return res.json({
@@ -230,7 +238,13 @@ router.post('/reset-password/:userId', requireAdmin, adminActionRateLimiter(), a
       userId: req.user.id,
       action: 'reset_user_password',
       details: 'Admin reset user password',
-      targetUserId: userId
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: { 
+        targetUserId: userId, 
+        targetUserEmail: user.email, 
+        targetUserRole: user.role 
+      }
     });
     
     return res.json({ success: true, message: 'Password has been reset successfully' });

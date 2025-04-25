@@ -221,7 +221,7 @@ export function authEventLogger() {
         // Log successful logout
         if (res.statusCode >= 200 && res.statusCode < 300 && req.user) {
           logUserActivity({
-            userId: req.user.id,
+            userId: req.user?.id || 'anonymous',
             action: 'logout',
             details: 'User logged out',
             ipAddress: req.ip,

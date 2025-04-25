@@ -480,12 +480,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     if (userId) {
       try {
         // Log successful logout
-        await logUserActivity(
-          userId,
-          'logout',
-          'success',
-          req
-        );
+        await logUserActivity({
+          userId: userId,
+          action: 'logout',
+          details: 'User logged out successfully',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { email: userEmail }
+        });
       } catch (error) {
         // Don't block the logout if logging fails
         log(`Error logging logout activity: ${error}`, "auth");
