@@ -23,30 +23,46 @@ if (!process.env.JWT_SECRET) {
 export interface TokenPayload {
   userId: string | number;
   email: string;
+  purpose?: string; // Optional purpose field for specialized tokens like password reset
   iat?: number; // Issued at (automatically added by sign)
   exp?: number; // Expiration (automatically calculated based on expiresIn)
 }
 
 /**
- * Generate a new JWT token for a user
- * @param user The user object to include in the token
+ * Generate a new JWT token 
+ * @param userOrPayload The user object or custom payload to include in the token
  * @param expiresIn How long the token should be valid (e.g. '15m', '2h', '7d')
  * @returns The signed JWT token
  */
-export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: string | number = TOKEN_EXPIRATION): string {
-  // Ensure user ID is defined
-  if (!user.id) {
-    throw new Error('User ID must be defined to generate a token');
-  }
+export function generateToken(
+  userOrPayload: Pick<User, 'id' | 'email'> | TokenPayload, 
+  expiresIn: string | number = TOKEN_EXPIRATION
+): string {
+  let payload: TokenPayload;
   
-  const payload: TokenPayload = {
-    userId: user.id,
-    email: user.email
-  };
+  // Check if this is a custom payload (for password reset, etc.)
+  if ('purpose' in userOrPayload) {
+    payload = userOrPayload as TokenPayload;
+  } else {
+    // This is a standard user authentication token
+    const user = userOrPayload as Pick<User, 'id' | 'email'>;
+    
+    // Ensure user ID is defined
+    if (!user.id) {
+      throw new Error('User ID must be defined to generate a token');
+    }
+    
+    payload = {
+      userId: user.id,
+      email: user.email
+    };
+  }
   
   // Use any type to bypass TypeScript's strict checking
   // This is a safe exception since jsonwebtoken accepts string expiresIn values
   const options: any = { expiresIn };
+  
+  log(`Generating JWT token with expiration: ${expiresIn}`, "security");
   return jwt.sign(payload, JWT_SECRET, options);
 }
 
@@ -72,6 +88,7 @@ export function verifyToken(token: string): TokenPayload | null {
     const decoded: TokenPayload = {
       userId: decodedAny.userId,
       email: decodedAny.email,
+      purpose: decodedAny.purpose, // Include purpose for password reset tokens
       iat: decodedAny.iat,
       exp: decodedAny.exp
     };

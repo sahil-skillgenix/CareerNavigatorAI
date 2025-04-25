@@ -208,9 +208,27 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     try {
       const { email, securityAnswer } = req.body;
       
+      // Log the verification attempt without the actual answer
+      log(`Password reset: Security answer verification attempt for ${email}`, "auth");
+      
+      // Validate inputs
+      if (!email || !securityAnswer) {
+        return res.status(400).json({ 
+          message: "Email and security answer are required" 
+        });
+      }
+      
       const user = await storageInstance.getUserByEmail(email);
       if (!user) {
+        log(`Password reset: Account not found for ${email}`, "auth");
         return res.status(404).json({ message: "Account not found" });
+      }
+      
+      if (!user.securityQuestion || !user.securityAnswer) {
+        log(`Password reset: Security question not set for ${email}`, "auth");
+        return res.status(400).json({
+          message: "This account doesn't have a security question set up"
+        });
       }
       
       // Case insensitive comparison for security answers
@@ -218,46 +236,111 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         user.securityAnswer?.toLowerCase() === securityAnswer.toLowerCase();
       
       if (!isAnswerCorrect) {
+        log(`Password reset: Incorrect security answer for ${email}`, "auth");
         return res.status(400).json({ message: "Incorrect security answer" });
       }
       
+      // Generate a one-time reset token that will expire in 15 minutes
+      const resetToken = generateToken(
+        { userId: user.id, email: user.email, purpose: 'passwordReset' },
+        '15m' // 15 minute expiration
+      );
+      
+      log(`Password reset: Security answer verified for ${email}, reset token generated`, "auth");
+      
       return res.status(200).json({ 
-        message: "Security answer verified" 
+        message: "Security answer verified",
+        resetToken
       });
     } catch (error) {
+      log(`Password reset verification error: ${error}`, "auth");
       next(error);
     }
   });
   
   app.post("/api/reset-password", passwordResetRateLimiter, async (req, res, next) => {
     try {
-      const { email, securityAnswer, newPassword } = req.body;
+      const { resetToken, newPassword, confirmPassword } = req.body;
       
-      const user = await storageInstance.getUserByEmail(email);
+      // Validate inputs
+      if (!resetToken || !newPassword) {
+        return res.status(400).json({ 
+          message: "Reset token and new password are required" 
+        });
+      }
+      
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ 
+          message: "Passwords do not match" 
+        });
+      }
+      
+      // Validate password strength
+      const passwordRegex = {
+        uppercase: /[A-Z]/,
+        lowercase: /[a-z]/,
+        number: /[0-9]/,
+        special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/
+      };
+      
+      const passwordIssues = [];
+      if (newPassword.length < 8) passwordIssues.push("at least 8 characters");
+      if (!passwordRegex.uppercase.test(newPassword)) passwordIssues.push("uppercase letter");
+      if (!passwordRegex.lowercase.test(newPassword)) passwordIssues.push("lowercase letter");
+      if (!passwordRegex.number.test(newPassword)) passwordIssues.push("number");
+      if (!passwordRegex.special.test(newPassword)) passwordIssues.push("special character");
+      
+      if (passwordIssues.length > 0) {
+        return res.status(400).json({ 
+          message: `Password must contain ${passwordIssues.join(", ")}`,
+          issues: passwordIssues
+        });
+      }
+      
+      // Verify the reset token
+      const decoded = verifyToken(resetToken);
+      if (!decoded || decoded.purpose !== 'passwordReset') {
+        log(`Password reset: Invalid or expired reset token`, "auth");
+        return res.status(401).json({ 
+          message: "Invalid or expired reset token. Please try the password reset process again."
+        });
+      }
+      
+      const userId = decoded.userId;
+      
+      // Get the user
+      const user = await storageInstance.getUser(userId);
       if (!user) {
+        log(`Password reset: User not found for ID ${userId}`, "auth");
         return res.status(404).json({ message: "Account not found" });
       }
       
-      // Case insensitive comparison for security answers
-      const isAnswerCorrect = 
-        user.securityAnswer?.toLowerCase() === securityAnswer.toLowerCase();
-      
-      if (!isAnswerCorrect) {
-        return res.status(400).json({ message: "Incorrect security answer" });
+      // Ensure new password is different from old password
+      const isSamePassword = await comparePasswords(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({ 
+          message: "New password must be different from your current password" 
+        });
       }
       
       // Update the password
       const hashedPassword = await hashPassword(newPassword);
-      // Ensure ID is not undefined before passing it
-      if (!user.id) {
-        return res.status(500).json({ message: "User ID not found" });
-      }
-      const updatedUser = await storageInstance.updateUserPassword(user.id, hashedPassword);
+      const updatedUser = await storageInstance.updateUserPassword(userId, hashedPassword);
+      
+      log(`Password reset successful for user ${user.email}`, "auth");
+      
+      // Invalidate all existing sessions for this user for security
+      // (This is a mock as we don't have direct session invalidation)
+      
+      // Generate a new login token that the client can use immediately
+      const newLoginToken = generateToken(user);
       
       return res.status(200).json({ 
-        message: "Password reset successful. You can now log in with your new password." 
+        message: "Password reset successful. You can now log in with your new password.",
+        token: newLoginToken
       });
     } catch (error) {
+      log(`Password reset error: ${error}`, "auth");
       next(error);
     }
   });
