@@ -192,22 +192,54 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     res.json({ status: 'ok', message: 'Skillgenix server is running' });
   });
   
-  // Test logging endpoint
+  // Test logging endpoint with updated schema
   app.get('/api/test-logging', async (req, res) => {
     try {
-      await logUserActivityWithParams({
+      // Test the logUserActivityWithParams function with the updated schema
+      const activityLog = await logUserActivityWithParams({
         userId: req.user?.id || 'anonymous',
-        action: 'other',
-        details: 'Testing improved logging system',
+        action: 'feature_usage', // Using a valid enum value from UserActivityType
+        details: 'Testing updated logging system with activityType field',
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'] as string,
-        metadata: { source: 'test-endpoint', timestamp: new Date().toISOString() }
+        metadata: { 
+          source: 'test-endpoint', 
+          timestamp: new Date().toISOString(),
+          schemaVersion: 'updated'
+        }
       });
+      
+      // Create a direct test entry using the UserActivityModel
+      const testLog = new UserActivityModel({
+        userId: req.user?.id || 'anonymous',
+        activityType: 'other', // Using activityType instead of action
+        details: { 
+          message: 'Direct model test with object details',
+          feature: 'schema_verification',
+          timestamp: new Date().toISOString()
+        },
+        timestamp: new Date(),
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      await testLog.save();
+      
+      // Get the most recent logs to verify they were saved correctly
+      const recentLogs = await UserActivityModel.find()
+        .sort({ timestamp: -1 })
+        .limit(5)
+        .lean();
       
       res.json({ 
         success: true, 
         message: 'Logging test completed successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        recentLogs,
+        info: {
+          schemaUpdates: 'The UserActivity schema now uses activityType instead of action',
+          detailsFormat: 'The details field now stores objects instead of strings'
+        }
       });
     } catch (error) {
       console.error('Error in test-logging endpoint:', error);

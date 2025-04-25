@@ -73,14 +73,15 @@ export async function logUserActivityWithParams(params: UserActivityLog) {
       userAgent
     } = params;
 
-    // Create the activity log
+    // Create the activity log with proper field mapping
     const activityLog = new UserActivityModel({
       userId: userId,
       activityType: action, // Map action to activityType for compatibility
       details: typeof details === 'string' ? { message: details } : details || {}, // Convert string to object if needed
       timestamp: new Date(),
       ipAddress: ipAddress,
-      userAgent: userAgent
+      userAgent: userAgent,
+      ...(metadata && { metadata }) // Add metadata if provided
     });
 
     // Save and return the log
@@ -209,7 +210,7 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
       startDate: startDate.toISOString(),
       endDate: new Date().toISOString(),
       activityBreakdown: summary.map((item: any) => ({
-        action: item._id,
+        activityType: item._id, // Use activityType instead of action
         count: item.count,
         lastActivity: item.lastActivity.toISOString()
       }))
@@ -224,7 +225,8 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
       totalActivities: 0,
       startDate: errorStartDate.toISOString(),
       endDate: new Date().toISOString(),
-      activityBreakdown: []
+      activityBreakdown: [],
+      error: 'Failed to retrieve activity summary'
     };
   }
 }
@@ -263,11 +265,13 @@ export async function logUserActivity(
       details: { 
         message: `${action}: ${status}`,
         ...metadata,
-        status 
+        status,
+        originalAction: action // Store original action as reference
       },
       timestamp: new Date(),
       ipAddress: req.ip,
-      userAgent: req.headers['user-agent']
+      userAgent: req.headers['user-agent'],
+      metadata: metadata // Include metadata in its dedicated field too
     });
 
     // Save and return the log
