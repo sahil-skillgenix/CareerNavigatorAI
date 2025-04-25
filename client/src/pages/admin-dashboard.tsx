@@ -510,16 +510,27 @@ const SystemStats = () => {
       
       <h3 className="text-lg font-semibold mt-6">Feature Usage</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {Object.entries(usageStats.featureUsage || {}).map(([key, value]) => (
-          <Card key={key}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{value}</div>
-            </CardContent>
-          </Card>
-        ))}
+        {Object.entries(usageStats.featureUsage || {}).map(([key, value]) => {
+          // Safely convert any value type to string for display
+          const displayValue = typeof value === 'object' ? 
+            JSON.stringify(value) : 
+            value !== null && value !== undefined ? 
+              String(value) : 
+              'N/A';
+              
+          return (
+            <Card key={key}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold">{displayValue}</div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
       
       <h3 className="text-lg font-semibold mt-6">Error Rates</h3>

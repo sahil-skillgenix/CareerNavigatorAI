@@ -1,10 +1,19 @@
 import 'dotenv/config';
 import mongoose from 'mongoose';
 
-// Connect to MongoDB
+// Connect to MongoDB using the explicit URI
 async function connectToMongoDB() {
   try {
-    await mongoose.connect(process.env.DATABASE_URL);
+    // Use MONGODB_URI environment variable instead of DATABASE_URL
+    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://sahil:L12So8uUyN7TyNZy@skillgenix.4lthw6g.mongodb.net/careerpathAI?retryWrites=true&w=majority';
+    
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
+    
     console.log('Connected to MongoDB');
     return true;
   } catch (error) {
