@@ -27,9 +27,9 @@ async function repairProblematicIndexes() {
     
     // Collections that might have problematic indexes
     const collectionsToCheck = [
-      'careeranalyses',
-      'userbadges',
-      'userprogresses',
+      'careerAnalysis',
+      'userBadge',
+      'userProgress',
       'users'
     ];
     
@@ -72,11 +72,13 @@ async function repairProblematicIndexes() {
         
         // NEVER drop the users collection to preserve user data
         // Fix problematic collections without dropping them
-        if (collectionName === 'userbadges' || collectionName === 'careeranalyses') {
-          // Only fix indexes for non-user collections
-          if (collectionName !== 'users') {
-            log(`Fixing problematic collection ${collectionName} indexes`, "mongodb");
-          }
+        if (collectionName === 'userBadge' || collectionName === 'careerAnalysis') {
+          log(`Fixing problematic collection ${collectionName} indexes`, "mongodb");
+        }
+        
+        // Special handling for users collection
+        if (collectionName === 'users') {
+          log(`Carefully fixing indexes for users collection`, "mongodb");
         }
         
         // Get all indexes

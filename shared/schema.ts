@@ -508,7 +508,7 @@ export const DATA_IMPORT_TYPES = [
   "skills",
   "roles", 
   "industries",
-  "learningResources"
+  "learningResource"
 ] as const;
 
 export const DATA_IMPORT_STATUS = [
