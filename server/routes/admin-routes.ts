@@ -180,17 +180,24 @@ router.post('/feature-limits', isSuperAdmin, async (req: Request, res: Response)
     let featureLimits = await FeatureLimitsModel.findOne();
     
     if (!featureLimits) {
+      // Create new feature limits
       featureLimits = new FeatureLimitsModel(updatedLimits);
     } else {
-      // Update only the provided fields
-      Object.keys(updatedLimits).forEach(key => {
-        if (updatedLimits[key] !== undefined) {
-          featureLimits[key] = updatedLimits[key];
-        }
-      });
+      // Update existing limits using MongoDB's updateOne method
+      // This avoids TypeScript issues with document property access
+      await FeatureLimitsModel.updateOne(
+        { _id: featureLimits._id },
+        { $set: updatedLimits }
+      );
+      
+      // Refresh the document
+      featureLimits = await FeatureLimitsModel.findOne();
     }
     
-    await featureLimits.save();
+    // Safely check that we have a document before saving
+    if (!featureLimits) {
+      throw new Error('Failed to create or update feature limits');
+    }
     
     // Log activity
     logUserActivityWithParams({
@@ -306,7 +313,7 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
     
     // Get total login count
     const totalLogins = await UserActivityLogModel.countDocuments({ 
-      activityType: 'login' 
+      action: 'login_success' 
     });
     
     // Get API request count

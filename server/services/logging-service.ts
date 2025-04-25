@@ -1,7 +1,54 @@
 import mongoose from 'mongoose';
 import { UserActivityModel, UserActivityLogModel, SystemErrorLogModel } from '../db/models';
 
-// Define UserActivity type
+// Define Activity category directly here to avoid module import issues
+export const ACTIVITY_CATEGORIES = ['ADMIN', 'USER', 'AUTH', 'API', 'FEATURE', 'SYSTEM'] as const;
+export type ActivityCategory = typeof ACTIVITY_CATEGORIES[number];
+
+// Define all user activity types
+export type UserActivityType = 
+  | 'login_success' 
+  | 'login_failure' 
+  | 'logout' 
+  | 'register' 
+  | 'password_reset' 
+  | 'password_change' 
+  | 'security_question_update' 
+  | 'profile_update' 
+  | 'profile_view' 
+  | 'account_lock' 
+  | 'account_unlock' 
+  | 'account_deactivation'
+  | 'account_deletion'
+  | 'api_key_generate' 
+  | 'api_key_revoke' 
+  | 'admin_access' 
+  | 'admin_action' 
+  | 'admin_access_denied' 
+  | 'superadmin_access_denied'
+  | 'view_all_users'
+  | 'view_user_details'
+  | 'update_user_status'
+  | 'delete_user'
+  | 'send_password_reset'
+  | 'view_error_logs'
+  | 'view_feature_limits'
+  | 'update_feature_limits'
+  | 'view_system_notifications'
+  | 'view_data_imports'
+  | 'view_dashboard_summary'
+  | 'feature_usage'
+  | 'career_analysis_created'
+  | 'skill_gap_analyzed'
+  | 'learning_resources_viewed'
+  | 'pathway_generated'
+  | 'pdf_exported'
+  | 'search_performed'
+  | 'resource_saved'
+  | 'resource_removed'
+  | 'other';
+
+// Legacy UserActivity interface (for backward compatibility)
 export interface UserActivity {
   _id?: string;
   userId: string;
@@ -14,36 +61,6 @@ export interface UserActivity {
   userAgent?: string;
 }
 
-// Define UserActivityType
-export type UserActivityType = 
-  | 'login_success' 
-  | 'login_failure' 
-  | 'logout' 
-  | 'register' 
-  | 'password_reset' 
-  | 'password_change' 
-  | 'security_question_update' 
-  | 'profile_update' 
-  | 'admin_access' 
-  | 'admin_action' 
-  | 'feature_usage' 
-  | 'account_lock' 
-  | 'account_unlock' 
-  | 'account_deactivation'
-  | 'account_deletion'
-  | 'api_key_generate' 
-  | 'api_key_revoke' 
-  | 'view_all_users'
-  | 'view_error_logs'
-  | 'view_feature_limits'
-  | 'update_feature_limits'
-  | 'view_system_notifications'
-  | 'view_data_imports'
-  | 'view_dashboard_summary'
-  | 'admin_access_denied'
-  | 'superadmin_access_denied'
-  | 'other';
-
 // Interface for the log user activity function
 export interface UserActivityLog {
   userId: string;
@@ -54,7 +71,7 @@ export interface UserActivityLog {
   ipAddress?: string;
   userAgent?: string;
   sessionId?: string;
-  category?: 'ADMIN' | 'USER' | 'AUTH' | 'API' | 'FEATURE' | 'SYSTEM';
+  category?: ActivityCategory;
 }
 
 /**
@@ -76,18 +93,21 @@ export async function logUserActivityWithParams(params: UserActivityLog) {
       sessionId,
       category = 'USER' // Default category
     } = params;
-
-    // Create the activity log with proper field mapping for new model
+    
+    // Create the activity log with standardized field names
     const activityLog = new UserActivityLogModel({
       userId,
       category,
-      activityType: action, // Map action to activityType
+      action, // Use action consistently instead of activityType
       details: typeof details === 'string' ? details : JSON.stringify(details || {}),
       timestamp: new Date(),
       ipAddress,
       userAgent,
       sessionId,
-      metadata: metadata || {}
+      metadata: {
+        ...(metadata || {}),
+        ...(targetUserId ? { targetUserId } : {})
+      }
     });
 
     // Save and return the log

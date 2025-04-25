@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { MongoDBStorage } from '../mongodb-storage';
 import { isAdmin, isSuperAdmin } from '../middleware/adminMiddleware';
-import { logUserActivityWithParams } from '../services/logging-service';
+import { logUserActivityWithParams, UserActivityType, ActivityCategory } from '../services/logging-service';
 import { UserModel } from '../db/models';
 import { storage } from '../storage';
 
@@ -203,7 +203,7 @@ router.post('/reset-password/:id', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'send_password_reset',
+      action: 'password_reset',
       details: `Admin requested password reset for ${user.email}`,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,

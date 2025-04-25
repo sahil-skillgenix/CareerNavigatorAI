@@ -15,7 +15,7 @@ export interface UserActivityLogDocument extends mongoose.Document {
   userId: string;
   timestamp: Date;
   category: ActivityCategory;
-  activityType: string;
+  action: string; // Using action instead of activityType for consistent naming
   details?: string;
   ipAddress?: string;
   userAgent?: string;
@@ -42,7 +42,7 @@ const userActivityLogSchema = new mongoose.Schema({
     default: 'USER',
     index: true
   },
-  activityType: {
+  action: {
     type: String,
     required: true,
     index: true
@@ -72,7 +72,8 @@ const userActivityLogSchema = new mongoose.Schema({
 
 // Create compound index for faster querying
 userActivityLogSchema.index({ userId: 1, timestamp: -1 });
-userActivityLogSchema.index({ category: 1, activityType: 1 });
+userActivityLogSchema.index({ category: 1, action: 1 });
 userActivityLogSchema.index({ timestamp: -1, category: 1 });
 
-export const UserActivityLogModel = mongoose.model('userActivityLog', userActivityLogSchema);
+// Use standardized collection name with clear prefix to avoid duplicates
+export const UserActivityLogModel = mongoose.model('skillgenix_userActivityLog', userActivityLogSchema);
