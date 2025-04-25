@@ -103,13 +103,13 @@ router.get('/feature-limits', async (req: Request, res: Response) => {
     const featureLimits = await FeatureLimitsModel.find({}).sort({ name: 1 });
     
     // Log activity
-    logActivity({
-      userId: req.user?.id,
-      action: 'VIEW_FEATURE_LIMITS',
-      category: 'ADMIN',
-      details: {
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'view_feature_limits',
+      details: 'Admin viewed feature limits',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
         method: req.method,
         path: req.path
       }
@@ -168,13 +168,13 @@ router.post('/feature-limits', isSuperAdmin, async (req: Request, res: Response)
     }
     
     // Log activity
-    logActivity({
-      userId: req.user?.id,
-      action: 'UPDATE_FEATURE_LIMITS',
-      category: 'ADMIN',
-      details: {
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'update_feature_limits',
+      details: 'Super admin updated feature limits',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
         method: req.method,
         path: req.path,
         featureLimitCount: featureLimits.length
@@ -196,13 +196,13 @@ router.get('/notifications', async (req: Request, res: Response) => {
       .limit(20);
     
     // Log activity
-    logActivity({
-      userId: req.user?.id,
-      action: 'VIEW_SYSTEM_NOTIFICATIONS',
-      category: 'ADMIN',
-      details: {
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'view_system_notifications',
+      details: 'Admin viewed system notifications',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
         method: req.method,
         path: req.path
       }
@@ -223,13 +223,13 @@ router.get('/imports', isSuperAdmin, async (req: Request, res: Response) => {
       .limit(20);
     
     // Log activity
-    logActivity({
-      userId: req.user?.id,
-      action: 'VIEW_DATA_IMPORTS',
-      category: 'ADMIN',
-      details: {
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'view_data_imports',
+      details: 'Super admin viewed data imports',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
         method: req.method,
         path: req.path
       }
@@ -285,13 +285,13 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
     const warnings = await SystemErrorLog.countDocuments({ severity: 'medium' });
     
     // Log activity
-    logActivity({
-      userId: req.user?.id,
-      action: 'VIEW_DASHBOARD_SUMMARY',
-      category: 'ADMIN',
-      details: {
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'view_dashboard_summary',
+      details: 'Admin viewed dashboard summary',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
         method: req.method,
         path: req.path
       }

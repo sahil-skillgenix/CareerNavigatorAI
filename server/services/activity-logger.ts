@@ -120,34 +120,30 @@ export function apiRequestLogger() {
   return (req: Request, res: Response, next: NextFunction) => {
     const startTime = Date.now();
     
-    // Record request details
-    const requestData = {
+    // Create a complete log with default values that will be updated
+    const apiLog = new APIRequestLogModel({
       method: req.method,
-      endpoint: req.originalUrl,
-      ip: req.ip,
-      userId: req.user?.id,
-      userAgent: req.get('User-Agent'),
-      requestBody: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
-      queryParams: Object.keys(req.query).length > 0 ? JSON.stringify(req.query) : undefined,
+      path: req.originalUrl,
+      statusCode: 200, // Default value, will be updated when response is sent
       timestamp: new Date(),
-      requestStatus: 'pending' as RequestStatus
-    };
-    
-    // Create log document without response data yet
-    const requestLog = new APIRequestLogModel(requestData);
+      userId: req.user?.id,
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent'),
+      query: req.method === 'GET' && Object.keys(req.query).length > 0 ? req.query : undefined,
+      body: req.method !== 'GET' ? req.body : undefined
+    });
     
     // Function to complete the log with response data
     const finalizeLog = (statusCode: number) => {
       const endTime = Date.now();
-      const duration = endTime - startTime;
+      const responseTime = endTime - startTime;
       
-      requestLog.duration = duration;
-      requestLog.status = statusCode;
-      // Map HTTP status to our RequestStatus enum
-      requestLog.requestStatus = statusCode < 400 ? 'success' : 'error';
+      // Update with actual values
+      apiLog.statusCode = statusCode;
+      apiLog.responseTime = responseTime;
       
       // Save asynchronously - don't block response
-      requestLog.save().catch(error => {
+      apiLog.save().catch(error => {
         console.error('Error saving API request log:', error);
       });
     };
