@@ -1,21 +1,19 @@
 import React from 'react';
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import {
-  Laptop,
-  LayoutDashboard,
-  Users,
+import { 
+  BarChart3, 
+  Users, 
+  Sliders, 
+  Bell, 
+  Upload, 
+  AlertTriangle,
   Settings,
-  Bell,
-  Database,
-  BarChart2,
-  FileText,
   LogOut,
-  ChevronDown,
-  User
+  Menu,
+  X
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,71 +22,130 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
-  
+  const { user, logoutMutation } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const navItems = [
+    { name: 'Dashboard', href: '/admin', icon: <BarChart3 className="w-5 h-5" /> },
+    { name: 'User Management', href: '/admin/users', icon: <Users className="w-5 h-5" /> },
+    { name: 'Feature Limits', href: '/admin/limits', icon: <Sliders className="w-5 h-5" /> },
+    { name: 'Notifications', href: '/admin/notifications', icon: <Bell className="w-5 h-5" /> },
+    { name: 'Data Imports', href: '/admin/imports', icon: <Upload className="w-5 h-5" /> },
+    { name: 'System Logs', href: '/admin/logs', icon: <AlertTriangle className="w-5 h-5" /> },
+  ];
+
+  // Handle logout
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user || !user.fullName) return 'U';
+    return user.fullName.split(' ')
       .map(part => part[0])
       .join('')
-      .toUpperCase();
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 bg-white border-b shadow-sm">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Top navbar */}
+      <header className="bg-white border-b sticky top-0 z-30">
         <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/">
-              <div className="flex items-center space-x-2 cursor-pointer">
-                <Laptop className="h-6 w-6 text-primary" />
-                <span className="font-bold text-xl text-primary">Skillgenix</span>
-                <span className="font-bold text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-md">Admin</span>
-              </div>
-            </Link>
+          <div className="flex items-center gap-2 md:gap-4">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[240px] sm:w-[300px] pt-10">
+                <nav className="flex flex-col gap-4 mt-6">
+                  {navItems.map((item) => (
+                    <div 
+                      key={item.href}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        window.history.pushState({}, "", item.href);
+                      }}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer ${
+                        location === item.href 
+                          ? 'bg-primary/10 text-primary font-medium' 
+                          : 'text-gray-600 hover:text-primary hover:bg-primary/5'
+                      }`}
+                    >
+                      {item.icon}
+                      {item.name}
+                    </div>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+            
+            <a href="/" className="font-bold text-xl text-primary flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 12h4l3 8 4-16 3 8h4" />
+              </svg>
+              <span className="hidden md:inline">Skillgenix Admin</span>
+            </a>
           </div>
-          
-          <div className="flex items-center space-x-4">
+
+          {/* User profile dropdown */}
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-600 hidden md:block">
+              {user?.role === 'superadmin' ? (
+                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs font-medium">
+                  Super Admin
+                </span>
+              ) : (
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium">
+                  Admin
+                </span>
+              )}
+            </div>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar>
-                    <AvatarImage src={user?.avatarUrl} alt={user?.fullName || 'User'} />
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src="" alt={user?.fullName} />
                     <AvatarFallback className="bg-primary/10 text-primary">
-                      {user?.fullName ? getInitials(user.fullName) : 'U'}
+                      {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
-                  {/* Online indicator */}
-                  <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.fullName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <div className="flex flex-col">
+                    <span>{user?.fullName}</span>
+                    <span className="text-xs text-gray-500">{user?.email}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer flex w-full items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Account Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="text-red-600 focus:text-red-600 cursor-pointer"
-                >
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -97,124 +154,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
       </header>
-      
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Sidebar Navigation */}
-        <aside className="w-full md:w-64 bg-white border-r border-gray-200 md:h-[calc(100vh-4rem)] sticky top-16">
-          <nav className="p-4 space-y-2">
-            <div className="px-3 py-2">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Main</h3>
-            </div>
-            
-            <Link href="/admin">
-              <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                location === '/admin' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-                <LayoutDashboard className="h-4 w-4 mr-3" />
-                Dashboard
+
+      {/* Desktop sidebar and main content */}
+      <div className="flex flex-1 container mx-auto">
+        <aside className="w-64 border-r hidden md:block sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+          <nav className="p-4 space-y-1">
+            {navItems.map((item) => (
+              <div 
+                key={item.href}
+                onClick={() => {
+                  window.history.pushState({}, "", item.href);
+                }}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer ${
+                  location === item.href 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'text-gray-600 hover:text-primary hover:bg-primary/5'
+                }`}
+              >
+                {item.icon}
+                {item.name}
               </div>
-            </Link>
-            
-            <Link href="/admin/users">
-              <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                location === '/admin/users' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-                <Users className="h-4 w-4 mr-3" />
-                User Management
-              </div>
-            </Link>
-            
-            <div className="px-3 py-2 mt-6">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">System</h3>
-            </div>
-            
-            <Link href="/admin/limits">
-              <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                location === '/admin/limits' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-                <Database className="h-4 w-4 mr-3" />
-                Feature Limits
-              </div>
-            </Link>
-            
-            <Link href="/admin/stats">
-              <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                location === '/admin/stats' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-                <BarChart2 className="h-4 w-4 mr-3" />
-                Analytics
-              </div>
-            </Link>
-            
-            <Link href="/admin/notifications">
-              <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                location === '/admin/notifications' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-                <Bell className="h-4 w-4 mr-3" />
-                Notifications
-              </div>
-            </Link>
-            
-            <Link href="/admin/logs">
-              <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                location === '/admin/logs' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-                <FileText className="h-4 w-4 mr-3" />
-                System Logs
-              </div>
-            </Link>
-            
-            {user?.role === 'superadmin' && (
-              <>
-                <div className="px-3 py-2 mt-6">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Advanced</h3>
-                </div>
-                
-                <Link href="/admin/imports">
-                  <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                    location === '/admin/imports' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                  }`}>
-                    <Database className="h-4 w-4 mr-3" />
-                    Data Imports
-                  </div>
-                </Link>
-                
-                <Link href="/admin/config">
-                  <div className={`px-3 py-2 rounded-md cursor-pointer flex items-center text-sm font-medium ${
-                    location === '/admin/config' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-100'
-                  }`}>
-                    <Settings className="h-4 w-4 mr-3" />
-                    System Config
-                  </div>
-                </Link>
-              </>
-            )}
+            ))}
           </nav>
         </aside>
-        
-        {/* Main Content */}
-        <main className="flex-1 p-6 overflow-auto">
+
+        {/* Main content */}
+        <main className="flex-1 p-6 overflow-x-hidden">
           {children}
         </main>
       </div>
-      
+
       {/* Footer */}
-      <footer className="bg-white border-t py-4">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-sm text-gray-500">
-              © {new Date().getFullYear()} Skillgenix Admin Portal. All rights reserved.
+      <footer className="bg-white border-t py-4 mt-auto">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="text-center sm:text-left">
+              <p className="text-sm text-gray-500">
+                &copy; {new Date().getFullYear()} Skillgenix. All rights reserved.
+              </p>
             </div>
-            <div className="flex space-x-4 mt-4 md:mt-0">
-              <Link href="/admin/help">
-                <span className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer">Help</span>
-              </Link>
-              <Link href="/admin/about">
-                <span className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer">About</span>
-              </Link>
-              <Link href="/privacy">
-                <span className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer">Privacy</span>
-              </Link>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" asChild>
+                <a href="/help">Help</a>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <a href="/privacy">Privacy</a>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <a href="/terms">Terms</a>
+              </Button>
             </div>
           </div>
         </div>

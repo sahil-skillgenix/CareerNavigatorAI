@@ -35,17 +35,17 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <Switch>
-        <Route path="/admin" exact>
-          <AnalyticsDashboard />
+        <Route path="/admin">
+          {() => <AnalyticsDashboard />}
         </Route>
         <Route path="/admin/users">
-          <UserManagement />
+          {() => <UserManagement />}
         </Route>
         <Route path="/admin/limits">
-          <FeatureLimits />
+          {() => <FeatureLimits />}
         </Route>
         <Route path="*">
-          <AnalyticsDashboard />
+          {() => <AnalyticsDashboard />}
         </Route>
       </Switch>
     </AdminLayout>
