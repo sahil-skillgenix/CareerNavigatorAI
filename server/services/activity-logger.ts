@@ -27,10 +27,8 @@ export async function logUserActivity({
   try {
     const activity = new UserActivityModel({
       userId,
-      action,
-      details,
-      targetUserId,
-      metadata,
+      activityType: action, // Map action to activityType for compatibility
+      details: typeof details === 'string' ? { message: details } : details || {}, // Convert string to object if needed
       ipAddress,
       userAgent,
       timestamp: new Date()
@@ -53,7 +51,7 @@ export async function getUserLoginHistory(userId: string, limit: number = 10): P
   try {
     const activities = await UserActivityModel.find({ 
       userId, 
-      action: 'login_success' 
+      activityType: 'login_success' 
     })
       .sort({ timestamp: -1 })
       .limit(limit)
@@ -64,7 +62,8 @@ export async function getUserLoginHistory(userId: string, limit: number = 10): P
       timestamp: doc.timestamp,
       ipAddress: doc.ipAddress,
       userAgent: doc.userAgent,
-      metadata: doc.metadata || {}
+      metadata: doc.metadata || {},
+      details: doc.details || {}
     }));
   } catch (error) {
     console.error('Error getting user login history:', error);
@@ -87,7 +86,7 @@ export async function getUserActivity(
     const query: any = { userId };
     
     if (actionTypes && actionTypes.length > 0) {
-      query.action = { $in: actionTypes };
+      query.activityType = { $in: actionTypes };
     }
     
     const activities = await UserActivityModel.find(query)
@@ -97,10 +96,9 @@ export async function getUserActivity(
     
     return activities.map((doc: any) => ({
       id: doc._id.toString(),
-      action: doc.action,
+      action: doc.activityType, // Map activityType to action for backward compatibility
       details: doc.details,
       timestamp: doc.timestamp,
-      targetUserId: doc.targetUserId,
       ipAddress: doc.ipAddress,
       userAgent: doc.userAgent,
       metadata: doc.metadata || {}
