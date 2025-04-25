@@ -105,6 +105,20 @@ export const DEMAND_TRENDS = [
   "decreasing"
 ] as const;
 
+// Security Questions
+export const SECURITY_QUESTIONS = [
+  "What was the name of your first pet?",
+  "In what city were you born?",
+  "What was your childhood nickname?",
+  "What is your mother's maiden name?",
+  "What high school did you attend?",
+  "What was the make of your first car?",
+  "What is your favorite movie?",
+  "What is the name of your favorite childhood teacher?",
+  "What street did you grow up on?",
+  "What was your first job?"
+] as const;
+
 // User schema
 export const userSchema = z.object({
   id: z.string().optional(),
@@ -112,6 +126,9 @@ export const userSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   createdAt: z.string().optional(),
+  // Security question for password recovery
+  securityQuestion: z.enum(SECURITY_QUESTIONS).optional(),
+  securityAnswer: z.string().optional(),
   // Extended user profile fields
   location: z.string().optional(),
   phone: z.string().optional(),

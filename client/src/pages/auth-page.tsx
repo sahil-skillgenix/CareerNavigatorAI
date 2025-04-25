@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUserSchema, loginUserSchema } from "@shared/schema";
+import { insertUserSchema, loginUserSchema, SECURITY_QUESTIONS } from "@shared/schema";
 import { Redirect, Link as WouterLink } from "wouter";
 import { motion } from "framer-motion";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { z } from "zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,6 +20,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
 import { Loader2, ArrowLeft, Briefcase, Eye, EyeOff } from "lucide-react";
 import { fadeInLeft, fadeInRight } from "@/lib/animations";
 
@@ -53,7 +61,9 @@ export default function AuthPage() {
       fullName: "",
       email: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
+      securityQuestion: undefined,
+      securityAnswer: ""
     }
   });
 
@@ -288,6 +298,58 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
+                    
+                    <div className="space-y-4 p-4 bg-muted/20 rounded-md border">
+                      <h4 className="text-sm font-medium">Account Recovery</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Set up a security question to help recover your account if you forget your password.
+                      </p>
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="securityQuestion"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Security Question</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a security question" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {SECURITY_QUESTIONS.map((question) => (
+                                  <SelectItem key={question} value={question}>
+                                    {question}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="securityAnswer"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Answer</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your answer" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Remember this answer as it will be used to recover your account.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     
                     <Button 
                       type="submit" 
