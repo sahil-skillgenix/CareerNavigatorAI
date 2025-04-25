@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { APIRequestLogModel, RequestStatus } from '../models/APIRequestLogModel';
-import { UserActivityModel, UserActivityType } from '../models/UserActivityModel';
-import { logError } from './logging-service';
+import APIRequestLogModel, { APIRequestLog } from '../models/APIRequestLogModel';
+import { UserActivityModel } from '../db/models';
+import { logError, type UserActivityType, type RequestStatus } from './logging-service';
 
 /**
  * Log a user activity 

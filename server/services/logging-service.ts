@@ -1,7 +1,46 @@
 import mongoose from 'mongoose';
-import { UserActivityModel, UserActivity, type UserActivityType } from '../models/UserActivityModel';
-import { SystemErrorLogModel, type ErrorSeverity, type ErrorCategory } from '../models/SystemErrorLogModel';
-import { APIRequestLogModel, type RequestStatus } from '../models/APIRequestLogModel';
+import { UserActivityModel } from '../db/models';
+import SystemErrorLogModel, { type SystemErrorLog } from '../models/SystemErrorLogModel';
+import APIRequestLogModel, { type APIRequestLog } from '../models/APIRequestLogModel';
+
+// Define UserActivity type
+export interface UserActivity {
+  _id?: string;
+  userId: string;
+  action: UserActivityType;
+  details?: string;
+  timestamp: Date;
+  targetUserId?: string;
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+// Define UserActivityType
+export type UserActivityType = 
+  | 'login_success' 
+  | 'login_failure' 
+  | 'logout' 
+  | 'register' 
+  | 'password_reset' 
+  | 'password_change' 
+  | 'security_question_update' 
+  | 'profile_update' 
+  | 'admin_access' 
+  | 'admin_action' 
+  | 'feature_usage' 
+  | 'account_lock' 
+  | 'account_unlock' 
+  | 'api_key_generate' 
+  | 'api_key_revoke' 
+  | 'view_all_users'
+  | 'view_error_logs'
+  | 'view_feature_limits'
+  | 'update_feature_limits'
+  | 'view_system_notifications'
+  | 'view_data_imports'
+  | 'view_dashboard_summary'
+  | 'other';
 
 // Interface for the log user activity function
 export interface UserActivityLog {
@@ -259,6 +298,10 @@ export async function getUserActivityHistory(userId: string, limit: number = 20)
   }
 }
 
+// Define error severity and category types
+export type ErrorSeverity = 'critical' | 'high' | 'medium' | 'low';
+export type ErrorCategory = 'security' | 'database' | 'api' | 'authentication' | 'authorization' | 'validation' | 'system' | 'other';
+
 // Interface for error log parameters
 export interface ErrorLogParams {
   message: string;
@@ -426,6 +469,9 @@ export async function getErrorLogs(params: ErrorLogQueryParams = {}) {
     };
   }
 }
+
+// Define request status type
+export type RequestStatus = 'success' | 'warning' | 'error' | 'info';
 
 // Interface for API request log query parameters
 export interface APIRequestLogQueryParams {

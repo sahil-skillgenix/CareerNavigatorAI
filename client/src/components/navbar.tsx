@@ -109,6 +109,15 @@ export default function Navbar() {
                     Saved Resources
                   </Button>
                 </Link>
+                {/* Admin dashboard link for admin and superadmin users */}
+                {(user.role === 'admin' || user.role === 'superadmin') && (
+                  <Link href="/admin">
+                    <Button variant="default" size="sm" className="hidden md:inline-flex">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 
                 {/* Profile dropdown menu */}
                 <DropdownMenu>
@@ -182,6 +191,16 @@ export default function Navbar() {
                           <span>History & Logs</span>
                         </Link>
                       </DropdownMenuItem>
+                      
+                      {/* Admin dashboard link in dropdown for admin and superadmin users */}
+                      {(user.role === 'admin' || user.role === 'superadmin') && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin">
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>Admin Dashboard</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuGroup>
                     
                     <DropdownMenuSeparator />
@@ -273,6 +292,15 @@ export default function Navbar() {
                           History & Logs
                         </Button>
                       </Link>
+                      {/* Admin dashboard link for mobile */}
+                      {(user.role === 'admin' || user.role === 'superadmin') && (
+                        <Link href="/admin" className="w-full">
+                          <Button className="w-full justify-start" variant="default">
+                            <Shield className="mr-2 h-4 w-4" />
+                            Admin Dashboard
+                          </Button>
+                        </Link>
+                      )}
                       <Button 
                         variant="destructive" 
                         className="w-full justify-start" 

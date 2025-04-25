@@ -1,476 +1,323 @@
-import express, { Router, Request, Response } from 'express';
-import { requireAdmin, requireSuperAdmin, paginationMiddleware } from '../middleware/adminMiddleware';
-import mongoose from 'mongoose';
+import { Router, Request, Response } from 'express';
+import { MongoDBStorage } from '../mongodb-storage';
+import { isAdmin, isSuperAdmin } from '../middleware/adminMiddleware';
+import { logUserActivityWithParams } from '../services/logging-service';
+import SystemErrorLogModel from '../models/SystemErrorLogModel';
+import { UserActivityModel } from '../db/models';
+import FeatureLimitModel from '../models/FeatureLimitsModel';
+import DataImportLogModel from '../models/DataImportLogModel';
+import SystemNotificationModel from '../models/SystemNotificationModel';
+import SystemUsageStatsModel from '../models/SystemUsageStatsModel';
+import APIRequestLogModel from '../models/APIRequestLogModel';
 
-// Import admin models
-import { 
-  getNotificationsForAdmin, 
-  createNotification, 
-  deleteNotification, 
-  getNotificationStats 
-} from '../models/NotificationModel';
-import { 
-  getImportLogs,
-  createImportLog,
-  updateImportStatus
-} from '../models/DataImportLogModel';
-import { 
-  getErrorLogs
-} from '../services/logging-service';
-import { SystemErrorLogModel } from '../models/SystemErrorLogModel';
-import {
-  getAggregatedStats
-} from '../models/SystemUsageStatsModel';
-import {
-  getAllFeatureLimits,
-  getFeatureLimit,
-  updateFeatureLimit,
-  setUserFeatureOverride,
-  removeUserFeatureOverride,
-  getUserFeatureLimit,
-  initializeDefaultFeatureLimits
-} from '../models/FeatureLimitsModel';
+const router = Router();
+const storage = new MongoDBStorage();
 
-// Import admin user management routes
-import userManagementRoutes from './admin-user-management';
+// Middleware to ensure admin access for all routes
+router.use(isAdmin);
 
-// Import any other necessary services or models
-// ...
-
-const adminRouter: Router = express.Router();
-
-// Apply middleware to all routes
-adminRouter.use(requireAdmin);
-
-// Add pagination middleware to routes that need pagination
-adminRouter.use([
-  '/notifications',
-  '/imports',
-  '/errors',
-  '/users'
-], paginationMiddleware);
-
-// Mount user management routes
-adminRouter.use('/user-management', userManagementRoutes);
-
-// Dashboard summary route
-adminRouter.get('/dashboard/summary', async (req: Request, res: Response) => {
+// Get all users - Admin only
+router.get('/user-management/users', async (req: Request, res: Response) => {
   try {
-    // Get date range - default to last 30 days
-    const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+    const users = await storage.getAllUsers();
     
-    // Get usage stats
-    const usageStats = await getAggregatedStats(days);
-    
-    // Get notification stats
-    const notificationStats = await getNotificationStats();
-    
-    // Get error summary
-    const errorSummary = await getErrorLogs({
-      page: 1,
-      limit: 1,
-      startDate: new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-    });
-    
-    // Return comprehensive dashboard data
-    res.json({
-      usageStats,
-      notificationStats,
-      errorSummary
-    });
-  } catch (error) {
-    console.error('Error getting admin dashboard summary:', error);
-    res.status(500).json({ error: 'Failed to get dashboard summary' });
-  }
-});
-
-// Notification routes
-adminRouter.get('/notifications', async (req: Request, res: Response) => {
-  try {
-    const page = parseInt(req.query.page as string || '1', 10);
-    const limit = parseInt(req.query.limit as string || '20', 10);
-    const type = req.query.type as string;
-    const priority = req.query.priority as string;
-    
-    const { notifications, total } = await getNotificationsForAdmin(
-      page,
-      limit,
-      type,
-      priority
-    );
-    
-    res.json({
-      notifications,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+    // Log activity
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'view_all_users',
+      details: 'Admin viewed all users',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
+        method: req.method,
+        path: req.path
       }
     });
+    
+    res.json({ users });
   } catch (error) {
-    console.error('Error getting notifications:', error);
-    res.status(500).json({ error: 'Failed to get notifications' });
+    console.error('Error fetching all users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-adminRouter.post('/notifications', async (req: Request, res: Response) => {
+// Get system error logs - Admin only
+router.get('/errors', async (req: Request, res: Response) => {
   try {
-    const { title, message, type, priority, forAllUsers, userIds, expiresAt, dismissible, actionLink, actionText } = req.body;
+    const { severity, limit = 20, resolved, category, fromDate, toDate } = req.query;
     
-    // Validate required fields
-    if (!title || !message || !type) {
-      return res.status(400).json({ error: 'Title, message, and type are required' });
+    const queryParams: any = {};
+    
+    if (severity) queryParams.severity = severity;
+    if (resolved) queryParams.resolved = resolved === 'true';
+    if (category) queryParams.category = category;
+    if (fromDate) queryParams.timestamp = { $gte: new Date(fromDate as string) };
+    if (toDate) {
+      if (queryParams.timestamp) {
+        queryParams.timestamp.$lte = new Date(toDate as string);
+      } else {
+        queryParams.timestamp = { $lte: new Date(toDate as string) };
+      }
     }
     
-    // Create notification with admin info
-    const notification = await createNotification({
-      title,
-      message,
-      type,
-      priority: priority || 'low',
-      forAllUsers: Boolean(forAllUsers),
-      userIds: userIds || [],
-      expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-      dismissible: dismissible !== false, // default to true
-      createdBy: req.user?.id || 'unknown',
-      actionLink,
-      actionText,
-      readBy: [],
-      dismissedBy: []
-    });
+    const errors = await SystemErrorLog.find(queryParams)
+      .sort({ timestamp: -1 })
+      .limit(Number(limit));
     
-    res.status(201).json(notification);
-  } catch (error) {
-    console.error('Error creating notification:', error);
-    res.status(500).json({ error: 'Failed to create notification' });
-  }
-});
-
-adminRouter.delete('/notifications/:id', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+    // Get summary counts
+    const criticalErrors = await SystemErrorLog.countDocuments({ severity: 'critical', resolved: false });
+    const totalErrors = await SystemErrorLog.countDocuments();
+    const unresolvedErrors = await SystemErrorLog.countDocuments({ resolved: false });
     
-    // Validate ID format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'Invalid notification ID' });
-    }
-    
-    const success = await deleteNotification(id);
-    
-    if (success) {
-      res.status(200).json({ message: 'Notification deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'Notification not found' });
-    }
-  } catch (error) {
-    console.error('Error deleting notification:', error);
-    res.status(500).json({ error: 'Failed to delete notification' });
-  }
-});
-
-// Data import routes
-adminRouter.get('/imports', async (req: Request, res: Response) => {
-  try {
-    const page = parseInt(req.query.page as string || '1', 10);
-    const limit = parseInt(req.query.limit as string || '20', 10);
-    const importType = req.query.type as any; // Type to filter by
-    const status = req.query.status as any; // Status to filter by
-    
-    const { logs, total } = await getImportLogs(
-      page,
-      limit,
-      importType,
-      status
-    );
-    
-    res.json({
-      imports: logs,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+    // Log activity
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      action: 'view_error_logs',
+      details: 'Admin viewed error logs',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
+        method: req.method,
+        path: req.path,
+        queryParams
       }
     });
-  } catch (error) {
-    console.error('Error getting import logs:', error);
-    res.status(500).json({ error: 'Failed to get import logs' });
-  }
-});
-
-adminRouter.post('/imports', async (req: Request, res: Response) => {
-  try {
-    const { importType, filename } = req.body;
-    
-    // Validate required fields
-    if (!importType || !filename) {
-      return res.status(400).json({ error: 'Import type and filename are required' });
-    }
-    
-    // Create import log
-    const importLog = await createImportLog(
-      importType,
-      filename,
-      req.user?.id || 'unknown'
-    );
-    
-    res.status(201).json(importLog);
-  } catch (error) {
-    console.error('Error creating import log:', error);
-    res.status(500).json({ error: 'Failed to create import log' });
-  }
-});
-
-adminRouter.put('/imports/:id/status', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status, processedRecords, totalRecords, errors, notes } = req.body;
-    
-    // Validate required fields
-    if (!status) {
-      return res.status(400).json({ error: 'Status is required' });
-    }
-    
-    // Update import status
-    const importLog = await updateImportStatus(
-      id,
-      status,
-      {
-        processedRecords,
-        totalRecords,
-        errors,
-        notes
-      }
-    );
-    
-    if (importLog) {
-      res.json(importLog);
-    } else {
-      res.status(404).json({ error: 'Import log not found' });
-    }
-  } catch (error) {
-    console.error('Error updating import status:', error);
-    res.status(500).json({ error: 'Failed to update import status' });
-  }
-});
-
-// Error logs routes
-adminRouter.get('/errors', async (req: Request, res: Response) => {
-  try {
-    const page = parseInt(req.query.page as string || '1', 10);
-    const limit = parseInt(req.query.limit as string || '50', 10);
-    const severity = req.query.severity as any;
-    const category = req.query.category as any;
-    const userId = req.query.userId as string;
-    
-    // Parse date ranges if provided
-    let startDate: Date | undefined;
-    let endDate: Date | undefined;
-    
-    if (req.query.startDate) {
-      startDate = new Date(req.query.startDate as string);
-    }
-    
-    if (req.query.endDate) {
-      endDate = new Date(req.query.endDate as string);
-    }
-    
-    const result = await getErrorLogs({
-      page,
-      limit,
-      severity: severity ? [severity] : undefined,
-      category: category ? [category] : undefined,
-      userId,
-      startDate,
-      endDate
-    });
-    
-    res.json({
-      errors: result.logs,
-      pagination: {
-        page: result.page,
-        limit: result.limit,
-        total: result.total,
-        pages: result.pages
-      }
-    });
-  } catch (error) {
-    console.error('Error getting error logs:', error);
-    res.status(500).json({ error: 'Failed to get error logs' });
-  }
-});
-
-adminRouter.get('/errors/summary', async (req: Request, res: Response) => {
-  try {
-    const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
-    
-    // For now, just return a simpler summary until we implement the full getErrorSummary
-    // Calculate start date for the summary period
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-    
-    // Get total errors in this period
-    const totalErrors = await SystemErrorLogModel.countDocuments({
-      timestamp: { $gte: startDate }
-    });
-    
-    // Get critical errors count
-    const criticalErrors = await SystemErrorLogModel.countDocuments({
-      timestamp: { $gte: startDate },
-      severity: 'critical'
-    });
-    
-    // Get unresolved errors
-    const unresolvedErrors = await SystemErrorLogModel.countDocuments({
-      timestamp: { $gte: startDate },
-      resolved: false
-    });
-    
-    const summary = {
-      period: `Last ${days} days`,
-      totalErrors,
-      criticalErrors,
-      unresolvedErrors,
-      resolvedErrors: totalErrors - unresolvedErrors
-    };
-    
-    res.json(summary);
-  } catch (error) {
-    console.error('Error getting error summary:', error);
-    res.status(500).json({ error: 'Failed to get error summary' });
-  }
-});
-
-// Feature limits routes
-adminRouter.get('/feature-limits', async (req: Request, res: Response) => {
-  try {
-    const limits = await getAllFeatureLimits();
-    res.json(limits);
-  } catch (error) {
-    console.error('Error getting feature limits:', error);
-    res.status(500).json({ error: 'Failed to get feature limits' });
-  }
-});
-
-adminRouter.get('/feature-limits/:name', async (req: Request, res: Response) => {
-  try {
-    const { name } = req.params;
-    const limit = await getFeatureLimit(name);
-    
-    if (limit) {
-      res.json(limit);
-    } else {
-      res.status(404).json({ error: 'Feature limit not found' });
-    }
-  } catch (error) {
-    console.error('Error getting feature limit:', error);
-    res.status(500).json({ error: 'Failed to get feature limit' });
-  }
-});
-
-adminRouter.put('/feature-limits/:name', requireSuperAdmin, async (req: Request, res: Response) => {
-  try {
-    const { name } = req.params;
-    const { description, defaultLimit, defaultFrequency, userTiers, overridable, active } = req.body;
-    
-    // Update feature limit
-    const limit = await updateFeatureLimit(name, {
-      description,
-      defaultLimit,
-      defaultFrequency,
-      userTiers,
-      overridable,
-      active
-    });
-    
-    if (limit) {
-      res.json(limit);
-    } else {
-      res.status(404).json({ error: 'Feature limit not found' });
-    }
-  } catch (error) {
-    console.error('Error updating feature limit:', error);
-    res.status(500).json({ error: 'Failed to update feature limit' });
-  }
-});
-
-adminRouter.post('/feature-limits/initialize', requireSuperAdmin, async (req: Request, res: Response) => {
-  try {
-    await initializeDefaultFeatureLimits();
-    const limits = await getAllFeatureLimits();
-    res.json({ 
-      message: 'Default feature limits initialized successfully',
-      limits 
-    });
-  } catch (error) {
-    console.error('Error initializing feature limits:', error);
-    res.status(500).json({ error: 'Failed to initialize feature limits' });
-  }
-});
-
-// User feature overrides routes
-adminRouter.post('/users/:userId/feature-overrides', async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const { featureName, limit, reason, expiresAt } = req.body;
-    
-    // Validate required fields
-    if (!featureName || limit === undefined || !reason) {
-      return res.status(400).json({ error: 'Feature name, limit, and reason are required' });
-    }
-    
-    // Create or update override
-    const override = await setUserFeatureOverride(
-      userId,
-      featureName,
-      limit,
-      reason,
-      req.user?.id || 'unknown',
-      expiresAt ? new Date(expiresAt) : undefined
-    );
-    
-    res.status(201).json(override);
-  } catch (error) {
-    console.error('Error setting user feature override:', error);
-    res.status(500).json({ error: 'Failed to set user feature override' });
-  }
-});
-
-adminRouter.delete('/users/:userId/feature-overrides/:featureName', async (req: Request, res: Response) => {
-  try {
-    const { userId, featureName } = req.params;
-    
-    const success = await removeUserFeatureOverride(userId, featureName);
-    
-    if (success) {
-      res.status(200).json({ message: 'Feature override removed successfully' });
-    } else {
-      res.status(404).json({ error: 'Feature override not found' });
-    }
-  } catch (error) {
-    console.error('Error removing user feature override:', error);
-    res.status(500).json({ error: 'Failed to remove user feature override' });
-  }
-});
-
-adminRouter.get('/users/:userId/feature-limits/:featureName', async (req: Request, res: Response) => {
-  try {
-    const { userId, featureName } = req.params;
-    const userTier = req.query.tier as any || 'free';
-    
-    const limit = await getUserFeatureLimit(userId, featureName, userTier);
     
     res.json({ 
-      userId,
-      featureName,
-      userTier,
-      limit
+      errors,
+      summary: {
+        criticalErrors,
+        totalErrors,
+        unresolvedErrors
+      }
     });
   } catch (error) {
-    console.error('Error getting user feature limit:', error);
-    res.status(500).json({ error: 'Failed to get user feature limit' });
+    console.error('Error fetching error logs:', error);
+    res.status(500).json({ error: 'Failed to fetch error logs' });
   }
 });
 
-export default adminRouter;
+// Get feature limits - Admin only
+router.get('/feature-limits', async (req: Request, res: Response) => {
+  try {
+    const featureLimits = await FeatureLimitsModel.find({}).sort({ name: 1 });
+    
+    // Log activity
+    logActivity({
+      userId: req.user?.id,
+      action: 'VIEW_FEATURE_LIMITS',
+      category: 'ADMIN',
+      details: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        method: req.method,
+        path: req.path
+      }
+    });
+    
+    res.json(featureLimits);
+  } catch (error) {
+    console.error('Error fetching feature limits:', error);
+    res.status(500).json({ error: 'Failed to fetch feature limits' });
+  }
+});
+
+// Create/update feature limits - Super Admin only
+router.post('/feature-limits', isSuperAdmin, async (req: Request, res: Response) => {
+  try {
+    const { featureLimits } = req.body;
+    
+    if (!Array.isArray(featureLimits)) {
+      return res.status(400).json({ error: 'Invalid feature limits data' });
+    }
+    
+    const results = [];
+    
+    for (const limit of featureLimits) {
+      const { name, defaultLimit, defaultFrequency, active } = limit;
+      
+      const existingLimit = await FeatureLimitsModel.findOne({ name });
+      
+      if (existingLimit) {
+        const updated = await FeatureLimitsModel.findOneAndUpdate(
+          { name },
+          { 
+            defaultLimit, 
+            defaultFrequency, 
+            active, 
+            updatedAt: new Date(),
+            updatedBy: req.user?.id
+          },
+          { new: true }
+        );
+        results.push(updated);
+      } else {
+        const newLimit = new FeatureLimitsModel({
+          name,
+          description: limit.description || `Limit for ${name} feature`,
+          defaultLimit,
+          defaultFrequency,
+          active: active !== undefined ? active : true,
+          createdBy: req.user?.id,
+          updatedBy: req.user?.id
+        });
+        
+        await newLimit.save();
+        results.push(newLimit);
+      }
+    }
+    
+    // Log activity
+    logActivity({
+      userId: req.user?.id,
+      action: 'UPDATE_FEATURE_LIMITS',
+      category: 'ADMIN',
+      details: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        method: req.method,
+        path: req.path,
+        featureLimitCount: featureLimits.length
+      }
+    });
+    
+    res.json(results);
+  } catch (error) {
+    console.error('Error updating feature limits:', error);
+    res.status(500).json({ error: 'Failed to update feature limits' });
+  }
+});
+
+// Get system notifications - Admin only
+router.get('/notifications', async (req: Request, res: Response) => {
+  try {
+    const notifications = await SystemNotificationModel.find({})
+      .sort({ createdAt: -1 })
+      .limit(20);
+    
+    // Log activity
+    logActivity({
+      userId: req.user?.id,
+      action: 'VIEW_SYSTEM_NOTIFICATIONS',
+      category: 'ADMIN',
+      details: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        method: req.method,
+        path: req.path
+      }
+    });
+    
+    res.json({ notifications });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+});
+
+// Get data import logs - Super Admin only
+router.get('/imports', isSuperAdmin, async (req: Request, res: Response) => {
+  try {
+    const imports = await DataImportLogModel.find({})
+      .sort({ createdAt: -1 })
+      .limit(20);
+    
+    // Log activity
+    logActivity({
+      userId: req.user?.id,
+      action: 'VIEW_DATA_IMPORTS',
+      category: 'ADMIN',
+      details: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        method: req.method,
+        path: req.path
+      }
+    });
+    
+    res.json({ imports });
+  } catch (error) {
+    console.error('Error fetching import logs:', error);
+    res.status(500).json({ error: 'Failed to fetch import logs' });
+  }
+});
+
+// Get dashboard summary statistics - Admin only
+router.get('/dashboard/summary', async (req: Request, res: Response) => {
+  try {
+    // Get system usage stats
+    const latestStats = await SystemUsageStatsModel.findOne({})
+      .sort({ timestamp: -1 });
+    
+    // Calculate usage metrics
+    const totalSignups = await storage.getUserCount();
+    const totalLogins = await UserActivityModel.countDocuments({ action: 'LOGIN' });
+    const activeUsers = await storage.getActiveUserCount();
+    
+    // Get API success rate
+    const apiRequests = await APIRequestLogModel.countDocuments({});
+    const apiSuccessful = await APIRequestLogModel.countDocuments({ statusCode: { $lt: 400 } });
+    const apiSuccessRate = apiRequests > 0 ? (apiSuccessful / apiRequests) * 100 : 100;
+    
+    // Get average response time
+    const avgResponseTimeResult = await APIRequestLogModel.aggregate([
+      { $match: { responseTime: { $exists: true } } },
+      { $group: { _id: null, avgResponseTime: { $avg: '$responseTime' } } }
+    ]);
+    const avgResponseTime = avgResponseTimeResult.length > 0 ? avgResponseTimeResult[0].avgResponseTime : 0;
+    
+    // Get feature usage statistics
+    const featureUsage = await UserActivityModel.aggregate([
+      { $match: { category: 'FEATURE_USAGE' } },
+      { $group: { _id: '$action', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+    
+    const featureUsageMap = {};
+    featureUsage.forEach(item => {
+      featureUsageMap[item._id] = item.count;
+    });
+    
+    // Get error rates
+    const criticalErrors = await SystemErrorLog.countDocuments({ severity: 'critical' });
+    const errors = await SystemErrorLog.countDocuments({ severity: 'high' });
+    const warnings = await SystemErrorLog.countDocuments({ severity: 'medium' });
+    
+    // Log activity
+    logActivity({
+      userId: req.user?.id,
+      action: 'VIEW_DASHBOARD_SUMMARY',
+      category: 'ADMIN',
+      details: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        method: req.method,
+        path: req.path
+      }
+    });
+    
+    res.json({
+      usageStats: {
+        totalSignups,
+        activeUsers,
+        totalLogins,
+        apiRequests,
+        apiSuccessRate,
+        avgResponseTime,
+        featureUsage: featureUsageMap,
+        errorRates: {
+          critical: criticalErrors,
+          error: errors,
+          warning: warnings
+        }
+      },
+      systemStats: latestStats
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard summary:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard summary' });
+  }
+});
+
+export default router;
