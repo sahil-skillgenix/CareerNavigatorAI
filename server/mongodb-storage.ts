@@ -802,4 +802,35 @@ export class MongoDBStorage implements IStorage {
       return [];
     }
   }
+  
+  // Convert a UserDocument to a User
+  private convertUserDocumentToUser(userDoc: any): User {
+    const user: User = {
+      id: userDoc._id.toString(),
+      fullName: userDoc.fullName,
+      email: userDoc.email,
+      password: userDoc.password,
+      status: userDoc.status || 'active',
+      role: userDoc.role || 'user',
+      createdAt: userDoc.createdAt.toISOString(),
+      securityQuestion: userDoc.securityQuestion,
+      securityAnswer: userDoc.securityAnswer,
+      location: userDoc.location,
+      phone: userDoc.phone,
+      bio: userDoc.bio,
+      currentRole: userDoc.currentRole,
+      experience: userDoc.experience,
+      education: userDoc.education,
+      skills: userDoc.skills || [],
+      interests: userDoc.interests || [],
+      avatarUrl: userDoc.avatarUrl
+    };
+    
+    // Special case for superadmin role
+    if (user.email === 'super-admin@skillgenix.com') {
+      user.role = 'superadmin';
+    }
+    
+    return user;
+  }
 }

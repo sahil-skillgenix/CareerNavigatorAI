@@ -274,9 +274,11 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
       { $limit: 10 }
     ]);
     
-    const featureUsageMap = {};
+    const featureUsageMap: Record<string, number> = {};
     featureUsage.forEach(item => {
-      featureUsageMap[item._id] = item.count;
+      if (item._id) {
+        featureUsageMap[item._id.toString()] = item.count;
+      }
     });
     
     // Get error rates
