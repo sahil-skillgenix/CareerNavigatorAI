@@ -203,7 +203,7 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
     startDate.setDate(startDate.getDate() - days);
     
     // Aggregation pipeline
-    const summary = await UserActivityModel.aggregate([
+    const summary = await UserActivityLogModel.aggregate([
       {
         $match: {
           userId,
@@ -223,7 +223,7 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
     ]);
     
     // Count total activities
-    const totalActivities = await UserActivityModel.countDocuments({
+    const totalActivities = await UserActivityLogModel.countDocuments({
       userId,
       timestamp: { $gte: startDate }
     });
@@ -285,16 +285,16 @@ export async function logUserActivity(
   if (action === 'security_answer_verification') activityType = 'security_question_update';
   
   try {
-    const activityLog = new UserActivityModel({
+    const activityLog = new UserActivityLogModel({
       userId: userId,
       action: activityType, // Use action field for consistency with new schema
       category: 'AUTH', // Default to AUTH category for legacy logs
-      details: { 
+      details: typeof metadata === 'string' ? metadata : JSON.stringify({ 
         message: `${action}: ${status}`,
         ...metadata,
         status,
         originalAction: action // Store original action as reference
-      },
+      }),
       timestamp: new Date(),
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
@@ -319,7 +319,7 @@ export async function logUserActivity(
  */
 export async function getUserActivityHistory(userId: string, limit: number = 20) {
   try {
-    return await UserActivityModel.find({ userId })
+    return await UserActivityLogModel.find({ userId })
       .sort({ timestamp: -1 })
       .limit(limit)
       .lean();
