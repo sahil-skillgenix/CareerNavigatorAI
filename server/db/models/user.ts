@@ -5,8 +5,21 @@ export interface UserDocument extends Document {
   fullName: string;
   email: string;
   password: string;
+  role: string;
+  status: string;
+  securityQuestion?: string;
+  securityAnswer?: string;
   createdAt: Date;
   updatedAt: Date;
+  location?: string;
+  phone?: string;
+  bio?: string;
+  currentRole?: string;
+  experience?: string[];
+  education?: string[];
+  skills?: string[];
+  interests?: string[];
+  avatarUrl?: string;
 }
 
 // Schema for User
@@ -14,7 +27,20 @@ const UserSchema = new Schema<UserDocument>(
   {
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    role: { type: String, enum: ['user', 'admin', 'superadmin'], default: 'user' },
+    status: { type: String, enum: ['active', 'restricted', 'suspended', 'deleted'], default: 'active' },
+    securityQuestion: { type: String },
+    securityAnswer: { type: String },
+    location: { type: String },
+    phone: { type: String },
+    bio: { type: String },
+    currentRole: { type: String },
+    experience: { type: [String] },
+    education: { type: [String] },
+    skills: { type: [String] },
+    interests: { type: [String] },
+    avatarUrl: { type: String }
   },
   { 
     timestamps: true,
