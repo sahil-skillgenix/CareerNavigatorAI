@@ -85,7 +85,8 @@ export function SavedAnalyses() {
   };
 
   const viewFullAnalysis = (id: string) => {
-    window.location.href = `/career-analysis/${id}`;
+    // Use document.location to ensure the page refreshes
+    document.location.href = `/career-analysis/${id}`;
   };
 
   // Helper function to format date
