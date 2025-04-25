@@ -69,27 +69,45 @@ async function fixDuplicateCollections() {
           const duplicateDocs = await duplicateCollection.find({}).toArray();
           
           // Insert them into the correct collection if they don't already exist
-          // This is simplified and might need more complex merging logic based on your data
+          // Handle potential duplicate key errors and null values
           let insertedCount = 0;
           for (const doc of duplicateDocs) {
-            // Remove MongoDB's _id to avoid duplicate key errors
-            const { _id, ...docWithoutId } = doc;
-            
-            // Check if document with similar properties already exists
-            // This is a simplified approach; you might need more specific matching
-            const matchQuery = Object.entries(docWithoutId)
-              .filter(([key, value]) => typeof value !== 'object') // Skip nested objects
-              .reduce((obj, [key, value]) => {
-                obj[key] = value;
-                return obj;
-              }, {});
-            
-            const exists = await correctCollection.findOne(matchQuery);
-            
-            if (!exists) {
-              // Insert the document with a new ID
-              await correctCollection.insertOne(docWithoutId);
-              insertedCount++;
+            try {
+              // Remove MongoDB's _id to avoid duplicate key errors
+              const { _id, ...docWithoutId } = doc;
+              
+              // Fix null values that may be causing unique index violations
+              // For featureLimits collection specifically
+              if (mapping.correct === 'featureLimits' && (docWithoutId.name === null || docWithoutId.name === undefined)) {
+                docWithoutId.name = `feature_${Math.random().toString(36).substring(2, 9)}`;
+                console.log(`  - Fixed null name in featureLimits document`);
+              }
+              
+              // Build a more precise matching query
+              const matchQuery = Object.entries(docWithoutId)
+                .filter(([key, value]) => 
+                  typeof value !== 'object' && // Skip nested objects
+                  value !== null && // Skip null values
+                  key !== 'password' // Skip password as it might have different hash formats
+                )
+                .reduce((obj, [key, value]) => {
+                  obj[key] = value;
+                  return obj;
+                }, {});
+              
+              // Skip empty match queries to avoid matching everything
+              const exists = Object.keys(matchQuery).length > 0 
+                ? await correctCollection.findOne(matchQuery)
+                : true; // Assume it exists if we can't properly match
+              
+              if (!exists) {
+                // Insert the document with a new ID
+                await correctCollection.insertOne(docWithoutId);
+                insertedCount++;
+              }
+            } catch (error) {
+              console.log(`  - Error processing document: ${error.message}`);
+              // Continue with the next document
             }
           }
           
