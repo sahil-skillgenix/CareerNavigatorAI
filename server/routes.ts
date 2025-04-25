@@ -161,15 +161,20 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         });
       }
       
-      // Log the password reset activity
+      // Log the password reset activity using standardized logging function
       try {
-        await logUserActivity(
+        await logUserActivityWithParams({
           userId,
-          'password_reset_complete',
-          'success',
-          req,
-          { method: 'security_question' }
-        );
+          action: 'password_reset', // Use standardized activity type
+          details: 'Password reset completed successfully',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'] as string,
+          metadata: { 
+            method: 'security_question',
+            timestamp: new Date().toISOString(),
+            status: 'success'
+          }
+        });
       } catch (logError) {
         console.error('Error logging password reset:', logError);
         // Continue even if logging fails
@@ -433,6 +438,26 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       // 2. Preserve all user data but prevent login
       // await storageInstance.deactivateUser(req.user.id);
       
+      // Log account deactivation activity
+      (async () => {
+        try {
+          await logUserActivityWithParams({
+            userId: req.user.id,
+            action: 'account_deactivation',
+            details: 'User account deactivated',
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'] as string,
+            metadata: {
+              method: 'self-service',
+              timestamp: new Date().toISOString()
+            }
+          });
+        } catch (logError) {
+          console.error('Error logging account deactivation:', logError);
+          // Continue even if logging fails
+        }
+      })();
+      
       // Log the user out
       req.logout((err) => {
         if (err) {
@@ -474,6 +499,27 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       // 1. Delete or anonymize all user data
       // 2. Follow all applicable data protection laws for user data deletion
       // await storageInstance.deleteUser(req.user.id);
+      
+      // Log account deletion activity
+      (async () => {
+        try {
+          await logUserActivityWithParams({
+            userId: req.user.id,
+            action: 'account_deletion',
+            details: 'User account permanently deleted',
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'] as string,
+            metadata: {
+              method: 'self-service',
+              timestamp: new Date().toISOString(),
+              dataDeletionStatus: 'complete'
+            }
+          });
+        } catch (logError) {
+          console.error('Error logging account deletion:', logError);
+          // Continue even if logging fails
+        }
+      })();
       
       // Log the user out
       req.logout((err) => {

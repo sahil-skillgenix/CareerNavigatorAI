@@ -57,6 +57,8 @@ const UserActivitySchema = new Schema<UserActivityDocument>(
         "view_dashboard_summary",
         "admin_access_denied",
         "superadmin_access_denied",
+        "account_deactivation",
+        "account_deletion",
         "other"
       ] 
     },

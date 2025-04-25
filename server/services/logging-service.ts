@@ -31,6 +31,8 @@ export type UserActivityType =
   | 'feature_usage' 
   | 'account_lock' 
   | 'account_unlock' 
+  | 'account_deactivation'
+  | 'account_deletion'
   | 'api_key_generate' 
   | 'api_key_revoke' 
   | 'view_all_users'
