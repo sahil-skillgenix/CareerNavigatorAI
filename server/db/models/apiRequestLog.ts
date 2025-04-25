@@ -52,5 +52,5 @@ APIRequestLogSchema.index({ statusCode: 1, timestamp: -1 });
 // Create TTL index to automatically delete API logs after 30 days
 APIRequestLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 
-// Ensure the model is only registered once
-export default mongoose.models.APIRequestLog || mongoose.model<APIRequestLogDocument>("APIRequestLog", APIRequestLogSchema);
+// Ensure the model is only registered once with standardized collection name
+export default mongoose.models.APIRequestLog || mongoose.model<APIRequestLogDocument>("APIRequestLog", APIRequestLogSchema, "skillgenix_apirequestlog");

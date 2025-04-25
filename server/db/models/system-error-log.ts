@@ -110,4 +110,5 @@ systemErrorLogSchema.index({ category: 1 });
 systemErrorLogSchema.index({ userId: 1 });
 systemErrorLogSchema.index({ resolved: 1 });
 
-export const SystemErrorLogModel = mongoose.model('systemErrorLog', systemErrorLogSchema);
+// Use standardized collection name with clear prefix
+export const SystemErrorLogModel = mongoose.model('SystemErrorLog', systemErrorLogSchema, 'skillgenix_systemerrorlog');

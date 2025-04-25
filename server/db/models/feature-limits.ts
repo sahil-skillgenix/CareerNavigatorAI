@@ -66,4 +66,5 @@ const featureLimitsSchema = new mongoose.Schema({
   }
 });
 
-export const FeatureLimitsModel = mongoose.model('featureLimit', featureLimitsSchema);
+// Use standardized collection name with clear prefix
+export const FeatureLimitsModel = mongoose.model('FeatureLimits', featureLimitsSchema, 'skillgenix_featurelimit');
