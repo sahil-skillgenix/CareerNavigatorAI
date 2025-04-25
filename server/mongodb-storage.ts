@@ -128,21 +128,85 @@ export class MongoDBStorage implements IStorage {
         fullName: insertUser.fullName,
         email: insertUser.email,
         password: insertUser.password,
+        securityQuestion: insertUser.securityQuestion,
+        securityAnswer: insertUser.securityAnswer,
+        location: insertUser.location,
+        phone: insertUser.phone,
+        bio: insertUser.bio,
+        currentRole: insertUser.currentRole,
+        experience: insertUser.experience,
+        education: insertUser.education,
+        skills: insertUser.skills,
+        interests: insertUser.interests,
+        avatarUrl: insertUser.avatarUrl
       });
       
       const savedUser = await newUser.save();
       const userDoc = savedUser as any;
+      
+      log(`Created new user: ${insertUser.email}`, "mongodb");
       
       return {
         id: userDoc._id.toString(),
         fullName: userDoc.fullName,
         email: userDoc.email,
         password: userDoc.password,
-        createdAt: userDoc.createdAt.toISOString()
+        createdAt: userDoc.createdAt.toISOString(),
+        securityQuestion: userDoc.securityQuestion,
+        securityAnswer: userDoc.securityAnswer,
+        location: userDoc.location,
+        phone: userDoc.phone,
+        bio: userDoc.bio,
+        currentRole: userDoc.currentRole,
+        experience: userDoc.experience,
+        education: userDoc.education,
+        skills: userDoc.skills,
+        interests: userDoc.interests,
+        avatarUrl: userDoc.avatarUrl
       };
     } catch (error) {
       log(`Error creating user: ${error}`, "mongodb");
       throw error;
+    }
+  }
+  
+  async updateUserPassword(id: string | number, newPassword: string): Promise<User | undefined> {
+    try {
+      const user = await UserModel.findById(id);
+      if (!user) {
+        log(`User not found for password update: ${id}`, "mongodb");
+        return undefined;
+      }
+      
+      // Hash the new password before saving
+      user.password = await hashPassword(newPassword);
+      
+      const savedUser = await user.save();
+      const userDoc = savedUser as any;
+      
+      log(`Updated password for user ${userDoc.email}`, "mongodb");
+      
+      return {
+        id: userDoc._id.toString(),
+        fullName: userDoc.fullName,
+        email: userDoc.email,
+        password: userDoc.password,
+        createdAt: userDoc.createdAt.toISOString(),
+        securityQuestion: userDoc.securityQuestion,
+        securityAnswer: userDoc.securityAnswer,
+        location: userDoc.location,
+        phone: userDoc.phone,
+        bio: userDoc.bio,
+        currentRole: userDoc.currentRole,
+        experience: userDoc.experience,
+        education: userDoc.education,
+        skills: userDoc.skills,
+        interests: userDoc.interests,
+        avatarUrl: userDoc.avatarUrl
+      };
+    } catch (error) {
+      log(`Error updating user password: ${error}`, "mongodb");
+      return undefined;
     }
   }
 

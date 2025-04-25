@@ -334,18 +334,15 @@ export const findAccountSchema = z.object({
 });
 
 export const verifySecurityAnswerSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  securityAnswer: z.string().min(1, "Security answer is required"),
+  answer: z.string().min(1, "Security answer is required"),
 });
 
 export const resetPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  securityAnswer: z.string().min(1, "Security answer is required"),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
-  confirmNewPassword: z.string().min(6, "Please confirm your new password"),
-}).refine(data => data.newPassword === data.confirmNewPassword, {
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Please confirm your new password"),
+}).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
-  path: ["confirmNewPassword"],
+  path: ["confirmPassword"],
 });
 
 // User registration schema

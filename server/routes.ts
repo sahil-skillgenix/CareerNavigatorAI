@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { IStorage, storage } from "./storage";
 import { setupAuth } from "./auth";
+import { hashPassword } from "./mongodb-storage";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service";
 import { analyzeOrganizationPathway, OrganizationPathwayInput } from "./organization-service";
 import { 
@@ -37,6 +38,144 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   } catch (error) {
     console.error('Error seeding database:', error);
   }
+  
+  // Password recovery routes
+  
+  // Step 1: Find account by email
+  app.post('/api/auth/find-account', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Email is required' 
+        });
+      }
+      
+      const user = await storageInstance.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'No account found with this email' 
+        });
+      }
+      
+      if (!user.securityQuestion) {
+        return res.status(400).json({
+          success: false,
+          message: 'Account recovery is not set up for this user'
+        });
+      }
+      
+      // Send back user ID and security question without the answer
+      return res.status(200).json({
+        success: true,
+        userId: user.id,
+        securityQuestion: user.securityQuestion
+      });
+    } catch (error) {
+      console.error('Error finding account:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'An error occurred while finding your account' 
+      });
+    }
+  });
+  
+  // Step 2: Verify security answer
+  app.post('/api/auth/verify-security-answer', async (req, res) => {
+    try {
+      const { userId, answer } = req.body;
+      
+      if (!userId || !answer) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'User ID and security answer are required' 
+        });
+      }
+      
+      const user = await storageInstance.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
+      }
+      
+      // Perform case-insensitive comparison for the security answer
+      if (!user.securityAnswer || 
+          user.securityAnswer.toLowerCase() !== answer.toLowerCase()) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Security answer is incorrect' 
+        });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Security answer verified'
+      });
+    } catch (error) {
+      console.error('Error verifying security answer:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'An error occurred while verifying your security answer' 
+      });
+    }
+  });
+  
+  // Step 3: Reset password
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const { userId, password } = req.body;
+      
+      if (!userId || !password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'User ID and new password are required' 
+        });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(password);
+      
+      // Update the user's password
+      const updatedUser = await storageInstance.updateUserPassword(userId, hashedPassword);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Failed to update password' 
+        });
+      }
+      
+      // Log the password reset activity
+      try {
+        await logUserActivity({
+          userId: userId,
+          action: 'password_reset',
+          details: 'Password reset via security question'
+        });
+      } catch (logError) {
+        console.error('Error logging password reset:', logError);
+        // Continue even if logging fails
+      }
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Password has been reset successfully'
+      });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'An error occurred while resetting your password' 
+      });
+    }
+  });
 
   // API routes
   app.get('/api/health', (req, res) => {
