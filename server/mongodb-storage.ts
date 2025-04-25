@@ -113,19 +113,26 @@ export class MongoDBStorage implements IStorage {
 
   async getUser(id: string | number): Promise<User | undefined> {
     try {
+      console.log(`[mongodb-storage] Getting user with ID: ${id}`);
       const user = await UserModel.findById(id).lean();
-      if (!user) return undefined;
+      if (!user) {
+        console.log(`[mongodb-storage] User with ID ${id} not found`);
+        return undefined;
+      }
       
       const userDoc = user as any;
+      console.log(`[mongodb-storage] Found user: ${userDoc.email}, role: ${userDoc.role}`);
       
       // Ensure role is properly set - critical for authentication and admin access
       let userRole = userDoc.role || "user";
       
       // Apply special case for superadmin users
       if (userDoc.email === 'super-admin@skillgenix.com') {
+        console.log(`[mongodb-storage] Special case: Setting superadmin role for ${userDoc.email}`);
         userRole = 'superadmin';
         // Update the user in the database if needed
         if (!userDoc.role || userDoc.role !== 'superadmin') {
+          console.log(`[mongodb-storage] Updating superadmin role in database`);
           await UserModel.updateOne(
             { _id: userDoc._id },
             { $set: { role: 'superadmin' } }
@@ -162,19 +169,26 @@ export class MongoDBStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
+      console.log(`[mongodb-storage] Getting user by email: ${email}`);
       const user = await UserModel.findOne({ email }).lean();
-      if (!user) return undefined;
+      if (!user) {
+        console.log(`[mongodb-storage] User with email ${email} not found`);
+        return undefined;
+      }
       
       const userDoc = user as any;
+      console.log(`[mongodb-storage] Found user by email: ${userDoc.email}, role: ${userDoc.role}`);
       
       // Ensure role is properly set - critical for authentication and admin access
       let userRole = userDoc.role || "user";
       
       // Apply special case for superadmin users
       if (userDoc.email === 'super-admin@skillgenix.com') {
+        console.log(`[mongodb-storage] Special case: Setting superadmin role for ${userDoc.email}`);
         userRole = 'superadmin';
         // Update the user in the database if needed
         if (!userDoc.role || userDoc.role !== 'superadmin') {
+          console.log(`[mongodb-storage] Updating superadmin role in database for ${userDoc.email}`);
           await UserModel.updateOne(
             { _id: userDoc._id },
             { $set: { role: 'superadmin' } }

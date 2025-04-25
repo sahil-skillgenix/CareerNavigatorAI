@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { logUserActivityWithParams } from '../services/logging-service';
 
+interface UserWithId {
+  id: string;
+  [key: string]: any;
+}
+
 // Middleware to check if user is admin or superadmin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -29,14 +34,15 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     }
 
     // Check user role and print it for debugging
-    console.log('[admin-middleware] User role:', user.role);
+    const userRole = user.role || 'user';
+    console.log('[admin-middleware] User role:', userRole);
     
-    if (user.role !== 'admin' && user.role !== 'superadmin') {
+    if (userRole !== 'admin' && userRole !== 'superadmin') {
       console.log('[admin-middleware] Insufficient privileges');
       logUserActivityWithParams({
-        userId: user.id,
+        userId: user.id || 'unknown',
         action: 'admin_access_denied',
-        details: `Admin access denied - insufficient privileges (role: ${user.role})`,
+        details: `Admin access denied - insufficient privileges (role: ${userRole})`,
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'] as string,
         metadata: { path: req.path }
@@ -47,7 +53,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     console.log('[admin-middleware] Admin access granted for:', user.email);
     
     // Add role to response headers for debugging
-    res.setHeader('X-User-Role', user.role);
+    res.setHeader('X-User-Role', user.role || 'user');
     
     next();
   } catch (error) {
@@ -77,11 +83,12 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
       return res.status(401).json({ error: 'User not found' });
     }
 
-    if (user.role !== 'superadmin') {
+    const userRole = user.role || 'user';
+    if (userRole !== 'superadmin') {
       logUserActivityWithParams({
-        userId: user.id,
+        userId: user.id || 'unknown',
         action: 'superadmin_access_denied',
-        details: `Superadmin access denied - insufficient privileges (role: ${user.role})`,
+        details: `Superadmin access denied - insufficient privileges (role: ${userRole})`,
         ipAddress: req.ip,
         userAgent: req.headers['user-agent'] as string,
         metadata: { path: req.path }
