@@ -124,7 +124,25 @@ export const userSchema = z.object({
   id: z.string().optional(),
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .refine(
+      (password) => {
+        // Check for at least one uppercase letter
+        const hasUppercase = /[A-Z]/.test(password);
+        // Check for at least one lowercase letter
+        const hasLowercase = /[a-z]/.test(password);
+        // Check for at least one number
+        const hasNumber = /[0-9]/.test(password);
+        // Check for at least one special character
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        
+        return hasUppercase && hasLowercase && hasNumber && hasSpecial;
+      },
+      {
+        message: "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character",
+      }
+    ),
   createdAt: z.string().optional(),
   // Security question for password recovery
   securityQuestion: z.enum(SECURITY_QUESTIONS).optional(),
@@ -325,7 +343,7 @@ export const userProgressSchema = z.object({
 // Authentication schema
 export const loginUserSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 // Account recovery schemas
@@ -338,8 +356,26 @@ export const verifySecurityAnswerSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Please confirm your new password"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .refine(
+      (password) => {
+        // Check for at least one uppercase letter
+        const hasUppercase = /[A-Z]/.test(password);
+        // Check for at least one lowercase letter
+        const hasLowercase = /[a-z]/.test(password);
+        // Check for at least one number
+        const hasNumber = /[0-9]/.test(password);
+        // Check for at least one special character
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        
+        return hasUppercase && hasLowercase && hasNumber && hasSpecial;
+      },
+      {
+        message: "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character",
+      }
+    ),
+  confirmPassword: z.string().min(8, "Please confirm your new password"),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
