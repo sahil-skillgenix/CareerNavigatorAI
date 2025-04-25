@@ -68,5 +68,5 @@ const RoleSchema = new Schema<RoleDocument>(
   }
 );
 
-// Ensure the model is only registered once
-export default mongoose.models.Role || mongoose.model<RoleDocument>("Role", RoleSchema);
+// Ensure the model is only registered once with standardized collection name
+export default mongoose.models.Role || mongoose.model<RoleDocument>("Role", RoleSchema, "skillgenix_role");

@@ -70,5 +70,5 @@ const IndustrySchema = new Schema<IndustryDocument>(
   }
 );
 
-// Ensure the model is only registered once
-export default mongoose.models.Industry || mongoose.model<IndustryDocument>("Industry", IndustrySchema);
+// Ensure the model is only registered once with standardized collection name
+export default mongoose.models.Industry || mongoose.model<IndustryDocument>("Industry", IndustrySchema, "skillgenix_industry");
