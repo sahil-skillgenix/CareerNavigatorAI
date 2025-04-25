@@ -1,8 +1,8 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { SavedResourcesProvider } from "@/hooks/use-saved-resources";
 import { ProtectedRoute, AdminProtectedRoute } from "@/lib/protected-route";
 
@@ -28,10 +28,21 @@ import HistoryPage from "@/pages/history-page";
 import AdminDashboard from "@/pages/admin-dashboard";
 
 function Router() {
+  const { user } = useAuth();
+  
+  // If the user is a superadmin or admin, redirect to /admin from dashboard
+  if (user && (user.role === 'superadmin' || user.role === 'admin') && 
+      window.location.pathname === '/dashboard') {
+    window.location.href = '/admin';
+  }
+  
   return (
     <Switch>
       {/* Auth routes */}
       <Route path="/auth" component={AuthPage} />
+      
+      {/* Admin routes - restricted to users with admin or superadmin role */}
+      <AdminProtectedRoute path="/admin" component={AdminDashboard} />
       
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={DashboardPage} />
@@ -42,9 +53,6 @@ function Router() {
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       <ProtectedRoute path="/history" component={HistoryPage} />
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
-      
-      {/* Admin routes - restricted to users with admin or superadmin role */}
-      <AdminProtectedRoute path="/admin" component={AdminDashboard} />
       
       {/* Settings routes */}
       <ProtectedRoute path="/settings" component={SettingsPage} />
@@ -72,8 +80,16 @@ function Router() {
       <Route path="/industries/:id/profile" component={IndustryDetailPage} />
       <Route path="/industries/:id" component={IndustryDetailPage} />
       
-      {/* Home route - should be last before the NotFound route */}
-      <Route path="/" component={Home} />
+      {/* Home route - redirect superadmin/admin to admin dashboard */}
+      <Route path="/">
+        {() => {
+          if (user && (user.role === 'superadmin' || user.role === 'admin')) {
+            window.location.href = '/admin';
+            return <div>Redirecting to admin dashboard...</div>;
+          }
+          return <Home />;
+        }}
+      </Route>
       
       {/* Not found route */}
       <Route component={NotFound} />
