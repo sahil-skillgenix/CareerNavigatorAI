@@ -40,6 +40,8 @@ export type UserActivityType =
   | 'view_system_notifications'
   | 'view_data_imports'
   | 'view_dashboard_summary'
+  | 'admin_access_denied'
+  | 'superadmin_access_denied'
   | 'other';
 
 // Interface for the log user activity function

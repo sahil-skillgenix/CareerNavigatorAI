@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logUserActivity } from '../services/logging-service';
+import { logUserActivityWithParams } from '../services/logging-service';
 
 // Middleware to check if user is admin or superadmin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
@@ -11,26 +11,24 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     
     if (!user) {
-      logUserActivity({
+      logUserActivityWithParams({
         userId: req.user?.id || 'unknown',
         action: 'admin_access_denied',
-        category: 'security',
-        description: 'Admin access denied - user not found',
+        details: 'Admin access denied - user not found',
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
+        userAgent: req.headers['user-agent'] as string,
         metadata: { path: req.path }
       });
       return res.status(401).json({ error: 'User not found' });
     }
 
     if (user.role !== 'admin' && user.role !== 'superadmin') {
-      logUserActivity({
+      logUserActivityWithParams({
         userId: user.id,
         action: 'admin_access_denied',
-        category: 'security',
-        description: `Admin access denied - insufficient privileges (role: ${user.role})`,
+        details: `Admin access denied - insufficient privileges (role: ${user.role})`,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
+        userAgent: req.headers['user-agent'] as string,
         metadata: { path: req.path }
       });
       return res.status(403).json({ error: 'Insufficient privileges' });
@@ -53,26 +51,24 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
     const user = req.user;
     
     if (!user) {
-      logUserActivity({
+      logUserActivityWithParams({
         userId: req.user?.id || 'unknown',
         action: 'superadmin_access_denied',
-        category: 'security',
-        description: 'Superadmin access denied - user not found',
+        details: 'Superadmin access denied - user not found',
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
+        userAgent: req.headers['user-agent'] as string,
         metadata: { path: req.path }
       });
       return res.status(401).json({ error: 'User not found' });
     }
 
     if (user.role !== 'superadmin') {
-      logUserActivity({
+      logUserActivityWithParams({
         userId: user.id,
         action: 'superadmin_access_denied',
-        category: 'security',
-        description: `Superadmin access denied - insufficient privileges (role: ${user.role})`,
+        details: `Superadmin access denied - insufficient privileges (role: ${user.role})`,
         ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
+        userAgent: req.headers['user-agent'] as string,
         metadata: { path: req.path }
       });
       return res.status(403).json({ error: 'Insufficient privileges' });
