@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface SystemUsageStats extends Document {
+export interface SystemUsageStats {
   date: Date;
   users: {
     signups: number;
@@ -27,6 +27,12 @@ export interface SystemUsageStats extends Document {
     errorCount: number;
     warningCount: number;
   };
+  _id?: any;
+}
+
+// Define a Document type that avoids the conflict
+export interface SystemUsageStatsDocument extends SystemUsageStats, Omit<Document, 'errors'> {
+  // This interface just combines the fields while avoiding the conflict
 }
 
 const SystemUsageStatsSchema = new Schema<SystemUsageStats>({

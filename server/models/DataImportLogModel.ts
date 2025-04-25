@@ -6,7 +6,8 @@ export type ImportType = 'skills' | 'roles' | 'industries' | 'learningResources'
 // Import status values
 export type ImportStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
-export interface DataImportLog extends Document {
+// Extend Document but avoid conflict with errors property
+export interface DataImportLog {
   importType: ImportType;
   filename: string;
   status: ImportStatus;
@@ -17,6 +18,12 @@ export interface DataImportLog extends Document {
   totalRecords?: number;
   errors?: string[];
   notes?: string;
+  _id?: any;
+}
+
+// Define a Document type that avoids the conflict
+export interface DataImportLogDocument extends DataImportLog, Omit<Document, 'errors'> {
+  // This interface just combines the fields while avoiding the conflict
 }
 
 const DataImportLogSchema = new Schema<DataImportLog>({

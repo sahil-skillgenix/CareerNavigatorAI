@@ -1,150 +1,111 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { notificationSchema, NOTIFICATION_PRIORITIES, NOTIFICATION_TYPES, userNotificationStatusSchema } from '../../shared/schema';
-import { z } from 'zod';
+
+export type NotificationType = 'system' | 'security' | 'feature' | 'maintenance' | 'account';
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface Notification extends Document {
   title: string;
   message: string;
-  priority: typeof NOTIFICATION_PRIORITIES[number];
-  type: typeof NOTIFICATION_TYPES[number];
+  type: NotificationType;
+  priority: NotificationPriority;
   forAllUsers: boolean;
-  userIds?: string[];
-  expiresAt?: Date;
+  userIds: string[];
   createdAt: Date;
-  createdBy?: string;
+  expiresAt?: Date;
   dismissible: boolean;
+  createdBy?: string;
   actionLink?: string;
   actionText?: string;
-}
-
-export interface UserNotificationStatus extends Document {
-  userId: string;
-  notificationId: string;
-  seen: boolean;
-  dismissed: boolean;
-  createdAt: Date;
+  readBy: string[];
+  dismissedBy: string[];
 }
 
 const NotificationSchema = new Schema<Notification>({
   title: { type: String, required: true },
   message: { type: String, required: true },
-  priority: { 
-    type: String, 
-    required: true, 
-    enum: NOTIFICATION_PRIORITIES,
-    default: 'medium'
-  },
   type: { 
     type: String, 
     required: true, 
-    enum: NOTIFICATION_TYPES,
-    default: 'system'
+    enum: ['system', 'security', 'feature', 'maintenance', 'account'] 
+  },
+  priority: { 
+    type: String, 
+    required: true, 
+    enum: ['low', 'medium', 'high', 'critical'],
+    default: 'low'
   },
   forAllUsers: { type: Boolean, default: false },
   userIds: [{ type: String }],
-  expiresAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
-  createdBy: { type: String },
+  expiresAt: { type: Date },
   dismissible: { type: Boolean, default: true },
+  createdBy: { type: String },
   actionLink: { type: String },
-  actionText: { type: String }
-}, { 
-  timestamps: { createdAt: true, updatedAt: false },
-  collection: 'notifications' 
+  actionText: { type: String },
+  readBy: [{ type: String }],
+  dismissedBy: [{ type: String }]
+}, {
+  collection: 'notifications'
 });
 
-const UserNotificationStatusSchema = new Schema<UserNotificationStatus>({
-  userId: { type: String, required: true },
-  notificationId: { type: String, required: true },
-  seen: { type: Boolean, default: false },
-  dismissed: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
-}, { 
-  timestamps: { createdAt: true, updatedAt: false },
-  collection: 'userNotificationStatuses' 
-});
-
-// Create compound index for userId + notificationId to ensure uniqueness
-// and fast lookup of user's notification status
-UserNotificationStatusSchema.index({ userId: 1, notificationId: 1 }, { unique: true });
-
-// Create index for querying active notifications
-NotificationSchema.index({ 
-  expiresAt: 1, 
-  forAllUsers: 1, 
-  type: 1, 
-  priority: 1 
-});
+// Create indexes for faster querying
+NotificationSchema.index({ createdAt: -1 });
+NotificationSchema.index({ expiresAt: 1 });
+NotificationSchema.index({ forAllUsers: 1 });
+NotificationSchema.index({ userIds: 1 });
+NotificationSchema.index({ type: 1 });
+NotificationSchema.index({ priority: 1 });
 
 export const NotificationModel = mongoose.model<Notification>('Notification', NotificationSchema);
-export const UserNotificationStatusModel = mongoose.model<UserNotificationStatus>('UserNotificationStatus', UserNotificationStatusSchema);
 
 /**
  * Create a new notification
  */
-export async function createNotification(data: Partial<Notification>): Promise<Notification> {
-  const notification = new NotificationModel(data);
-  await notification.save();
-  return notification;
+export async function createNotification(
+  notification: Partial<Notification>
+): Promise<Notification> {
+  const newNotification = new NotificationModel(notification);
+  await newNotification.save();
+  return newNotification;
 }
 
 /**
- * Get a notification by ID
+ * Get notifications for a specific user
  */
-export async function getNotificationById(id: string): Promise<Notification | null> {
-  return NotificationModel.findById(id);
-}
-
-/**
- * Get all active notifications for a specific user
- * This includes both user-specific notifications and all-user notifications
- * that haven't expired and haven't been dismissed by the user
- */
-export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
+export async function getNotificationsForUser(
+  userId: string
+): Promise<Notification[]> {
   const now = new Date();
   
-  // Find all active notifications that are either for all users or specifically for this user
-  const notifications = await NotificationModel.find({
+  // Get notifications that:
+  // 1. Are for all users OR specifically for this user
+  // 2. Haven't expired
+  // 3. Haven't been dismissed by this user
+  return NotificationModel.find({
     $and: [
-      { $or: [
+      // Condition 1: For all users OR specifically for this user
+      {
+        $or: [
           { forAllUsers: true },
           { userIds: userId }
         ]
       },
-      { $or: [
-          { expiresAt: { $gt: now } },
-          { expiresAt: null }
+      // Condition 2: Haven't expired
+      {
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: null },
+          { expiresAt: { $gt: now } }
         ]
-      }
+      },
+      // Condition 3: Not dismissed by this user
+      { dismissedBy: { $ne: userId } }
     ]
-  }).sort({ priority: -1, createdAt: -1 });
-  
-  if (notifications.length === 0) {
-    return [];
-  }
-  
-  // Get notification IDs to check status
-  const notificationIds = notifications.map(n => n._id.toString());
-  
-  // Find notifications that the user has dismissed
-  const userStatuses = await UserNotificationStatusModel.find({
-    userId,
-    notificationId: { $in: notificationIds },
-    dismissed: true
-  });
-  
-  // Create a set of dismissed notification IDs for faster lookup
-  const dismissedIds = new Set(userStatuses.map(status => status.notificationId.toString()));
-  
-  // Filter out dismissed notifications
-  return notifications.filter(notification => {
-    const id = notification._id.toString();
-    return !dismissedIds.has(id);
-  });
+  }).sort({ createdAt: -1 });
 }
 
 /**
- * Get all notifications for admin panel
+ * Get notifications for admin with pagination and filtering
  */
 export async function getNotificationsForAdmin(
   page: number = 1,
@@ -154,6 +115,7 @@ export async function getNotificationsForAdmin(
 ): Promise<{ notifications: Notification[], total: number }> {
   const query: any = {};
   
+  // Add filters if provided
   if (type) {
     query.type = type;
   }
@@ -162,7 +124,7 @@ export async function getNotificationsForAdmin(
     query.priority = priority;
   }
   
-  // Get total count
+  // Get total count for pagination
   const total = await NotificationModel.countDocuments(query);
   
   // Get paginated notifications
@@ -175,42 +137,109 @@ export async function getNotificationsForAdmin(
 }
 
 /**
- * Mark a notification as seen by a user
+ * Mark a notification as read for a user
  */
-export async function markNotificationSeen(userId: string, notificationId: string): Promise<boolean> {
-  const result = await UserNotificationStatusModel.updateOne(
-    { userId, notificationId },
-    { $set: { seen: true } },
-    { upsert: true }
+export async function markNotificationAsRead(
+  notificationId: string,
+  userId: string
+): Promise<boolean> {
+  const result = await NotificationModel.updateOne(
+    { _id: notificationId },
+    { $addToSet: { readBy: userId } }
   );
   
-  return result.acknowledged;
+  return result.modifiedCount > 0;
 }
 
 /**
- * Mark a notification as dismissed by a user
+ * Dismiss a notification for a user
  */
-export async function dismissNotification(userId: string, notificationId: string): Promise<boolean> {
-  const result = await UserNotificationStatusModel.updateOne(
-    { userId, notificationId },
-    { $set: { dismissed: true } },
-    { upsert: true }
+export async function dismissNotification(
+  notificationId: string,
+  userId: string
+): Promise<boolean> {
+  const result = await NotificationModel.updateOne(
+    { _id: notificationId },
+    { $addToSet: { dismissedBy: userId } }
   );
   
-  return result.acknowledged;
+  return result.modifiedCount > 0;
 }
 
 /**
  * Delete a notification (admin only)
  */
-export async function deleteNotification(notificationId: string): Promise<boolean> {
+export async function deleteNotification(
+  notificationId: string
+): Promise<boolean> {
   const result = await NotificationModel.deleteOne({ _id: notificationId });
+  return result.deletedCount > 0;
+}
+
+/**
+ * Get notification statistics
+ */
+export async function getNotificationStats(): Promise<{
+  total: number;
+  active: number;
+  byType: Record<NotificationType, number>;
+  byPriority: Record<NotificationPriority, number>;
+}> {
+  const now = new Date();
   
-  // If notification was deleted, also clean up user statuses
-  if (result.deletedCount > 0) {
-    await UserNotificationStatusModel.deleteMany({ notificationId });
-    return true;
-  }
+  // Get total count
+  const total = await NotificationModel.countDocuments();
   
-  return false;
+  // Get active count (not expired)
+  const active = await NotificationModel.countDocuments({
+    $or: [
+      { expiresAt: { $exists: false } },
+      { expiresAt: null },
+      { expiresAt: { $gt: now } }
+    ]
+  });
+  
+  // Get counts by type
+  const typePromises = ['system', 'security', 'feature', 'maintenance', 'account'].map(
+    type => NotificationModel.countDocuments({ type })
+  );
+  
+  // Get counts by priority
+  const priorityPromises = ['low', 'medium', 'high', 'critical'].map(
+    priority => NotificationModel.countDocuments({ priority })
+  );
+  
+  // Execute all count queries in parallel
+  const [
+    systemCount,
+    securityCount,
+    featureCount,
+    maintenanceCount,
+    accountCount,
+    lowCount,
+    mediumCount,
+    highCount,
+    criticalCount
+  ] = await Promise.all([
+    ...typePromises,
+    ...priorityPromises
+  ]);
+  
+  return {
+    total,
+    active,
+    byType: {
+      system: systemCount,
+      security: securityCount,
+      feature: featureCount,
+      maintenance: maintenanceCount,
+      account: accountCount
+    },
+    byPriority: {
+      low: lowCount,
+      medium: mediumCount,
+      high: highCount,
+      critical: criticalCount
+    }
+  };
 }

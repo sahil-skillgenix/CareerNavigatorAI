@@ -1,19 +1,20 @@
-import { Router, Request, Response } from 'express';
+import express, { Router, Request, Response } from 'express';
 import { requireAdmin, requireSuperAdmin, paginationMiddleware } from '../middleware/adminMiddleware';
-import multer from 'multer';
-import path from 'path';
+import mongoose from 'mongoose';
+
+// Import admin models
 import { 
-  createNotification, 
   getNotificationsForAdmin, 
-  deleteNotification 
+  createNotification, 
+  deleteNotification, 
+  getNotificationStats 
 } from '../models/NotificationModel';
-import {
-  createImportLog,
+import { 
   getImportLogs,
-  getImportLogById,
+  createImportLog,
   updateImportStatus
 } from '../models/DataImportLogModel';
-import {
+import { 
   getErrorLogs,
   getErrorSummary
 } from '../models/SystemErrorLogModel';
@@ -22,166 +23,62 @@ import {
 } from '../models/SystemUsageStatsModel';
 import {
   getAllFeatureLimits,
+  getFeatureLimit,
   updateFeatureLimit,
+  setUserFeatureOverride,
+  removeUserFeatureOverride,
+  getUserFeatureLimit,
   initializeDefaultFeatureLimits
 } from '../models/FeatureLimitsModel';
 
-const router = Router();
+// Import any other necessary services or models
+// ...
 
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads/'); // Make sure this directory exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+const adminRouter: Router = express.Router();
 
-// Multer file filter - only accept CSV files
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (file.mimetype === 'text/csv') {
-    cb(null, true);
-  } else {
-    cb(new Error('Only CSV files are allowed'));
-  }
-};
+// Apply middleware to all routes
+adminRouter.use(requireAdmin);
 
-const upload = multer({ 
-  storage, 
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
-});
+// Add pagination middleware to routes that need pagination
+adminRouter.use([
+  '/notifications',
+  '/imports',
+  '/errors',
+  '/users'
+], paginationMiddleware);
 
-// Ensure uploads directory exists
-import fs from 'fs';
-if (!fs.existsSync('./uploads')) {
-  fs.mkdirSync('./uploads', { recursive: true });
-}
-
-// Initialize default feature limits on server startup
-initializeDefaultFeatureLimits()
-  .then(() => console.log('Default feature limits initialized'))
-  .catch(err => console.error('Error initializing feature limits:', err));
-
-/**
- * Admin dashboard overview
- * GET /api/admin/dashboard
- */
-router.get('/dashboard', requireAdmin, async (req: Request, res: Response) => {
+// Dashboard summary route
+adminRouter.get('/dashboard/summary', async (req: Request, res: Response) => {
   try {
-    // Get error summary for last 30 days
-    const errorSummary = await getErrorSummary(30);
+    // Get date range - default to last 30 days
+    const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
     
-    // Get usage stats for last 30 days
-    const usageStats = await getAggregatedStats(30);
+    // Get usage stats
+    const usageStats = await getAggregatedStats(days);
     
-    // Return dashboard data
+    // Get notification stats
+    const notificationStats = await getNotificationStats();
+    
+    // Get error summary
+    const errorSummary = await getErrorSummary(days);
+    
+    // Return comprehensive dashboard data
     res.json({
-      errors: errorSummary,
-      usage: usageStats
+      usageStats,
+      notificationStats,
+      errorSummary
     });
-  } catch (err) {
-    console.error('Admin dashboard error:', err);
-    res.status(500).json({ error: 'Failed to load dashboard data' });
+  } catch (error) {
+    console.error('Error getting admin dashboard summary:', error);
+    res.status(500).json({ error: 'Failed to get dashboard summary' });
   }
 });
 
-/**
- * Get all users with pagination and filtering
- * GET /api/admin/users
- */
-router.get('/users', requireAdmin, paginationMiddleware, async (req: Request, res: Response) => {
+// Notification routes
+adminRouter.get('/notifications', async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const search = req.query.search as string;
-    const status = req.query.status as string;
-    const role = req.query.role as string;
-    
-    // Implement user filtering and pagination in your storage layer
-    // This is a placeholder - implement this in your storage provider
-    const { users, total } = { users: [], total: 0 }; // Your implementation here
-    
-    res.json({
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
-  } catch (err) {
-    console.error('Admin users error:', err);
-    res.status(500).json({ error: 'Failed to get users' });
-  }
-});
-
-/**
- * Get a single user by ID
- * GET /api/admin/users/:id
- */
-router.get('/users/:id', requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const userId = req.params.id;
-    
-    // Get user details - implement in your storage layer
-    const user = undefined; // Replace with your implementation
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    // Get user's activity history
-    
-    // Return detailed user information
-    res.json({
-      user,
-      // Include any other user-related data like activity history, feature usage, etc.
-    });
-  } catch (err) {
-    console.error('Admin get user error:', err);
-    res.status(500).json({ error: 'Failed to get user details' });
-  }
-});
-
-/**
- * Update user status or restrictions
- * PATCH /api/admin/users/:id
- */
-router.patch('/users/:id', requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const userId = req.params.id;
-    const { status, role, restrictions } = req.body;
-    
-    // Superadmin check for role changes
-    if (role && req.user.role !== 'superadmin') {
-      return res.status(403).json({ error: 'Only superadmins can change user roles' });
-    }
-    
-    // Update user in database - implement in your storage layer
-    const updatedUser = undefined; // Replace with your implementation
-    
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    res.json({ user: updatedUser });
-  } catch (err) {
-    console.error('Admin update user error:', err);
-    res.status(500).json({ error: 'Failed to update user' });
-  }
-});
-
-/**
- * Get all notifications with pagination and filtering
- * GET /api/admin/notifications
- */
-router.get('/notifications', requireAdmin, paginationMiddleware, async (req: Request, res: Response) => {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const page = parseInt(req.query.page as string || '1', 10);
+    const limit = parseInt(req.query.limit as string || '20', 10);
     const type = req.query.type as string;
     const priority = req.query.priority as string;
     
@@ -198,196 +95,175 @@ router.get('/notifications', requireAdmin, paginationMiddleware, async (req: Req
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        pages: Math.ceil(total / limit)
       }
     });
-  } catch (err) {
-    console.error('Admin notifications error:', err);
+  } catch (error) {
+    console.error('Error getting notifications:', error);
     res.status(500).json({ error: 'Failed to get notifications' });
   }
 });
 
-/**
- * Create a new notification
- * POST /api/admin/notifications
- */
-router.post('/notifications', requireAdmin, async (req: Request, res: Response) => {
+adminRouter.post('/notifications', async (req: Request, res: Response) => {
   try {
-    const {
-      title,
-      message,
-      type,
-      priority,
-      forAllUsers,
-      userIds,
-      expiresAt,
-      dismissible,
-      actionLink,
-      actionText
-    } = req.body;
+    const { title, message, type, priority, forAllUsers, userIds, expiresAt, dismissible, actionLink, actionText } = req.body;
     
     // Validate required fields
-    if (!title || !message || !type || !priority) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!title || !message || !type) {
+      return res.status(400).json({ error: 'Title, message, and type are required' });
     }
     
-    // Create notification
+    // Create notification with admin info
     const notification = await createNotification({
       title,
       message,
       type,
-      priority,
-      forAllUsers: !!forAllUsers,
+      priority: priority || 'low',
+      forAllUsers: Boolean(forAllUsers),
       userIds: userIds || [],
       expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-      dismissible: dismissible !== false,
+      dismissible: dismissible !== false, // default to true
+      createdBy: req.user?.id || 'unknown',
       actionLink,
       actionText,
-      createdBy: req.user?.id
+      readBy: [],
+      dismissedBy: []
     });
     
-    res.status(201).json({ notification });
-  } catch (err) {
-    console.error('Admin create notification error:', err);
+    res.status(201).json(notification);
+  } catch (error) {
+    console.error('Error creating notification:', error);
     res.status(500).json({ error: 'Failed to create notification' });
   }
 });
 
-/**
- * Delete a notification
- * DELETE /api/admin/notifications/:id
- */
-router.delete('/notifications/:id', requireAdmin, async (req: Request, res: Response) => {
+adminRouter.delete('/notifications/:id', async (req: Request, res: Response) => {
   try {
-    const notificationId = req.params.id;
+    const { id } = req.params;
     
-    const deleted = await deleteNotification(notificationId);
-    
-    if (!deleted) {
-      return res.status(404).json({ error: 'Notification not found' });
+    // Validate ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid notification ID' });
     }
     
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Admin delete notification error:', err);
+    const success = await deleteNotification(id);
+    
+    if (success) {
+      res.status(200).json({ message: 'Notification deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Notification not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting notification:', error);
     res.status(500).json({ error: 'Failed to delete notification' });
   }
 });
 
-/**
- * Import data from CSV
- * POST /api/admin/import/:type
- */
-router.post('/import/:type', requireSuperAdmin, upload.single('file'), async (req: Request, res: Response) => {
+// Data import routes
+adminRouter.get('/imports', async (req: Request, res: Response) => {
   try {
-    const { type } = req.params;
-    const file = req.file;
-    
-    if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    
-    // Validate import type
-    const validTypes = ['skills', 'roles', 'industries', 'learningResources'];
-    if (!validTypes.includes(type)) {
-      return res.status(400).json({ error: 'Invalid import type' });
-    }
-    
-    // Create import log
-    const importLog = await createImportLog(
-      type as any, 
-      file.filename, 
-      req.user?.id as string
-    );
-    
-    // Start import process asynchronously
-    // This would typically be done in a background job, 
-    // but for simplicity we'll update the status immediately
-    // Your actual implementation would parse the CSV and import the data
-    
-    // Update import log with success status (this is a placeholder)
-    await updateImportStatus(importLog.id, 'completed', {
-      processedRecords: 100, // placeholder
-      totalRecords: 100, // placeholder
-      notes: 'Import completed successfully'
-    });
-    
-    res.status(202).json({ 
-      importId: importLog.id, 
-      message: 'Import started' 
-    });
-  } catch (err) {
-    console.error('Admin import error:', err);
-    res.status(500).json({ error: 'Failed to process import' });
-  }
-});
-
-/**
- * Get all import logs with pagination and filtering
- * GET /api/admin/import
- */
-router.get('/import', requireAdmin, paginationMiddleware, async (req: Request, res: Response) => {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const type = req.query.type as any; // Cast to ImportType
-    const status = req.query.status as any; // Cast to ImportStatus
+    const page = parseInt(req.query.page as string || '1', 10);
+    const limit = parseInt(req.query.limit as string || '20', 10);
+    const importType = req.query.type as any; // Type to filter by
+    const status = req.query.status as any; // Status to filter by
     
     const { logs, total } = await getImportLogs(
       page,
       limit,
-      type,
+      importType,
       status
     );
     
     res.json({
-      logs,
+      imports: logs,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        pages: Math.ceil(total / limit)
       }
     });
-  } catch (err) {
-    console.error('Admin import logs error:', err);
+  } catch (error) {
+    console.error('Error getting import logs:', error);
     res.status(500).json({ error: 'Failed to get import logs' });
   }
 });
 
-/**
- * Get a single import log by ID
- * GET /api/admin/import/:id
- */
-router.get('/import/:id', requireAdmin, async (req: Request, res: Response) => {
+adminRouter.post('/imports', async (req: Request, res: Response) => {
   try {
-    const importId = req.params.id;
+    const { importType, filename } = req.body;
     
-    const importLog = await getImportLogById(importId);
-    
-    if (!importLog) {
-      return res.status(404).json({ error: 'Import log not found' });
+    // Validate required fields
+    if (!importType || !filename) {
+      return res.status(400).json({ error: 'Import type and filename are required' });
     }
     
-    res.json({ importLog });
-  } catch (err) {
-    console.error('Admin get import log error:', err);
-    res.status(500).json({ error: 'Failed to get import log' });
+    // Create import log
+    const importLog = await createImportLog(
+      importType,
+      filename,
+      req.user?.id || 'unknown'
+    );
+    
+    res.status(201).json(importLog);
+  } catch (error) {
+    console.error('Error creating import log:', error);
+    res.status(500).json({ error: 'Failed to create import log' });
   }
 });
 
-/**
- * Get error logs with pagination and filtering
- * GET /api/admin/errors
- */
-router.get('/errors', requireAdmin, paginationMiddleware, async (req: Request, res: Response) => {
+adminRouter.put('/imports/:id/status', async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const level = req.query.level as any; // Cast to ErrorLevel
+    const { id } = req.params;
+    const { status, processedRecords, totalRecords, errors, notes } = req.body;
+    
+    // Validate required fields
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+    
+    // Update import status
+    const importLog = await updateImportStatus(
+      id,
+      status,
+      {
+        processedRecords,
+        totalRecords,
+        errors,
+        notes
+      }
+    );
+    
+    if (importLog) {
+      res.json(importLog);
+    } else {
+      res.status(404).json({ error: 'Import log not found' });
+    }
+  } catch (error) {
+    console.error('Error updating import status:', error);
+    res.status(500).json({ error: 'Failed to update import status' });
+  }
+});
+
+// Error logs routes
+adminRouter.get('/errors', async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string || '1', 10);
+    const limit = parseInt(req.query.limit as string || '50', 10);
+    const level = req.query.level as any;
     const userId = req.query.userId as string;
-    const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
-    const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+    
+    // Parse date ranges if provided
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+    
+    if (req.query.startDate) {
+      startDate = new Date(req.query.startDate as string);
+    }
+    
+    if (req.query.endDate) {
+      endDate = new Date(req.query.endDate as string);
+    }
     
     const { logs, total } = await getErrorLogs(
       page,
@@ -399,107 +275,160 @@ router.get('/errors', requireAdmin, paginationMiddleware, async (req: Request, r
     );
     
     res.json({
-      logs,
+      errors: logs,
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
+        pages: Math.ceil(total / limit)
       }
     });
-  } catch (err) {
-    console.error('Admin error logs error:', err);
+  } catch (error) {
+    console.error('Error getting error logs:', error);
     res.status(500).json({ error: 'Failed to get error logs' });
   }
 });
 
-/**
- * Get feature limits
- * GET /api/admin/features
- */
-router.get('/features', requireAdmin, async (req: Request, res: Response) => {
+adminRouter.get('/errors/summary', async (req: Request, res: Response) => {
   try {
-    const featureLimits = await getAllFeatureLimits();
-    
-    res.json({ features: featureLimits });
-  } catch (err) {
-    console.error('Admin features error:', err);
+    const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+    const summary = await getErrorSummary(days);
+    res.json(summary);
+  } catch (error) {
+    console.error('Error getting error summary:', error);
+    res.status(500).json({ error: 'Failed to get error summary' });
+  }
+});
+
+// Feature limits routes
+adminRouter.get('/feature-limits', async (req: Request, res: Response) => {
+  try {
+    const limits = await getAllFeatureLimits();
+    res.json(limits);
+  } catch (error) {
+    console.error('Error getting feature limits:', error);
     res.status(500).json({ error: 'Failed to get feature limits' });
   }
 });
 
-/**
- * Update feature limit
- * PATCH /api/admin/features/:name
- */
-router.patch('/features/:name', requireSuperAdmin, async (req: Request, res: Response) => {
+adminRouter.get('/feature-limits/:name', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
-    const updates = req.body;
+    const limit = await getFeatureLimit(name);
     
-    // Validate required fields
-    if (!name || Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'Invalid request' });
+    if (limit) {
+      res.json(limit);
+    } else {
+      res.status(404).json({ error: 'Feature limit not found' });
     }
+  } catch (error) {
+    console.error('Error getting feature limit:', error);
+    res.status(500).json({ error: 'Failed to get feature limit' });
+  }
+});
+
+adminRouter.put('/feature-limits/:name', requireSuperAdmin, async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const { description, defaultLimit, defaultFrequency, userTiers, overridable, active } = req.body;
     
     // Update feature limit
-    const updatedFeature = await updateFeatureLimit(name, updates);
+    const limit = await updateFeatureLimit(name, {
+      description,
+      defaultLimit,
+      defaultFrequency,
+      userTiers,
+      overridable,
+      active
+    });
     
-    if (!updatedFeature) {
-      return res.status(404).json({ error: 'Feature limit not found' });
+    if (limit) {
+      res.json(limit);
+    } else {
+      res.status(404).json({ error: 'Feature limit not found' });
     }
-    
-    res.json({ feature: updatedFeature });
-  } catch (err) {
-    console.error('Admin update feature error:', err);
+  } catch (error) {
+    console.error('Error updating feature limit:', error);
     res.status(500).json({ error: 'Failed to update feature limit' });
   }
 });
 
-/**
- * Get activity history for a specific user
- * GET /api/admin/activity/:userId
- */
-router.get('/activity/:userId', requireAdmin, paginationMiddleware, async (req: Request, res: Response) => {
+adminRouter.post('/feature-limits/initialize', requireSuperAdmin, async (req: Request, res: Response) => {
+  try {
+    await initializeDefaultFeatureLimits();
+    const limits = await getAllFeatureLimits();
+    res.json({ 
+      message: 'Default feature limits initialized successfully',
+      limits 
+    });
+  } catch (error) {
+    console.error('Error initializing feature limits:', error);
+    res.status(500).json({ error: 'Failed to initialize feature limits' });
+  }
+});
+
+// User feature overrides routes
+adminRouter.post('/users/:userId/feature-overrides', async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const { featureName, limit, reason, expiresAt } = req.body;
     
-    // Get user activity history - implement in your storage layer
-    const { activities, total } = { activities: [], total: 0 }; // Your implementation here
+    // Validate required fields
+    if (!featureName || limit === undefined || !reason) {
+      return res.status(400).json({ error: 'Feature name, limit, and reason are required' });
+    }
     
-    res.json({
-      activities,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
-  } catch (err) {
-    console.error('Admin user activity error:', err);
-    res.status(500).json({ error: 'Failed to get user activity' });
+    // Create or update override
+    const override = await setUserFeatureOverride(
+      userId,
+      featureName,
+      limit,
+      reason,
+      req.user?.id || 'unknown',
+      expiresAt ? new Date(expiresAt) : undefined
+    );
+    
+    res.status(201).json(override);
+  } catch (error) {
+    console.error('Error setting user feature override:', error);
+    res.status(500).json({ error: 'Failed to set user feature override' });
   }
 });
 
-/**
- * Get system stats
- * GET /api/admin/stats
- */
-router.get('/stats', requireAdmin, async (req: Request, res: Response) => {
+adminRouter.delete('/users/:userId/feature-overrides/:featureName', async (req: Request, res: Response) => {
   try {
-    const days = parseInt(req.query.days as string) || 30;
+    const { userId, featureName } = req.params;
     
-    // Get usage statistics
-    const stats = await getAggregatedStats(days);
+    const success = await removeUserFeatureOverride(userId, featureName);
     
-    res.json({ stats });
-  } catch (err) {
-    console.error('Admin stats error:', err);
-    res.status(500).json({ error: 'Failed to get system statistics' });
+    if (success) {
+      res.status(200).json({ message: 'Feature override removed successfully' });
+    } else {
+      res.status(404).json({ error: 'Feature override not found' });
+    }
+  } catch (error) {
+    console.error('Error removing user feature override:', error);
+    res.status(500).json({ error: 'Failed to remove user feature override' });
   }
 });
 
-export default router;
+adminRouter.get('/users/:userId/feature-limits/:featureName', async (req: Request, res: Response) => {
+  try {
+    const { userId, featureName } = req.params;
+    const userTier = req.query.tier as any || 'free';
+    
+    const limit = await getUserFeatureLimit(userId, featureName, userTier);
+    
+    res.json({ 
+      userId,
+      featureName,
+      userTier,
+      limit
+    });
+  } catch (error) {
+    console.error('Error getting user feature limit:', error);
+    res.status(500).json({ error: 'Failed to get user feature limit' });
+  }
+});
+
+export default adminRouter;

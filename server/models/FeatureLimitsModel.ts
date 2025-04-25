@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface FeatureLimits extends Document {
+export interface FeatureLimits {
   name: string;
   description: string;
   defaultLimit: number;
@@ -17,7 +17,7 @@ export interface FeatureLimits extends Document {
   updatedAt: Date;
 }
 
-export interface UserFeatureOverride extends Document {
+export interface UserFeatureOverride {
   userId: string;
   featureName: string;
   limit: number;
@@ -25,6 +25,7 @@ export interface UserFeatureOverride extends Document {
   expiresAt?: Date;
   createdAt: Date;
   createdBy: string;
+  _id?: any;
 }
 
 const FeatureLimitsSchema = new Schema<FeatureLimits>({
