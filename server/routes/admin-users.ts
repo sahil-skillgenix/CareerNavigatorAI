@@ -22,7 +22,7 @@ router.get('/users', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'view_all_users',
+      action: 'view_all_users',
       details: 'Admin viewed all users',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -56,7 +56,7 @@ router.get('/users/:id', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'view_user_details',
+      action: 'view_user_details',
       details: `Admin viewed user details for ${user.email}`,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -109,7 +109,7 @@ router.patch('/users/:id/status', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'update_user_status',
+      action: 'update_user_status',
       details: `Admin updated user status for ${updatedUser.email} from ${userBefore.status} to ${status}`,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -160,7 +160,7 @@ router.delete('/users/:id', isSuperAdmin, async (req: Request, res: Response) =>
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'delete_user',
+      action: 'account_deletion',
       details: `Admin deleted user ${userBefore.email}`,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,

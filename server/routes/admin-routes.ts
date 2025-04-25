@@ -27,7 +27,7 @@ router.get('/user-management/users', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'view_users',
+      action: 'view_all_users',
       details: 'Admin viewed user management',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -79,7 +79,7 @@ router.get('/errors', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'view_system_errors',
+      action: 'view_error_logs',
       details: 'Admin viewed system errors',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -133,7 +133,7 @@ router.get('/feature-limits', async (req: Request, res: Response) => {
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'view_feature_limits',
+      action: 'view_feature_limits',
       details: 'Admin viewed feature limits',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -196,7 +196,7 @@ router.post('/feature-limits', isSuperAdmin, async (req: Request, res: Response)
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
       category: 'ADMIN',
-      activityType: 'update_feature_limits',
+      action: 'update_feature_limits',
       details: 'Super admin updated feature limits',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -374,7 +374,8 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
     // Log activity
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
-      activityType: 'view_dashboard_summary',
+      category: 'ADMIN',
+      action: 'view_dashboard_summary',
       details: 'Admin viewed dashboard summary',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
