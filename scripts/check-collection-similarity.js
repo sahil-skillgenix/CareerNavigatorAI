@@ -3,159 +3,181 @@
  * and have less than 49% similarity with each other.
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-// Get current file directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// MongoDB URI - get from environment
+const MONGODB_URI = process.env.DATABASE_URL || process.env.MONGODB_URI;
 
-// Function to check similarity between strings
+if (!MONGODB_URI) {
+  console.error('ERROR: No MongoDB URI provided. Set DATABASE_URL environment variable.');
+  process.exit(1);
+}
+
+// Calculate Levenshtein distance between two strings
 function calculateSimilarity(str1, str2) {
-  // Normalize strings for comparison
-  const normalizedStr1 = str1.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const normalizedStr2 = str2.toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Convert both strings to lowercase 
+  const a = str1.toLowerCase();
+  const b = str2.toLowerCase();
   
-  // Simple similarity measure - number of matching characters divided by max length
-  let matches = 0;
-  const maxLength = Math.max(normalizedStr1.length, normalizedStr2.length);
+  // Create matrix
+  const matrix = Array(a.length + 1).fill().map(() => Array(b.length + 1).fill(0));
   
-  for (let i = 0; i < Math.min(normalizedStr1.length, normalizedStr2.length); i++) {
-    if (normalizedStr1[i] === normalizedStr2[i]) {
-      matches++;
+  // Fill first row and column with incrementing values
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+  
+  // Fill the matrix
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1, // deletion
+        matrix[i][j - 1] + 1, // insertion
+        matrix[i - 1][j - 1] + cost // substitution
+      );
     }
   }
   
-  return matches / maxLength;
+  // Calculate max possible distance and current distance
+  const maxDistance = Math.max(a.length, b.length);
+  const distance = matrix[a.length][b.length];
+  
+  // Calculate similarity percentage (0-100%)
+  const similarity = ((maxDistance - distance) / maxDistance) * 100;
+  
+  return similarity;
 }
 
-// Function to extract collection names from model files
+// Extract collection names from database
 async function extractCollectionNames() {
-  // Path to models directory
-  const modelsDir = path.join(__dirname, '../server/db/models');
+  const client = new MongoClient(MONGODB_URI);
   
   try {
-    // Get all model files
-    const files = await fs.readdir(modelsDir);
-    console.log(`Found ${files.length} model files`);
+    await client.connect();
+    console.log('Connected to MongoDB');
     
-    const collectionNames = [];
+    const db = client.db();
+    const collections = await db.listCollections().toArray();
     
-    for (const file of files) {
-      if (!file.endsWith('.ts')) continue;
-      
-      const filePath = path.join(modelsDir, file);
-      const content = await fs.readFile(filePath, 'utf8');
-      
-      // Extract collection name using different regex patterns
-      
-      // Pattern 1: mongoose.model(X, Y, "collection_name")
-      const collectionMatch1 = content.match(/mongoose\.model\([^,]+,[^,]+,\s*["']([^"']+)["']/);
-      
-      // Pattern 2: mongoose.model('collection_name', schema)
-      const collectionMatch2 = content.match(/mongoose\.model\(["']([^"']+)["'],\s*\w+Schema\)/);
-      
-      // Pattern 3: mongoose.models.Model || mongoose.model
-      const modelRefMatch = content.match(/mongoose\.models\.(\w+)\s*\|\|\s*mongoose\.model/);
-      
-      if (collectionMatch1) {
-        collectionNames.push({
-          file,
-          collectionName: collectionMatch1[1]
-        });
-      } else if (collectionMatch2) {
-        // If the model uses the name as collection, add 'skillgenix_' prefix for consistency check
-        const name = collectionMatch2[1];
-        collectionNames.push({
-          file,
-          collectionName: name.startsWith('skillgenix_') ? name : `skillgenix_${name.toLowerCase()}`
-        });
-      } else if (modelRefMatch) {
-        // For models that use the mongoose.models.X syntax, infer the collection name
-        const modelName = modelRefMatch[1];
-        collectionNames.push({
-          file,
-          collectionName: `skillgenix_${modelName.toLowerCase()}`,
-          inferred: true
-        });
-      }
-    }
+    // Get only non-system collections
+    const collectionNames = collections
+      .map(c => c.name)
+      .filter(name => !name.startsWith('system.'));
     
     return collectionNames;
   } catch (error) {
     console.error('Error extracting collection names:', error);
     return [];
+  } finally {
+    await client.close();
   }
 }
 
-// Function to check collection name similarity
+// Check collection name similarity
 async function checkCollectionNameSimilarity() {
   try {
-    // Extract collection names
-    const collections = await extractCollectionNames();
-    console.log(`Extracted ${collections.length} collection names`);
+    console.log('Checking collection name similarity...');
+    const collectionNames = await extractCollectionNames();
     
-    if (collections.length === 0) {
-      console.log('No collection names found to check');
+    if (collectionNames.length === 0) {
+      console.log('No collections found in the database.');
       return;
     }
     
-    // Check for similarity issues
-    const similarityIssues = [];
+    console.log(`Found ${collectionNames.length} collections`);
     
-    for (let i = 0; i < collections.length; i++) {
-      const collection1 = collections[i];
-      
-      // Check for non-standardized prefix
-      if (!collection1.collectionName.startsWith('skillgenix_')) {
-        console.log(`⚠️ Collection ${collection1.collectionName} in ${collection1.file} does not use the standardized 'skillgenix_' prefix`);
-      }
-      
-      // Check for uppercase
-      if (collection1.collectionName !== collection1.collectionName.toLowerCase()) {
-        console.log(`⚠️ Collection ${collection1.collectionName} in ${collection1.file} contains uppercase characters`);
-      }
-      
-      // Check for similarity with other collections
-      for (let j = i + 1; j < collections.length; j++) {
-        const collection2 = collections[j];
+    // Store pairs with similarity >= 49%
+    const similarPairs = [];
+    
+    // Check each pair of collection names
+    for (let i = 0; i < collectionNames.length; i++) {
+      for (let j = i + 1; j < collectionNames.length; j++) {
+        const name1 = collectionNames[i];
+        const name2 = collectionNames[j];
         
-        const similarity = calculateSimilarity(collection1.collectionName, collection2.collectionName);
+        const similarity = calculateSimilarity(name1, name2);
         
-        if (similarity > 0.49) {
-          similarityIssues.push({
-            collection1: collection1.collectionName,
-            file1: collection1.file,
-            collection2: collection2.collectionName,
-            file2: collection2.file,
-            similarity: Math.round(similarity * 100)
+        if (similarity >= 49) {
+          similarPairs.push({
+            name1,
+            name2,
+            similarity: similarity.toFixed(2)
           });
         }
       }
     }
     
-    // Report similarity issues
-    if (similarityIssues.length > 0) {
-      console.log('\n⚠️ Found collection name similarity issues:');
-      
-      for (const issue of similarityIssues) {
-        console.log(`- ${issue.collection1} (${issue.file1}) and ${issue.collection2} (${issue.file2}) are ${issue.similarity}% similar`);
-      }
-    } else {
-      console.log('\n✅ No collection name similarity issues found');
-    }
+    // Sort similar pairs by similarity (highest first)
+    similarPairs.sort((a, b) => b.similarity - a.similarity);
     
-    // Print all collection names for reference
-    console.log('\nCurrent collection names:');
-    collections.forEach(c => {
-      console.log(`- ${c.collectionName} (${c.file})`);
-    });
+    // Print results
+    console.log('\n=== COLLECTION NAME SIMILARITY ANALYSIS ===\n');
+    
+    if (similarPairs.length === 0) {
+      console.log('No collection names with ≥49% similarity found. Good job!');
+    } else {
+      console.log(`Found ${similarPairs.length} collection name pairs with ≥49% similarity:`);
+      
+      similarPairs.forEach(pair => {
+        console.log(`- ${pair.name1} and ${pair.name2} = ${pair.similarity}% similar`);
+      });
+      
+      console.log('\n=== RECOMMENDATIONS ===');
+      console.log('Consider renaming these collections to ensure distinct names:');
+      
+      const recommendedPrefixes = ['userx_', 'rolex_', 'skillx_', 'indx_', 'systemx_', 'careerx_', 'apix_', 'learnx_'];
+      
+      similarPairs.forEach(pair => {
+        console.log(`\n${pair.name1} and ${pair.name2} (${pair.similarity}% similar):`);
+        
+        // Suggest renaming based on collection content/purpose
+        for (const name of [pair.name1, pair.name2]) {
+          let suggestedPrefix = '';
+          
+          if (name.includes('user') || name.includes('profile')) {
+            suggestedPrefix = 'userx_';
+          } else if (name.includes('role')) {
+            suggestedPrefix = 'rolex_';
+          } else if (name.includes('skill')) {
+            suggestedPrefix = 'skillx_';
+          } else if (name.includes('industr')) {
+            suggestedPrefix = 'indx_';
+          } else if (name.includes('system') || name.includes('error') || name.includes('limit')) {
+            suggestedPrefix = 'systemx_';
+          } else if (name.includes('career') || name.includes('pathway')) {
+            suggestedPrefix = 'careerx_';
+          } else if (name.includes('api') || name.includes('request')) {
+            suggestedPrefix = 'apix_';
+          } else if (name.includes('learn') || name.includes('resource')) {
+            suggestedPrefix = 'learnx_';
+          }
+          
+          if (suggestedPrefix && !name.startsWith(suggestedPrefix)) {
+            const baseName = name.replace(/^(userx_|rolex_|skillx_|indx_|systemx_|careerx_|apix_|learnx_|skillgenix_)/, '');
+            console.log(`  - Rename ${name} to ${suggestedPrefix}${baseName}`);
+          }
+        }
+      });
+      
+      // Create general naming guidelines
+      console.log('\n=== NAMING GUIDELINES ===');
+      console.log('To prevent similar collection names, follow these rules:');
+      console.log('1. Use domain-specific prefixes for all collections:');
+      recommendedPrefixes.forEach(prefix => {
+        console.log(`   - ${prefix} for ${prefix.replace('x_', '')} related collections`);
+      });
+      console.log('2. Use descriptive, specific names for the collection purpose');
+      console.log('3. Avoid pluralization variations (e.g., "logs" vs "log")');
+      console.log('4. Use consistent casing (all lowercase recommended)');
+      console.log('5. Run this similarity check before creating new collections');
+    }
     
   } catch (error) {
     console.error('Error checking collection name similarity:', error);
   }
 }
 
-// Run the check
+// Run the script
 checkCollectionNameSimilarity();
