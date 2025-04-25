@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
-import { UserActivityModel } from '../db/models';
-import SystemErrorLogModel, { type SystemErrorLog } from '../models/SystemErrorLogModel';
-import APIRequestLogModel, { type APIRequestLog } from '../models/APIRequestLogModel';
+import { UserActivityModel, UserActivityLogModel, SystemErrorLogModel } from '../db/models';
 
 // Define UserActivity type
 export interface UserActivity {
@@ -55,6 +53,8 @@ export interface UserActivityLog {
   metadata?: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
+  sessionId?: string;
+  category?: 'ADMIN' | 'USER' | 'AUTH' | 'API' | 'FEATURE' | 'SYSTEM';
 }
 
 /**
@@ -72,18 +72,22 @@ export async function logUserActivityWithParams(params: UserActivityLog) {
       targetUserId,
       metadata,
       ipAddress,
-      userAgent
+      userAgent,
+      sessionId,
+      category = 'USER' // Default category
     } = params;
 
-    // Create the activity log with proper field mapping
-    const activityLog = new UserActivityModel({
-      userId: userId,
-      activityType: action, // Map action to activityType for compatibility
-      details: typeof details === 'string' ? { message: details } : details || {}, // Convert string to object if needed
+    // Create the activity log with proper field mapping for new model
+    const activityLog = new UserActivityLogModel({
+      userId,
+      category,
+      activityType: action, // Map action to activityType
+      details: typeof details === 'string' ? details : JSON.stringify(details || {}),
       timestamp: new Date(),
-      ipAddress: ipAddress,
-      userAgent: userAgent,
-      ...(metadata && { metadata }) // Add metadata if provided
+      ipAddress,
+      userAgent,
+      sessionId,
+      metadata: metadata || {}
     });
 
     // Save and return the log
@@ -567,6 +571,9 @@ export async function getAPIRequestLogs(params: APIRequestLogQueryParams = {}) {
 
     // Calculate skip value for pagination
     const skip = (Math.max(1, page) - 1) * limit;
+    
+    // Using mongoose.model directly since we may not have imported the model
+    const APIRequestLogModel = mongoose.model('apiRequestLog');
     
     // Get total count
     const total = await APIRequestLogModel.countDocuments(filter);
