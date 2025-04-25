@@ -119,6 +119,21 @@ export const SECURITY_QUESTIONS = [
   "What was your first job?"
 ] as const;
 
+// User roles enum
+export const USER_ROLES = [
+  "user",
+  "admin",
+  "superadmin"
+] as const;
+
+// User status enum
+export const USER_STATUS = [
+  "active",
+  "restricted",
+  "suspended",
+  "deleted"
+] as const;
+
 // User schema
 export const userSchema = z.object({
   id: z.string().optional(),
@@ -143,7 +158,18 @@ export const userSchema = z.object({
         message: "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character",
       }
     ),
+  role: z.enum(USER_ROLES).default("user"),
+  status: z.enum(USER_STATUS).default("active"),
   createdAt: z.string().optional(),
+  lastLoginAt: z.string().optional(),
+  // Restriction settings
+  restrictions: z.object({
+    careerPathwayLimit: z.number().default(10),
+    organizationPathwayLimit: z.number().default(5),
+    learningResourcesLimit: z.number().default(20),
+    reasonForRestriction: z.string().optional(),
+    restrictedUntil: z.string().optional()
+  }).optional(),
   // Security question for password recovery
   securityQuestion: z.enum(SECURITY_QUESTIONS).optional(),
   securityAnswer: z.string().optional(),
@@ -434,6 +460,121 @@ export type InsertCareerAnalysis = z.infer<typeof insertCareerAnalysisSchema>;
 export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
 export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
 
+// Notification schema
+export const NOTIFICATION_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+  "critical"
+] as const;
+
+export const NOTIFICATION_TYPES = [
+  "system",
+  "feature",
+  "maintenance",
+  "account",
+  "security"
+] as const;
+
+export const notificationSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  message: z.string().min(1, "Message is required"),
+  priority: z.enum(NOTIFICATION_PRIORITIES).default("medium"),
+  type: z.enum(NOTIFICATION_TYPES).default("system"),
+  forAllUsers: z.boolean().default(false),
+  userIds: z.array(z.string()).optional(), // If not for all users, specific user IDs
+  expiresAt: z.string().optional(), // ISO date string when notification expires
+  createdAt: z.string().optional(),
+  createdBy: z.string().optional(), // Admin user ID
+  dismissible: z.boolean().default(true), // Whether users can dismiss the notification
+  actionLink: z.string().optional(), // Optional link for CTA
+  actionText: z.string().optional(), // Text for the action button
+});
+
+// User notification status schema (tracks which users have seen/dismissed notifications)
+export const userNotificationStatusSchema = z.object({
+  id: z.string().optional(),
+  userId: z.string(),
+  notificationId: z.string(),
+  seen: z.boolean().default(false),
+  dismissed: z.boolean().default(false),
+  seenAt: z.string().optional(),
+  dismissedAt: z.string().optional(),
+});
+
+// Data import log schema
+export const DATA_IMPORT_TYPES = [
+  "skills",
+  "roles", 
+  "industries",
+  "learningResources"
+] as const;
+
+export const DATA_IMPORT_STATUS = [
+  "pending",
+  "in_progress",
+  "completed",
+  "failed"
+] as const;
+
+export const dataImportLogSchema = z.object({
+  id: z.string().optional(),
+  importType: z.enum(DATA_IMPORT_TYPES),
+  filename: z.string(),
+  status: z.enum(DATA_IMPORT_STATUS).default("pending"),
+  recordsProcessed: z.number().default(0),
+  recordsSucceeded: z.number().default(0),
+  recordsFailed: z.number().default(0),
+  errors: z.array(z.string()).optional(),
+  importedBy: z.string(), // Admin user ID
+  startedAt: z.string().optional(),
+  completedAt: z.string().optional(),
+  createdAt: z.string().optional(),
+});
+
+// System usage stats schema
+export const systemUsageStatsSchema = z.object({
+  id: z.string().optional(),
+  date: z.string(), // ISO date string YYYY-MM-DD
+  registeredUsers: z.number().default(0),
+  activeUsers: z.number().default(0),
+  careerAnalysisCount: z.number().default(0),
+  learningResourcesAccessed: z.number().default(0),
+  loginCount: z.number().default(0),
+  apiRequestCount: z.number().default(0),
+  avgResponseTime: z.number().optional(),
+  errorCount: z.number().default(0),
+});
+
+// Feature usage limits schema (admin configurable)
+export const featureLimitsSchema = z.object({
+  id: z.string().optional(),
+  featureName: z.string(),
+  defaultLimit: z.number(),
+  description: z.string(),
+  updatedAt: z.string().optional(),
+  updatedBy: z.string().optional(), // Admin user ID
+});
+
+// System error log schema
+export const SYSTEM_ERROR_LEVELS = [
+  "info",
+  "warning",
+  "error",
+  "critical"
+] as const;
+
+export const systemErrorLogSchema = z.object({
+  id: z.string().optional(),
+  level: z.enum(SYSTEM_ERROR_LEVELS),
+  message: z.string(),
+  stack: z.string().optional(),
+  userId: z.string().optional(), // User ID if error occurred during user action
+  request: z.record(z.any()).optional(), // Request data that caused the error
+  timestamp: z.string().optional(),
+});
+
 // Types for handling string dates in MongoDB storage responses
 export type CareerAnalysisWithStringDates = CareerAnalysis & {
   createdAt?: string;
@@ -447,3 +588,26 @@ export type UserBadgeWithStringDates = UserBadge & {
 export type UserProgressWithStringDates = UserProgress & {
   updatedAt?: string;
 };
+
+// Admin schemas types
+export type Notification = z.infer<typeof notificationSchema>;
+export type UserNotificationStatus = z.infer<typeof userNotificationStatusSchema>;
+export type DataImportLog = z.infer<typeof dataImportLogSchema>;
+export type SystemUsageStats = z.infer<typeof systemUsageStatsSchema>;
+export type FeatureLimits = z.infer<typeof featureLimitsSchema>;
+export type SystemErrorLog = z.infer<typeof systemErrorLogSchema>;
+
+// Insert types for admin schemas
+export const insertNotificationSchema = notificationSchema.omit({ id: true, createdAt: true });
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export const insertDataImportLogSchema = dataImportLogSchema.omit({ 
+  id: true, 
+  createdAt: true,
+  completedAt: true,
+  recordsProcessed: true,
+  recordsSucceeded: true,
+  recordsFailed: true,
+  errors: true
+});
+export type InsertDataImportLog = z.infer<typeof insertDataImportLogSchema>;
