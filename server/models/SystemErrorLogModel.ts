@@ -1,71 +1,65 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-export interface SystemErrorLog {
-  _id?: string;
-  message: string;
-  stack?: string;
-  category: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  timestamp: Date;
-  resolved: boolean;
-  resolvedAt?: Date;
-  resolvedBy?: string;
-  metadata?: Record<string, any>;
-}
-
-const SystemErrorLogSchema = new Schema({
-  message: { 
-    type: String, 
-    required: true 
-  },
-  stack: { 
-    type: String
-  },
-  category: { 
-    type: String, 
-    required: true 
-  },
-  severity: { 
-    type: String, 
-    enum: ['critical', 'high', 'medium', 'low'], 
-    default: 'medium', 
-    required: true 
-  },
-  timestamp: { 
-    type: Date, 
-    default: Date.now, 
-    required: true 
-  },
-  resolved: { 
-    type: Boolean, 
-    default: false, 
-    required: true 
-  },
-  resolvedAt: { 
-    type: Date 
-  },
-  resolvedBy: { 
+// System error log schema definition
+const systemErrorLogSchema = new mongoose.Schema({
+  level: {
     type: String,
-    ref: 'User'
+    enum: ['info', 'warning', 'error', 'critical'],
+    required: true
   },
-  metadata: { 
-    type: Schema.Types.Mixed 
+  message: {
+    type: String,
+    required: true
+  },
+  stack: {
+    type: String,
+    required: false
+  },
+  category: {
+    type: String,
+    default: 'general'
+  },
+  severity: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'critical'],
+    default: 'medium'
+  },
+  resolved: {
+    type: Boolean,
+    default: false
+  },
+  resolvedBy: {
+    type: String,
+    ref: 'User',
+    required: false
+  },
+  resolvedAt: {
+    type: Date,
+    required: false
+  },
+  resolutionNotes: {
+    type: String,
+    required: false
+  },
+  userId: {
+    type: String,
+    ref: 'User',
+    required: false
+  },
+  request: {
+    type: Object,
+    required: false
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  versionKey: false
+}, { 
+  collection: 'systemErrorLog', // Standardized collection name (singular)
+  timestamps: { createdAt: 'timestamp', updatedAt: false } // Use timestamp as createdAt
 });
 
-// Export model methods
-export const find = (query: any = {}) => mongoose.models.SystemErrorLog?.find(query) || [];
-export const findOne = (query: any = {}) => mongoose.models.SystemErrorLog?.findOne(query) || null;
-export const findById = (id: string) => mongoose.models.SystemErrorLog?.findById(id) || null;
-export const countDocuments = (query: any = {}) => mongoose.models.SystemErrorLog?.countDocuments(query) || 0;
-export const findOneAndUpdate = (query: any, update: any, options: any = {}) => 
-  mongoose.models.SystemErrorLog?.findOneAndUpdate(query, update, options) || null;
-export const deleteOne = (query: any) => mongoose.models.SystemErrorLog?.deleteOne(query) || null;
-
-// Use the mongoose model constructor and define it
-const SystemErrorLogModel = mongoose.models.SystemErrorLog || 
-  mongoose.model<SystemErrorLog & Document>('SystemErrorLog', SystemErrorLogSchema);
+// Create the Mongoose model
+const SystemErrorLogModel = mongoose.model('SystemErrorLog', systemErrorLogSchema);
 
 export default SystemErrorLogModel;

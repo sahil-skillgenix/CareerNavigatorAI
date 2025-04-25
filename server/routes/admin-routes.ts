@@ -4,7 +4,7 @@ import { isAdmin, isSuperAdmin } from '../middleware/adminMiddleware';
 import { logUserActivityWithParams } from '../services/logging-service';
 import SystemErrorLogModel from '../models/SystemErrorLogModel';
 import { UserActivityModel } from '../db/models';
-import FeatureLimitModel from '../models/FeatureLimitsModel';
+import FeatureLimitsModel from '../models/FeatureLimitsModel';
 import DataImportLogModel from '../models/DataImportLogModel';
 import SystemNotificationModel from '../models/SystemNotificationModel';
 import SystemUsageStatsModel from '../models/SystemUsageStatsModel';
@@ -60,14 +60,14 @@ router.get('/errors', async (req: Request, res: Response) => {
       }
     }
     
-    const errors = await SystemErrorLog.find(queryParams)
+    const errors = await SystemErrorLogModel.find(queryParams)
       .sort({ timestamp: -1 })
       .limit(Number(limit));
     
     // Get summary counts
-    const criticalErrors = await SystemErrorLog.countDocuments({ severity: 'critical', resolved: false });
-    const totalErrors = await SystemErrorLog.countDocuments();
-    const unresolvedErrors = await SystemErrorLog.countDocuments({ resolved: false });
+    const criticalErrors = await SystemErrorLogModel.countDocuments({ severity: 'critical', resolved: false });
+    const totalErrors = await SystemErrorLogModel.countDocuments();
+    const unresolvedErrors = await SystemErrorLogModel.countDocuments({ resolved: false });
     
     // Log activity
     logUserActivityWithParams({
@@ -280,9 +280,9 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
     });
     
     // Get error rates
-    const criticalErrors = await SystemErrorLog.countDocuments({ severity: 'critical' });
-    const errors = await SystemErrorLog.countDocuments({ severity: 'high' });
-    const warnings = await SystemErrorLog.countDocuments({ severity: 'medium' });
+    const criticalErrors = await SystemErrorLogModel.countDocuments({ severity: 'critical' });
+    const errors = await SystemErrorLogModel.countDocuments({ severity: 'high' });
+    const warnings = await SystemErrorLogModel.countDocuments({ severity: 'medium' });
     
     // Log activity
     logUserActivityWithParams({
