@@ -215,6 +215,35 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         }
       });
       
+      // Test account deactivation activity type
+      await logUserActivityWithParams({
+        userId: req.user?.id || 'anonymous',
+        action: 'account_deactivation',
+        details: 'Testing account deactivation logging',
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+        metadata: {
+          method: 'self-service',
+          timestamp: new Date().toISOString(),
+          test: true
+        }
+      });
+      
+      // Test account deletion activity type
+      await logUserActivityWithParams({
+        userId: req.user?.id || 'anonymous',
+        action: 'account_deletion',
+        details: 'Testing account deletion logging',
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+        metadata: {
+          method: 'self-service',
+          timestamp: new Date().toISOString(),
+          dataDeletionStatus: 'complete',
+          test: true
+        }
+      });
+      
       // Create a direct test entry using the UserActivityModel
       const testLog = new UserActivityModel({
         userId: req.user?.id || 'anonymous',
@@ -234,7 +263,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       // Get the most recent logs to verify they were saved correctly
       const recentLogs = await UserActivityModel.find()
         .sort({ timestamp: -1 })
-        .limit(5)
+        .limit(10)
         .lean();
       
       res.json({ 
@@ -244,7 +273,9 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         recentLogs,
         info: {
           schemaUpdates: 'The UserActivity schema now uses activityType instead of action',
-          detailsFormat: 'The details field now stores objects instead of strings'
+          detailsFormat: 'The details field now stores objects instead of strings',
+          newActivityTypes: ['account_deactivation', 'account_deletion'],
+          allActivityTypes: UserActivityModel.schema.path('activityType').enumValues
         }
       });
     } catch (error) {
