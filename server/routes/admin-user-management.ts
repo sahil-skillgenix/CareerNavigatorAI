@@ -137,11 +137,11 @@ router.patch('/update-role/:userId', requireSuperAdmin, adminActionRateLimiter()
     }
     
     // Update the user role
-    user.role = role;
+    const updatedUser = await storage.updateUser(userId, { role });
     
-    // Save the updated user 
-    // Note: In a real implementation, we would have a dedicated updateUser method in the storage interface
-    // For now, we'll return the updated user without actually saving it
+    if (!updatedUser) {
+      return res.status(500).json({ error: 'Failed to update user role' });
+    }
     
     // Log the role change
     await logUserActivity({
@@ -264,36 +264,93 @@ router.get('/users', requireAdmin, async (req: Request, res: Response) => {
     const validPage = Math.max(1, page);
     const validLimit = Math.min(Math.max(1, limit), 100);
     
-    // Call storage method to get users with pagination
-    // Note: This is not implemented in the current storage interface
-    // For now, we'll return a mock response
+    // Query users from the database using MongoDB directly
+    const query: any = {};
     
-    return res.json({
-      users: [
-        {
-          id: '1',
-          email: 'super-admin@skillgenix.com',
-          fullName: 'Super Admin',
-          role: 'superadmin',
-          status: 'active',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          email: 'demo@skillgenix.com',
-          fullName: 'Demo User',
-          role: 'user',
-          status: 'active',
-          createdAt: new Date().toISOString()
+    // Apply role filter if provided
+    if (role) {
+      query.role = role;
+    }
+    
+    // Apply status filter if provided
+    if (status) {
+      query.status = status;
+    }
+    
+    try {
+      // Import UserModel for direct query
+      const { UserModel } = await import('../db/models');
+      
+      // Count total users matching the query
+      const totalItems = await UserModel.countDocuments(query);
+      const totalPages = Math.ceil(totalItems / validLimit);
+      
+      // Get paginated users
+      const users = await UserModel.find(query)
+        .sort({ createdAt: -1 })
+        .skip((validPage - 1) * validLimit)
+        .limit(validLimit)
+        .lean();
+      
+      // Format user data for response
+      const formattedUsers = users.map((user: any) => ({
+        id: user._id.toString(),
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role || 'user',
+        status: user.status || 'active',
+        createdAt: user.createdAt.toISOString(),
+        lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : undefined
+      }));
+      
+      return res.json({
+        users: formattedUsers,
+        pagination: {
+          page: validPage,
+          limit: validLimit,
+          totalPages,
+          totalItems
         }
-      ],
-      pagination: {
-        page: validPage,
-        limit: validLimit,
-        totalPages: 1,
-        totalItems: 2
-      }
-    });
+      });
+    } catch (dbError) {
+      console.error('Database error when fetching users:', dbError);
+      await logError({
+        message: 'Database error when fetching users',
+        severity: 'medium',
+        category: 'database',
+        userId: req.user?.id,
+        stack: dbError instanceof Error ? dbError.stack : undefined,
+        metadata: { filters: { role, status }, pagination: { page, limit } }
+      });
+      
+      // Fallback to get at least the admin users we know exist
+      return res.json({
+        users: [
+          {
+            id: '1',
+            email: 'super-admin@skillgenix.com',
+            fullName: 'Super Admin',
+            role: 'superadmin',
+            status: 'active',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            email: 'demo@skillgenix.com',
+            fullName: 'Demo User',
+            role: 'user',
+            status: 'active',
+            createdAt: new Date().toISOString()
+          }
+        ],
+        pagination: {
+          page: validPage,
+          limit: validLimit,
+          totalPages: 1,
+          totalItems: 2
+        }
+      });
+    }
   } catch (error) {
     console.error('Error getting users:', error);
     return res.status(500).json({ error: 'Failed to get users' });

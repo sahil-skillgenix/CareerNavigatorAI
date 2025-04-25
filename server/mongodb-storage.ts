@@ -228,6 +228,55 @@ export class MongoDBStorage implements IStorage {
     }
   }
   
+  async updateUser(id: string | number, userData: Partial<User>): Promise<User | undefined> {
+    try {
+      const user = await UserModel.findById(id);
+      if (!user) {
+        log(`User not found for update: ${id}`, "mongodb");
+        return undefined;
+      }
+      
+      // Update user fields, excluding id and password
+      const { id: _, password: __, ...updateData } = userData;
+      
+      // Apply updates
+      Object.keys(updateData).forEach(key => {
+        if (Object.prototype.hasOwnProperty.call(updateData, key)) {
+          (user as any)[key] = (updateData as any)[key];
+        }
+      });
+      
+      const savedUser = await user.save();
+      const userDoc = savedUser as any;
+      
+      log(`Updated user ${userDoc.email}`, "mongodb");
+      
+      return {
+        id: userDoc._id.toString(),
+        fullName: userDoc.fullName,
+        email: userDoc.email,
+        password: userDoc.password,
+        status: userDoc.status || "active",
+        role: userDoc.role || "user",
+        createdAt: userDoc.createdAt.toISOString(),
+        securityQuestion: userDoc.securityQuestion,
+        securityAnswer: userDoc.securityAnswer,
+        location: userDoc.location,
+        phone: userDoc.phone,
+        bio: userDoc.bio,
+        currentRole: userDoc.currentRole,
+        experience: userDoc.experience,
+        education: userDoc.education,
+        skills: userDoc.skills,
+        interests: userDoc.interests,
+        avatarUrl: userDoc.avatarUrl
+      };
+    } catch (error) {
+      log(`Error updating user: ${error}`, "mongodb");
+      return undefined;
+    }
+  }
+  
   async updateUserPassword(id: string | number, newPassword: string): Promise<User | undefined> {
     try {
       const user = await UserModel.findById(id);
