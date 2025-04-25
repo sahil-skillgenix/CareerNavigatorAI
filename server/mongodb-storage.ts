@@ -768,4 +768,38 @@ export class MongoDBStorage implements IStorage {
       throw error;
     }
   }
+  
+  async getUserCount(): Promise<number> {
+    try {
+      return await UserModel.countDocuments();
+    } catch (error) {
+      console.error('Error getting user count:', error);
+      return 0;
+    }
+  }
+  
+  async getActiveUserCount(): Promise<number> {
+    try {
+      return await UserModel.countDocuments({ status: 'active' });
+    } catch (error) {
+      console.error('Error getting active user count:', error);
+      return 0;
+    }
+  }
+  
+  async getAllUsers(limit?: number, offset: number = 0): Promise<User[]> {
+    try {
+      const query = UserModel.find().sort({ createdAt: -1 });
+      
+      if (limit !== undefined) {
+        query.skip(offset).limit(limit);
+      }
+      
+      const users = await query.exec();
+      return users.map(user => this.convertUserDocumentToUser(user));
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
+  }
 }

@@ -26,6 +26,9 @@ export interface IStorage {
   createUser(user: Omit<InsertUser, "confirmPassword">): Promise<User>;
   updateUserPassword(id: string | number, newPassword: string): Promise<User | undefined>;
   updateUser(id: string | number, userData: Partial<User>): Promise<User | undefined>;
+  getUserCount(): Promise<number>; // Total number of users
+  getActiveUserCount(): Promise<number>; // Number of active users
+  getAllUsers(limit?: number, offset?: number): Promise<User[]>; // Get all users with pagination
   
   // Career analysis management
   saveCareerAnalysis(analysis: InsertCareerAnalysis): Promise<CareerAnalysisWithStringDates>;
@@ -164,6 +167,26 @@ export class MemStorage implements IStorage {
     
     this.users.set(stringId, updatedUser);
     return updatedUser;
+  }
+  
+  async getUserCount(): Promise<number> {
+    return this.users.size;
+  }
+  
+  async getActiveUserCount(): Promise<number> {
+    return Array.from(this.users.values())
+      .filter(user => user.status === 'active')
+      .length;
+  }
+  
+  async getAllUsers(limit?: number, offset: number = 0): Promise<User[]> {
+    const allUsers = Array.from(this.users.values());
+    
+    if (limit !== undefined) {
+      return allUsers.slice(offset, offset + limit);
+    }
+    
+    return allUsers;
   }
   
   // Career Analysis Management
