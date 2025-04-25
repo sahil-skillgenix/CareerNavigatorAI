@@ -8,6 +8,7 @@ import { MongoDBStorage } from "./mongodb-storage";
 import { apiRequestLogger, errorLogger, authEventLogger } from "./services/logging-service";
 import { inputSanitizer } from "./middleware/input-sanitizer";
 import { apiRateLimiter } from "./middleware/rate-limiter";
+import { securityHeaders } from "./middleware/security-headers";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,6 +16,16 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Apply security middleware
+// 1. Security headers to protect against common web vulnerabilities
+app.use(securityHeaders());
+
+// 2. Input sanitizer to prevent XSS and injection attacks
+app.use(inputSanitizer);
+
+// 3. API rate limiter to prevent abuse
+app.use("/api", apiRateLimiter);
 
 // MongoDB-based API request logging middleware
 app.use(apiRequestLogger());
