@@ -6,6 +6,8 @@ import { connectToDatabase } from "./db/mongodb";
 import { registerRoutes } from "./routes";
 import { MongoDBStorage } from "./mongodb-storage";
 import { apiRequestLogger, errorLogger, authEventLogger } from "./services/logging-service";
+import { inputSanitizer } from "./middleware/input-sanitizer";
+import { apiRateLimiter } from "./middleware/rate-limiter";
 
 // Load environment variables from .env file
 dotenv.config();

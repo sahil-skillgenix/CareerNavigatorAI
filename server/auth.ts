@@ -6,6 +6,11 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { IStorage, storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import { 
+  loginRateLimiter, 
+  registerRateLimiter, 
+  passwordResetRateLimiter 
+} from "./middleware/rate-limiter";
 
 declare global {
   namespace Express {
@@ -79,7 +84,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", registerRateLimiter, async (req, res, next) => {
     try {
       const { confirmPassword, ...userData } = req.body;
       
@@ -104,7 +109,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   });
   
   // Account recovery endpoints
-  app.post("/api/find-account", async (req, res, next) => {
+  app.post("/api/find-account", passwordResetRateLimiter, async (req, res, next) => {
     try {
       const { email } = req.body;
       
@@ -131,7 +136,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     }
   });
   
-  app.post("/api/verify-security-answer", async (req, res, next) => {
+  app.post("/api/verify-security-answer", passwordResetRateLimiter, async (req, res, next) => {
     try {
       const { email, securityAnswer } = req.body;
       
@@ -156,7 +161,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     }
   });
   
-  app.post("/api/reset-password", async (req, res, next) => {
+  app.post("/api/reset-password", passwordResetRateLimiter, async (req, res, next) => {
     try {
       const { email, securityAnswer, newPassword } = req.body;
       
@@ -175,6 +180,10 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       
       // Update the password
       const hashedPassword = await hashPassword(newPassword);
+      // Ensure ID is not undefined before passing it
+      if (!user.id) {
+        return res.status(500).json({ message: "User ID not found" });
+      }
       const updatedUser = await storageInstance.updateUserPassword(user.id, hashedPassword);
       
       return res.status(200).json({ 
@@ -185,7 +194,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     }
   });
 
-  app.post("/api/login", (req, res, next) => {
+  app.post("/api/login", loginRateLimiter, (req, res, next) => {
     passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: "Invalid email or password" });
