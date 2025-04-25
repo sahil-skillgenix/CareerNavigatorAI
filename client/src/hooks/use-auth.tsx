@@ -91,7 +91,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // Clear the JWT token from storage
+      import("../lib/queryClient").then(({ setAuthToken }) => {
+        setAuthToken(null);
+      });
+      
+      // Clear the user data from the query cache
       queryClient.setQueryData(["/api/user"], null);
+      
       toast({
         title: "Logout successful",
         description: "You have been logged out successfully",

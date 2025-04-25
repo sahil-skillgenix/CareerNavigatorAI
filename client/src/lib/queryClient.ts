@@ -7,15 +7,40 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Function to get the stored token
+export function getAuthToken(): string | null {
+  return localStorage.getItem('auth_token');
+}
+
+// Function to set the auth token
+export function setAuthToken(token: string | null): void {
+  if (token) {
+    localStorage.setItem('auth_token', token);
+  } else {
+    localStorage.removeItem('auth_token');
+  }
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Make the initial request
+  // Prepare headers
+  const headers: Record<string, string> = {
+    ...(data ? { "Content-Type": "application/json" } : {})
+  };
+  
+  // Add authorization header if token exists
+  const token = getAuthToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  
+  // Make the request
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -24,11 +49,22 @@ export async function apiRequest(
   const newToken = res.headers.get('X-New-Token');
   if (newToken) {
     console.log('Received refreshed token from server');
-    
-    // Store the new token in localStorage if needed
-    // localStorage.setItem('auth_token', newToken);
-    
-    // For cookie-based approach, the server should have set the cookie already
+    setAuthToken(newToken);
+  }
+  
+  // Check if we got a token in the response body for login/register
+  if (res.ok && (url === '/api/login' || url === '/api/register')) {
+    try {
+      // Clone the response before reading it
+      const clonedRes = res.clone();
+      const data = await clonedRes.json();
+      if (data.token) {
+        console.log('Received auth token from login/register');
+        setAuthToken(data.token);
+      }
+    } catch (error) {
+      console.error('Error extracting token from response:', error);
+    }
   }
 
   await throwIfResNotOk(res);
@@ -41,23 +77,23 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Prepare headers with auth token if available
+    const headers: Record<string, string> = {};
+    const token = getAuthToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
-      headers: {
-        // Optional: Add Authorization header if token is stored in localStorage
-        // "Authorization": `Bearer ${localStorage.getItem('auth_token')}`
-      }
+      headers
     });
 
     // Check for token refresh in response headers
     const newToken = res.headers.get('X-New-Token');
     if (newToken) {
       console.log('Received refreshed token from server during query');
-      
-      // Store the new token in localStorage if needed
-      // localStorage.setItem('auth_token', newToken);
-      
-      // For cookie-based approach, the server should have set the cookie already
+      setAuthToken(newToken);
     }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
