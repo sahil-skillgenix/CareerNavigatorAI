@@ -1670,7 +1670,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       const actionType = req.query.type as string; // Optional filter by action type
       
       // Import at the route level to avoid circular dependencies
-      const { getUserActivity, getUserLoginHistory } = await import('./models/UserActivityModel');
+      const { getUserActivity, getUserLoginHistory } = await import('./services/activity-logger');
       
       let activities;
       
@@ -1678,22 +1678,25 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         // Get only login history
         activities = await getUserLoginHistory(userId, limit);
       } else if (actionType) {
-        // Get specific activity type
-        activities = await getUserActivity(userId, limit, [actionType]);
+        // Get specific activity type - cast to UserActivityType to avoid type error
+        activities = await getUserActivity(userId, limit, [actionType as any]);
       } else {
         // Get all activities
         activities = await getUserActivity(userId, limit);
       }
       
-      // Format the activities for the client
+      // Format the activities for the client - no mapping needed anymore
+      // as getUserActivity and getUserLoginHistory now return properly formatted objects
       const formattedActivities = activities.map(activity => ({
-        id: activity._id,
-        action: activity.action,
+        id: activity.id, // Already converted to string by our updated functions
+        action: activity.action || activity.activityType, // Support both field names
         timestamp: activity.timestamp,
-        status: activity.status,
+        formattedTime: activity.formattedTime, // Include the user-friendly timestamp
         ipAddress: activity.ipAddress,
         userAgent: activity.userAgent ? activity.userAgent.substring(0, 100) : null, // Trim long user agents
-        details: activity.details
+        details: activity.details,
+        device: activity.device, // Include device information
+        location: activity.location || 'unknown',
       }));
       
       return res.json(formattedActivities);
@@ -1940,15 +1943,15 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         return res.status(400).json({ message: 'Invalid user ID' });
       }
       
-      // Get login history for the user (from the UserActivity collection)
-      const loginHistory = await UserActivityModel.find({ 
-        userId, 
-        activityType: 'login' 
-      })
-      .sort({ timestamp: -1 })
-      .limit(10);
+      // Get login history using the updated getUserLoginHistory function
+      const loginHistory = await getUserLoginHistory(userId, 10);
       
-      res.json(loginHistory);
+      res.json({
+        success: true,
+        data: loginHistory,
+        count: loginHistory.length,
+        message: 'Login history retrieved successfully'
+      });
     } catch (error) {
       console.error('Error fetching login history:', error);
       res.status(500).json({

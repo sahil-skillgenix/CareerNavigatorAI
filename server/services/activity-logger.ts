@@ -49,9 +49,10 @@ export async function logUserActivity({
  */
 export async function getUserLoginHistory(userId: string, limit: number = 10): Promise<any[]> {
   try {
+    // Query using the new activityType field instead of action
     const activities = await UserActivityModel.find({ 
       userId, 
-      activityType: 'login_success' 
+      activityType: { $in: ['login_success', 'register'] } // Include both login and register events
     })
       .sort({ timestamp: -1 })
       .limit(limit)
@@ -60,14 +61,53 @@ export async function getUserLoginHistory(userId: string, limit: number = 10): P
     return activities.map((doc: any) => ({
       id: doc._id.toString(),
       timestamp: doc.timestamp,
-      ipAddress: doc.ipAddress,
-      userAgent: doc.userAgent,
+      ipAddress: doc.ipAddress || 'unknown',
+      userAgent: doc.userAgent || 'unknown',
+      action: doc.activityType, // Include the activity type as 'action' for API compatibility
       metadata: doc.metadata || {},
-      details: doc.details || {}
+      details: doc.details || {},
+      // For enhanced device information
+      device: extractDeviceInfo(doc.userAgent || ''),
+      location: doc.metadata?.location || 'unknown',
     }));
   } catch (error) {
     console.error('Error getting user login history:', error);
     return [];
+  }
+}
+
+// Helper function to extract device information from user agent
+function extractDeviceInfo(userAgent: string): { type: string; browser: string } {
+  try {
+    let type = 'Unknown';
+    let browser = 'Unknown';
+    
+    // Simple device type detection
+    if (/mobile|android|iphone|ipad|ipod/i.test(userAgent)) {
+      type = 'Mobile';
+    } else if (/tablet|ipad/i.test(userAgent)) {
+      type = 'Tablet';
+    } else {
+      type = 'Desktop';
+    }
+    
+    // Simple browser detection
+    if (/chrome/i.test(userAgent)) {
+      browser = 'Chrome';
+    } else if (/firefox/i.test(userAgent)) {
+      browser = 'Firefox';
+    } else if (/safari/i.test(userAgent)) {
+      browser = 'Safari';
+    } else if (/edge/i.test(userAgent)) {
+      browser = 'Edge';
+    } else if (/msie|trident/i.test(userAgent)) {
+      browser = 'Internet Explorer';
+    }
+    
+    return { type, browser };
+  } catch (error) {
+    console.error('Error extracting device info:', error);
+    return { type: 'Unknown', browser: 'Unknown' };
   }
 }
 
@@ -83,6 +123,7 @@ export async function getUserActivity(
   actionTypes?: UserActivityType[]
 ): Promise<any[]> {
   try {
+    // Build query with activityType field instead of action
     const query: any = { userId };
     
     if (actionTypes && actionTypes.length > 0) {
@@ -96,16 +137,67 @@ export async function getUserActivity(
     
     return activities.map((doc: any) => ({
       id: doc._id.toString(),
-      action: doc.activityType, // Map activityType to action for backward compatibility
-      details: doc.details,
+      // Return both fields for maximum compatibility during transition
+      action: doc.activityType, // Return activityType as action for backward compatibility
+      activityType: doc.activityType, // Also provide the native field
+      details: doc.details || {}, // Always return an object
       timestamp: doc.timestamp,
-      ipAddress: doc.ipAddress,
-      userAgent: doc.userAgent,
-      metadata: doc.metadata || {}
+      ipAddress: doc.ipAddress || 'unknown',
+      userAgent: doc.userAgent || 'unknown',
+      metadata: doc.metadata || {},
+      // Enhanced information
+      device: extractDeviceInfo(doc.userAgent || ''),
+      location: doc.metadata?.location || 'unknown',
+      // Format the timestamp for display
+      formattedTime: formatTimestamp(doc.timestamp),
     }));
   } catch (error) {
     console.error('Error getting user activity:', error);
     return [];
+  }
+}
+
+// Helper function to format timestamps in a user-friendly way
+function formatTimestamp(timestamp: Date): string {
+  try {
+    const now = new Date();
+    const date = new Date(timestamp);
+    
+    // Check if invalid date
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
+    // Format for today's activities
+    if (date.toDateString() === now.toDateString()) {
+      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    // Format for yesterday's activities
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    // Format for activities within the past week
+    const daysDiff = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysDiff < 7) {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return `${days[date.getDay()]} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    // Default format for older activities
+    return date.toLocaleDateString([], { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return String(timestamp);
   }
 }
 
