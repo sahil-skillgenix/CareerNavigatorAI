@@ -21,7 +21,8 @@ import {
   getUserActivityHistory,
   getErrorLogs,
   getAPIRequestLogs,
-  logUserActivity
+  logUserActivity,
+  logUserActivityWithParams
 } from "./services/logging-service";
 import { UserActivityModel } from "./db/models";
 import { getDatabaseStatus } from "./db/mongodb";
@@ -189,6 +190,33 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   // API routes
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Skillgenix server is running' });
+  });
+  
+  // Test logging endpoint
+  app.get('/api/test-logging', async (req, res) => {
+    try {
+      await logUserActivityWithParams({
+        userId: req.user?.id || 'anonymous',
+        action: 'other',
+        details: 'Testing improved logging system',
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+        metadata: { source: 'test-endpoint', timestamp: new Date().toISOString() }
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Logging test completed successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in test-logging endpoint:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error occurred while testing logging',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   });
   
   // Database status endpoint (for admins and monitoring)
