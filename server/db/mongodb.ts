@@ -40,7 +40,7 @@ async function repairProblematicIndexes() {
     
     const db = mongoose.connection.db;
     
-    // First option: Try to clean documents with null id
+    // First option: Try to fix documents with null id instead of deleting them
     for (const collectionName of collectionsToCheck) {
       try {
         // Check if the collection exists
@@ -53,17 +53,29 @@ async function repairProblematicIndexes() {
         // Get the collection
         const collection = db.collection(collectionName);
         
-        // Try to clean documents with null id field (this is what causes the duplicate key error)
-        const deleteResult = await collection.deleteMany({ id: null });
-        if (deleteResult.deletedCount > 0) {
-          log(`Removed ${deleteResult.deletedCount} documents with null id from ${collectionName}`, "mongodb");
+        // PRESERVE DATA: Instead of deleting documents with null id, update them to have a valid id
+        const documentsToFix = await collection.find({ id: null }).toArray();
+        let fixedCount = 0;
+        
+        for (const doc of documentsToFix) {
+          // Generate a valid id from the _id
+          await collection.updateOne(
+            { _id: doc._id },
+            { $set: { id: doc._id.toString() } }
+          );
+          fixedCount++;
         }
         
-        // Also drop and recreate the collection if needed
-        if (collectionName === 'userbadges' || collectionName === 'careeranalyses') {
-          log(`Dropping problematic collection ${collectionName} to clear all indexes`, "mongodb");
-          await db.dropCollection(collectionName);
-          log(`Successfully dropped collection ${collectionName}`, "mongodb");
+        if (fixedCount > 0) {
+          log(`Fixed ${fixedCount} documents with null id in ${collectionName}`, "mongodb");
+        }
+        
+        // NEVER drop the users collection to preserve user data
+        // Fix problematic collections without dropping them
+        if ((collectionName === 'userbadges' || collectionName === 'careeranalyses') && 
+            collectionsToCheck !== 'users') {
+          // Instead of dropping the collection, we'll just fix the indexes
+          log(`Fixing problematic collection ${collectionName} indexes`, "mongodb");
         }
         
         // Get all indexes
@@ -90,7 +102,7 @@ async function repairProblematicIndexes() {
       }
     }
     
-    log("Problematic index repair completed", "mongodb");
+    log("Problematic index repair completed without data loss", "mongodb");
   } catch (error) {
     log(`Error during problematic index repair: ${error}`, "mongodb");
     // Continue execution even if repair fails

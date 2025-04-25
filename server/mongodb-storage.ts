@@ -80,6 +80,8 @@ export class MongoDBStorage implements IStorage {
         
         await demoUser.save();
         log("Demo user created: demo@skillgenix.com", "mongodb");
+      } else {
+        log("Demo user already exists, preserving user data", "mongodb");
       }
     } catch (error) {
       log(`Error creating demo user: ${error}`, "mongodb");
