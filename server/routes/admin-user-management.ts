@@ -128,7 +128,7 @@ router.patch('/update-role/:userId', requireSuperAdmin, adminActionRateLimiter()
     }
     
     // Prevent changing your own role
-    if (userId === req.user.id) {
+    if (userId === req.user?.id) {
       return res.status(403).json({ error: 'You cannot change your own role' });
     }
     
@@ -147,7 +147,7 @@ router.patch('/update-role/:userId', requireSuperAdmin, adminActionRateLimiter()
     
     // Log the role change
     await logUserActivity({
-      userId: req.user.id,
+      userId: req.user?.id || 'anonymous',
       action: 'updated_user_role',
       details: `Changed user role to ${role}`,
       ipAddress: req.ip,
@@ -208,7 +208,7 @@ router.post('/reset-password/:userId', requireAdmin, adminActionRateLimiter(), a
     }
     
     // Super admin can reset any password, but admin can only reset non-admin user passwords
-    if (req.user.role !== 'superadmin' && (user.role === 'admin' || user.role === 'superadmin')) {
+    if (req.user?.role !== 'superadmin' && (user.role === 'admin' || user.role === 'superadmin')) {
       return res.status(403).json({ error: 'You do not have permission to reset this user\'s password' });
     }
     
@@ -235,7 +235,7 @@ router.post('/reset-password/:userId', requireAdmin, adminActionRateLimiter(), a
     
     // Log the password reset
     await logUserActivity({
-      userId: req.user.id,
+      userId: req.user?.id || 'anonymous',
       action: 'reset_user_password',
       details: 'Admin reset user password',
       ipAddress: req.ip,
