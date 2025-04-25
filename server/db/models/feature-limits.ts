@@ -66,5 +66,5 @@ const featureLimitsSchema = new mongoose.Schema({
   }
 });
 
-// Use standardized collection name with unique prefix to avoid >49% similarity with other collections
-export const FeatureLimitsModel = mongoose.model('FeatureLimits', featureLimitsSchema, 'skillgenix_applimits');
+// Use standardized collection name with domain-specific prefix to avoid >49% similarity
+export const FeatureLimitsModel = mongoose.model('FeatureLimits', featureLimitsSchema, 'systemx_featurelimits');
