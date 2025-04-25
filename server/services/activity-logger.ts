@@ -27,7 +27,8 @@ export async function logUserActivity({
   try {
     const activity = new UserActivityModel({
       userId,
-      activityType: action, // Map action to activityType for compatibility
+      action: action, // Use standardized action field
+      category: 'USER', // Default to USER category
       details: typeof details === 'string' ? { message: details } : details || {}, // Convert string to object if needed
       ipAddress,
       userAgent,
@@ -49,10 +50,10 @@ export async function logUserActivity({
  */
 export async function getUserLoginHistory(userId: string, limit: number = 10): Promise<any[]> {
   try {
-    // Query using the new activityType field instead of action
+    // Query using the standardized action field
     const activities = await UserActivityModel.find({ 
       userId, 
-      activityType: { $in: ['login_success', 'register'] } // Include both login and register events
+      action: { $in: ['login_success', 'register'] } // Include both login and register events
     })
       .sort({ timestamp: -1 })
       .limit(limit)
@@ -63,7 +64,7 @@ export async function getUserLoginHistory(userId: string, limit: number = 10): P
       timestamp: doc.timestamp,
       ipAddress: doc.ipAddress || 'unknown',
       userAgent: doc.userAgent || 'unknown',
-      action: doc.activityType, // Include the activity type as 'action' for API compatibility
+      action: doc.action || doc.activityType, // Use new action field, fall back to old activityType field
       metadata: doc.metadata || {},
       details: doc.details || {},
       // For enhanced device information
@@ -123,11 +124,15 @@ export async function getUserActivity(
   actionTypes?: UserActivityType[]
 ): Promise<any[]> {
   try {
-    // Build query with activityType field instead of action
+    // Build query with action field
     const query: any = { userId };
     
     if (actionTypes && actionTypes.length > 0) {
-      query.activityType = { $in: actionTypes };
+      // Support querying both old and new field names during transition
+      query.$or = [
+        { action: { $in: actionTypes } },
+        { activityType: { $in: actionTypes } }
+      ];
     }
     
     const activities = await UserActivityModel.find(query)
@@ -138,8 +143,8 @@ export async function getUserActivity(
     return activities.map((doc: any) => ({
       id: doc._id.toString(),
       // Return both fields for maximum compatibility during transition
-      action: doc.activityType, // Return activityType as action for backward compatibility
-      activityType: doc.activityType, // Also provide the native field
+      action: doc.action || doc.activityType, // Use standardized action field, fall back to old activityType field
+      activityType: doc.action || doc.activityType, // For backward compatibility
       details: doc.details || {}, // Always return an object
       timestamp: doc.timestamp,
       ipAddress: doc.ipAddress || 'unknown',

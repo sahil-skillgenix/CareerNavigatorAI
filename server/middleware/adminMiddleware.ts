@@ -42,6 +42,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       console.log('[admin-middleware] Insufficient privileges');
       logUserActivityWithParams({
         userId: user.id || 'unknown',
+        category: 'ADMIN',
         action: 'admin_access_denied',
         details: `Admin access denied - insufficient privileges (role: ${userRole})`,
         ipAddress: req.ip,
@@ -75,6 +76,7 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
     if (!user) {
       logUserActivityWithParams({
         userId: req.user?.id || 'unknown',
+        category: 'ADMIN',
         action: 'superadmin_access_denied',
         details: 'Superadmin access denied - user not found',
         ipAddress: req.ip,
@@ -88,6 +90,7 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
     if (userRole !== 'superadmin') {
       logUserActivityWithParams({
         userId: user.id || 'unknown',
+        category: 'ADMIN',
         action: 'superadmin_access_denied',
         details: `Superadmin access denied - insufficient privileges (role: ${userRole})`,
         ipAddress: req.ip,
