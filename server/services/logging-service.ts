@@ -167,10 +167,10 @@ export async function getUserActivityLogs(
     const skip = (Math.max(1, page) - 1) * limit;
     
     // Get total count
-    const total = await UserActivityModel.countDocuments(filter);
+    const total = await UserActivityLogModel.countDocuments(filter);
     
     // Get paginated logs
-    const logs = await UserActivityModel.find(filter)
+    const logs = await UserActivityLogModel.find(filter)
       .sort({ timestamp: -1 })
       .skip(skip)
       .limit(limit)
