@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SavedResourcesProvider } from "@/hooks/use-saved-resources";
-import { ProtectedRoute } from "@/lib/protected-route";
+import { ProtectedRoute, AdminProtectedRoute } from "@/lib/protected-route";
 
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
@@ -42,7 +42,9 @@ function Router() {
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
       <ProtectedRoute path="/history" component={HistoryPage} />
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
-      <ProtectedRoute path="/admin" component={AdminDashboard} />
+      
+      {/* Admin routes - restricted to users with admin or superadmin role */}
+      <AdminProtectedRoute path="/admin" component={AdminDashboard} />
       
       {/* Settings routes */}
       <ProtectedRoute path="/settings" component={SettingsPage} />

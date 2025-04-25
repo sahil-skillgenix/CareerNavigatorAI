@@ -647,25 +647,11 @@ const DataImports = () => {
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
-  
-  // Check if user is an admin or superadmin
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    // If not an admin, show access denied
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen space-y-4">
-        <Shield className="h-16 w-16 text-red-500" />
-        <h1 className="text-2xl font-bold">Access Denied</h1>
-        <p className="text-muted-foreground">You don't have permission to access this page.</p>
       </div>
     );
   }
