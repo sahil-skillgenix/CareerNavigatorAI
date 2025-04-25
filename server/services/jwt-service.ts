@@ -8,7 +8,11 @@ const TOKEN_EXPIRATION = '2h';
 
 // Secret key generation (will be regenerated each time the server restarts)
 // In production, this should be a persistent secret stored securely
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
+// Explicitly cast the secret key with proper type to avoid TS errors
+const getJwtSecret = (): jwt.Secret => {
+  return process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
+};
+const JWT_SECRET = getJwtSecret();
 
 // Log key generation but not the key itself
 if (!process.env.JWT_SECRET) {
@@ -40,7 +44,9 @@ export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: strin
     email: user.email
   };
   
-  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  // Create the options with the correct type
+  const options: jwt.SignOptions = { expiresIn };
+  return jwt.sign(payload, JWT_SECRET, options);
 }
 
 /**
@@ -50,7 +56,23 @@ export function generateToken(user: Pick<User, 'id' | 'email'>, expiresIn: strin
  */
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    // Cast as any first to ensure compatibility with JwtPayload
+    const decodedAny = jwt.verify(token, JWT_SECRET as jwt.Secret) as any;
+    
+    // Verify required fields exist
+    if (!decodedAny.userId || !decodedAny.email) {
+      log('Token missing required fields', 'security');
+      return null;
+    }
+    
+    // Construct proper TokenPayload object
+    const decoded: TokenPayload = {
+      userId: decodedAny.userId,
+      email: decodedAny.email,
+      iat: decodedAny.iat,
+      exp: decodedAny.exp
+    };
+    
     return decoded;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
@@ -72,18 +94,27 @@ export function verifyToken(token: string): TokenPayload | null {
  */
 export function refreshTokenIfNeeded(token: string, thresholdMinutes: number = 30): string | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    // Use the same verification approach as verifyToken
+    const decodedAny = jwt.verify(token, JWT_SECRET as jwt.Secret) as any;
     
-    // If token doesn't have expiration, don't refresh
-    if (!decoded.exp) return null;
+    // Verify required fields exist
+    if (!decodedAny.userId || !decodedAny.email || !decodedAny.exp) {
+      return null;
+    }
     
     // Calculate if token is approaching expiration
-    const expirationTime = new Date(decoded.exp * 1000);
+    const expirationTime = new Date(decodedAny.exp * 1000);
     const thresholdTime = new Date(Date.now() + thresholdMinutes * 60 * 1000);
     
     // If token expires soon, refresh it
     if (expirationTime < thresholdTime) {
-      return generateToken({ id: decoded.userId, email: decoded.email });
+      // Ensure we have valid values for generateToken
+      if (typeof decodedAny.userId === 'string' || typeof decodedAny.userId === 'number') {
+        return generateToken({ 
+          id: decodedAny.userId, 
+          email: decodedAny.email 
+        });
+      }
     }
     
     return null; // Token is still valid and not near expiration
@@ -100,7 +131,7 @@ export function refreshTokenIfNeeded(token: string, thresholdMinutes: number = 3
  */
 export function isTokenExpired(token: string): boolean {
   try {
-    jwt.verify(token, JWT_SECRET);
+    jwt.verify(token, JWT_SECRET as jwt.Secret);
     return false; // Token is valid
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
