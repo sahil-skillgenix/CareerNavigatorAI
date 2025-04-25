@@ -358,7 +358,7 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
     const featureUsage = await UserActivityLogModel.aggregate([
       { $match: { category: 'FEATURE' } },
       { $group: {
-          _id: '$activityType',
+          _id: '$action',
           count: { $sum: 1 }
         }
       },

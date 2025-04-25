@@ -147,7 +147,7 @@ export async function getUserActivityLogs(
     }
     
     if (actions && actions.length > 0) {
-      filter.activityType = { $in: actions };
+      filter.action = { $in: actions };
     }
     
     // Add date range filter if provided
@@ -212,7 +212,7 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
       },
       {
         $group: {
-          _id: '$activityType',
+          _id: '$action',
           count: { $sum: 1 },
           lastActivity: { $max: '$timestamp' }
         }
@@ -236,7 +236,7 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
       startDate: startDate.toISOString(),
       endDate: new Date().toISOString(),
       activityBreakdown: summary.map((item: any) => ({
-        activityType: item._id, // Use activityType instead of action
+        action: item._id, // Use action consistently throughout the system
         count: item.count,
         lastActivity: item.lastActivity.toISOString()
       }))
@@ -287,7 +287,8 @@ export async function logUserActivity(
   try {
     const activityLog = new UserActivityModel({
       userId: userId,
-      activityType: activityType, // Use activityType field instead of action
+      action: activityType, // Use action field for consistency with new schema
+      category: 'AUTH', // Default to AUTH category for legacy logs
       details: { 
         message: `${action}: ${status}`,
         ...metadata,

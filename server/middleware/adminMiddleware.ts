@@ -24,6 +24,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       console.log('[admin-middleware] User not found');
       logUserActivityWithParams({
         userId: req.user?.id || 'unknown',
+        category: 'ADMIN',
         action: 'admin_access_denied',
         details: 'Admin access denied - user not found',
         ipAddress: req.ip,

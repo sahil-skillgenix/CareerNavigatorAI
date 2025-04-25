@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { MongoDBStorage } from '../mongodb-storage';
 import { isAdmin, isSuperAdmin } from '../middleware/adminMiddleware';
-import { logUserActivityWithParams, UserActivityType, ActivityCategory } from '../services/logging-service';
+import { logUserActivityWithParams } from '../services/logging-service';
 import { UserModel } from '../db/models';
 import { storage } from '../storage';
 
