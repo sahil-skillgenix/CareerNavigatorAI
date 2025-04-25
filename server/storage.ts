@@ -95,7 +95,9 @@ export class MemStorage implements IStorage {
     const demoUser = {
       fullName: "Demo User",
       email: "demo@skillgenix.com",
-      password: await hashPassword("demo123456")
+      password: await hashPassword("demo123456"),
+      role: "user" as const,
+      status: "active" as const
     };
     
     const idNum = this.userId++;
@@ -103,7 +105,9 @@ export class MemStorage implements IStorage {
     const user: User & { id: string } = { 
       ...demoUser, 
       id,
-      createdAt: new Date().toISOString() 
+      createdAt: new Date().toISOString(),
+      skills: [],
+      interests: []
     };
     this.users.set(id, user);
     console.log("Demo user created:", user.email);
@@ -127,7 +131,11 @@ export class MemStorage implements IStorage {
     const user: User & { id: string } = { 
       ...insertUser, 
       id, 
-      createdAt: new Date().toISOString() 
+      createdAt: new Date().toISOString(),
+      skills: insertUser.skills || [],
+      interests: insertUser.interests || [],
+      status: insertUser.status || "active",
+      role: insertUser.role || "user"
     };
     this.users.set(id, user);
     return user;

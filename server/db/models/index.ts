@@ -15,6 +15,9 @@ import UserProgressModel from "./userProgress";
 import ErrorLogModel from "./errorLog";
 import UserActivityModel from "./userActivity";
 import APIRequestLogModel from "./apiRequestLog";
+import { FeatureLimitsModel } from "./feature-limits";
+import { UserActivityLogModel } from "./user-activity-log";
+import { SystemErrorLogModel } from "./system-error-log";
 
 // Export document types
 export type { 
@@ -52,5 +55,8 @@ export {
   UserProgressModel,
   ErrorLogModel,
   UserActivityModel,
-  APIRequestLogModel
+  APIRequestLogModel,
+  FeatureLimitsModel,
+  UserActivityLogModel,
+  SystemErrorLogModel
 };

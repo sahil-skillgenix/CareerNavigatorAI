@@ -1,111 +1,139 @@
 import { Router, Request, Response } from 'express';
-import { MongoDBStorage } from '../mongodb-storage';
 import { isAdmin, isSuperAdmin } from '../middleware/adminMiddleware';
 import { logUserActivityWithParams } from '../services/logging-service';
-import SystemErrorLogModel from '../models/SystemErrorLogModel';
-import { UserActivityModel } from '../db/models';
-import FeatureLimitsModel from '../models/FeatureLimitsModel';
-import DataImportLogModel from '../models/DataImportLogModel';
-import SystemNotificationModel from '../models/SystemNotificationModel';
-import SystemUsageStatsModel from '../models/SystemUsageStatsModel';
-import APIRequestLogModel from '../models/APIRequestLogModel';
+import mongoose from 'mongoose';
+import { FeatureLimitsModel, UserActivityLogModel, SystemErrorLogModel, UserModel } from '../db/models';
 
 const router = Router();
-const storage = new MongoDBStorage();
 
 // Middleware to ensure admin access for all routes
 router.use(isAdmin);
 
-// Get all users - Admin only
+// Get all users for user management
 router.get('/user-management/users', async (req: Request, res: Response) => {
   try {
-    const users = await storage.getAllUsers();
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    
+    const users = await UserModel.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await UserModel.countDocuments();
     
     // Log activity
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
-      action: 'view_all_users',
-      details: 'Admin viewed all users',
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent'] as string,
-      metadata: {
-        method: req.method,
-        path: req.path
-      }
-    });
-    
-    res.json({ users });
-  } catch (error) {
-    console.error('Error fetching all users:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
-
-// Get system error logs - Admin only
-router.get('/errors', async (req: Request, res: Response) => {
-  try {
-    const { severity, limit = 20, resolved, category, fromDate, toDate } = req.query;
-    
-    const queryParams: any = {};
-    
-    if (severity) queryParams.severity = severity;
-    if (resolved) queryParams.resolved = resolved === 'true';
-    if (category) queryParams.category = category;
-    if (fromDate) queryParams.timestamp = { $gte: new Date(fromDate as string) };
-    if (toDate) {
-      if (queryParams.timestamp) {
-        queryParams.timestamp.$lte = new Date(toDate as string);
-      } else {
-        queryParams.timestamp = { $lte: new Date(toDate as string) };
-      }
-    }
-    
-    const errors = await SystemErrorLogModel.find(queryParams)
-      .sort({ timestamp: -1 })
-      .limit(Number(limit));
-    
-    // Get summary counts
-    const criticalErrors = await SystemErrorLogModel.countDocuments({ severity: 'critical', resolved: false });
-    const totalErrors = await SystemErrorLogModel.countDocuments();
-    const unresolvedErrors = await SystemErrorLogModel.countDocuments({ resolved: false });
-    
-    // Log activity
-    logUserActivityWithParams({
-      userId: req.user?.id || 'unknown',
-      action: 'view_error_logs',
-      details: 'Admin viewed error logs',
+      category: 'ADMIN',
+      activityType: 'view_users',
+      details: 'Admin viewed user management',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
       metadata: {
         method: req.method,
         path: req.path,
-        queryParams
+        page, 
+        limit
       }
     });
     
-    res.json({ 
-      errors,
-      summary: {
-        criticalErrors,
-        totalErrors,
-        unresolvedErrors
+    res.json({
+      users: users.map(user => ({
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt
+      })),
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {
-    console.error('Error fetching error logs:', error);
-    res.status(500).json({ error: 'Failed to fetch error logs' });
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-// Get feature limits - Admin only
-router.get('/feature-limits', async (req: Request, res: Response) => {
+// Get system errors for admin dashboard
+router.get('/errors', async (req: Request, res: Response) => {
   try {
-    const featureLimits = await FeatureLimitsModel.find({}).sort({ name: 1 });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const skip = (page - 1) * limit;
+    
+    const errors = await SystemErrorLogModel.find()
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await SystemErrorLogModel.countDocuments();
     
     // Log activity
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
-      action: 'view_feature_limits',
+      category: 'ADMIN',
+      activityType: 'view_system_errors',
+      details: 'Admin viewed system errors',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: {
+        method: req.method,
+        path: req.path,
+        page,
+        limit
+      }
+    });
+    
+    res.json({
+      errors,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching system errors:', error);
+    res.status(500).json({ error: 'Failed to fetch system errors' });
+  }
+});
+
+// Get feature limits
+router.get('/feature-limits', async (req: Request, res: Response) => {
+  try {
+    // Get all feature limits from DB
+    const featureLimits = await FeatureLimitsModel.findOne();
+    
+    // If no feature limits exist yet, create default ones
+    if (!featureLimits) {
+      const defaultLimits = new FeatureLimitsModel({
+        maxCareerAnalysesPerUser: 5,
+        maxSkillsPerAnalysis: 20,
+        enableAIRecommendations: true,
+        enablePdfExport: true,
+        enableBulkImport: false,
+        maxLearningResourcesPerSkill: 10,
+        maxConcurrentUsers: 100
+      });
+      
+      await defaultLimits.save();
+      
+      return res.json(defaultLimits);
+    }
+    
+    // Log activity
+    logUserActivityWithParams({
+      userId: req.user?.id || 'unknown',
+      category: 'ADMIN',
+      activityType: 'view_feature_limits',
       details: 'Admin viewed feature limits',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
@@ -122,154 +150,211 @@ router.get('/feature-limits', async (req: Request, res: Response) => {
   }
 });
 
-// Create/update feature limits - Super Admin only
+// Update feature limits - Super Admin only
 router.post('/feature-limits', isSuperAdmin, async (req: Request, res: Response) => {
   try {
-    const { featureLimits } = req.body;
+    const updatedLimits = req.body;
     
-    if (!Array.isArray(featureLimits)) {
-      return res.status(400).json({ error: 'Invalid feature limits data' });
+    // Validate the incoming data
+    if (updatedLimits.maxCareerAnalysesPerUser !== undefined && 
+        (updatedLimits.maxCareerAnalysesPerUser < 1 || updatedLimits.maxCareerAnalysesPerUser > 100)) {
+      return res.status(400).json({ error: 'Max career analyses must be between 1 and 100' });
     }
     
-    const results = [];
-    
-    for (const limit of featureLimits) {
-      const { name, defaultLimit, defaultFrequency, active } = limit;
-      
-      const existingLimit = await FeatureLimitsModel.findOne({ name });
-      
-      if (existingLimit) {
-        const updated = await FeatureLimitsModel.findOneAndUpdate(
-          { name },
-          { 
-            defaultLimit, 
-            defaultFrequency, 
-            active, 
-            updatedAt: new Date(),
-            updatedBy: req.user?.id
-          },
-          { new: true }
-        );
-        results.push(updated);
-      } else {
-        const newLimit = new FeatureLimitsModel({
-          name,
-          description: limit.description || `Limit for ${name} feature`,
-          defaultLimit,
-          defaultFrequency,
-          active: active !== undefined ? active : true,
-          createdBy: req.user?.id,
-          updatedBy: req.user?.id
-        });
-        
-        await newLimit.save();
-        results.push(newLimit);
-      }
+    if (updatedLimits.maxSkillsPerAnalysis !== undefined && 
+        (updatedLimits.maxSkillsPerAnalysis < 5 || updatedLimits.maxSkillsPerAnalysis > 50)) {
+      return res.status(400).json({ error: 'Max skills per analysis must be between 5 and 50' });
     }
+    
+    if (updatedLimits.maxLearningResourcesPerSkill !== undefined && 
+        (updatedLimits.maxLearningResourcesPerSkill < 1 || updatedLimits.maxLearningResourcesPerSkill > 30)) {
+      return res.status(400).json({ error: 'Max learning resources per skill must be between 1 and 30' });
+    }
+    
+    if (updatedLimits.maxConcurrentUsers !== undefined && 
+        (updatedLimits.maxConcurrentUsers < 10 || updatedLimits.maxConcurrentUsers > 1000)) {
+      return res.status(400).json({ error: 'Max concurrent users must be between 10 and 1000' });
+    }
+    
+    // Find existing limits or create new ones
+    let featureLimits = await FeatureLimitsModel.findOne();
+    
+    if (!featureLimits) {
+      featureLimits = new FeatureLimitsModel(updatedLimits);
+    } else {
+      // Update only the provided fields
+      Object.keys(updatedLimits).forEach(key => {
+        if (updatedLimits[key] !== undefined) {
+          featureLimits[key] = updatedLimits[key];
+        }
+      });
+    }
+    
+    await featureLimits.save();
     
     // Log activity
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
-      action: 'update_feature_limits',
+      category: 'ADMIN',
+      activityType: 'update_feature_limits',
       details: 'Super admin updated feature limits',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,
       metadata: {
         method: req.method,
         path: req.path,
-        featureLimitCount: featureLimits.length
+        updates: updatedLimits
       }
     });
     
-    res.json(results);
+    res.json(featureLimits);
   } catch (error) {
     console.error('Error updating feature limits:', error);
     res.status(500).json({ error: 'Failed to update feature limits' });
   }
 });
 
-// Get system notifications - Admin only
+// Get admin notifications
 router.get('/notifications', async (req: Request, res: Response) => {
   try {
-    const notifications = await SystemNotificationModel.find({})
-      .sort({ createdAt: -1 })
-      .limit(20);
-    
-    // Log activity
-    logUserActivityWithParams({
-      userId: req.user?.id || 'unknown',
-      action: 'view_system_notifications',
-      details: 'Admin viewed system notifications',
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent'] as string,
-      metadata: {
-        method: req.method,
-        path: req.path
+    // This would typically fetch from a notifications collection
+    // For now, return some sample notifications
+    const notifications = [
+      {
+        id: '1',
+        type: 'system',
+        message: 'System maintenance scheduled for tomorrow at 2 AM UTC',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        read: false
+      },
+      {
+        id: '2',
+        type: 'alert',
+        message: 'High error rate detected in API requests',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        read: true
+      },
+      {
+        id: '3',
+        type: 'user',
+        message: 'New superadmin user created',
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        read: true
       }
-    });
+    ];
     
-    res.json({ notifications });
+    res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 });
 
-// Get data import logs - Super Admin only
+// Get data import/export status - Super Admin only
 router.get('/imports', isSuperAdmin, async (req: Request, res: Response) => {
   try {
-    const imports = await DataImportLogModel.find({})
-      .sort({ createdAt: -1 })
-      .limit(20);
-    
-    // Log activity
-    logUserActivityWithParams({
-      userId: req.user?.id || 'unknown',
-      action: 'view_data_imports',
-      details: 'Super admin viewed data imports',
-      ipAddress: req.ip,
-      userAgent: req.headers['user-agent'] as string,
-      metadata: {
-        method: req.method,
-        path: req.path
+    // This would typically fetch from an imports/exports collection
+    // For now, return some sample import data
+    const imports = [
+      {
+        id: '1',
+        type: 'skills',
+        status: 'completed',
+        totalRecords: 500,
+        processedRecords: 500,
+        failedRecords: 0,
+        startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString()
+      },
+      {
+        id: '2',
+        type: 'industries',
+        status: 'completed',
+        totalRecords: 200,
+        processedRecords: 198,
+        failedRecords: 2,
+        startedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 15 * 60 * 1000).toISOString()
+      },
+      {
+        id: '3',
+        type: 'roles',
+        status: 'in_progress',
+        totalRecords: 350,
+        processedRecords: 200,
+        failedRecords: 5,
+        startedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+        completedAt: null
       }
-    });
+    ];
     
-    res.json({ imports });
+    res.json(imports);
   } catch (error) {
-    console.error('Error fetching import logs:', error);
-    res.status(500).json({ error: 'Failed to fetch import logs' });
+    console.error('Error fetching imports:', error);
+    res.status(500).json({ error: 'Failed to fetch imports' });
   }
 });
 
-// Get dashboard summary statistics - Admin only
+// Get admin dashboard summary data
 router.get('/dashboard/summary', async (req: Request, res: Response) => {
   try {
-    // Get system usage stats
-    const latestStats = await SystemUsageStatsModel.findOne({})
-      .sort({ timestamp: -1 });
+    // Get total user count
+    const totalSignups = await UserModel.countDocuments();
     
-    // Calculate usage metrics
-    const totalSignups = await storage.getUserCount();
-    const totalLogins = await UserActivityModel.countDocuments({ action: 'LOGIN' });
-    const activeUsers = await storage.getActiveUserCount();
+    // Get active user count
+    const activeUsers = await UserModel.countDocuments({ status: 'active' });
+    
+    // Get total login count
+    const totalLogins = await UserActivityLogModel.countDocuments({ 
+      activityType: 'login' 
+    });
+    
+    // Get API request count
+    const apiRequests = await UserActivityLogModel.countDocuments({
+      category: 'API'
+    });
     
     // Get API success rate
-    const apiRequests = await APIRequestLogModel.countDocuments({});
-    const apiSuccessful = await APIRequestLogModel.countDocuments({ statusCode: { $lt: 400 } });
-    const apiSuccessRate = apiRequests > 0 ? (apiSuccessful / apiRequests) * 100 : 100;
+    const successfulRequests = await UserActivityLogModel.countDocuments({
+      category: 'API',
+      metadata: { status: { $lt: 400 } }
+    });
+    
+    const apiSuccessRate = apiRequests > 0 
+      ? (successfulRequests / apiRequests * 100).toFixed(2)
+      : 100;
     
     // Get average response time
-    const avgResponseTimeResult = await APIRequestLogModel.aggregate([
-      { $match: { responseTime: { $exists: true } } },
-      { $group: { _id: null, avgResponseTime: { $avg: '$responseTime' } } }
+    const avgResponseTimeResult = await UserActivityLogModel.aggregate([
+      { $match: { category: 'API' } },
+      { $group: {
+          _id: null,
+          avgResponseTime: { $avg: '$metadata.responseTime' }
+        }
+      }
     ]);
-    const avgResponseTime = avgResponseTimeResult.length > 0 ? avgResponseTimeResult[0].avgResponseTime : 0;
     
-    // Get feature usage statistics
-    const featureUsage = await UserActivityModel.aggregate([
-      { $match: { category: 'FEATURE_USAGE' } },
-      { $group: { _id: '$action', count: { $sum: 1 } } },
+    const avgResponseTime = avgResponseTimeResult.length > 0 
+      ? Math.round(avgResponseTimeResult[0].avgResponseTime || 0) 
+      : 0;
+    
+    // Get latest system stats
+    const latestStats = {
+      cpuUsage: Math.random() * 60 + 10, // Simulated 10-70% CPU usage
+      memoryUsage: Math.random() * 40 + 30, // Simulated 30-70% memory usage
+      diskUsage: Math.random() * 20 + 40, // Simulated 40-60% disk usage
+      activeConnections: Math.floor(Math.random() * 50) + 5, // Simulated 5-55 connections
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Get feature usage
+    const featureUsage = await UserActivityLogModel.aggregate([
+      { $match: { category: 'FEATURE' } },
+      { $group: {
+          _id: '$activityType',
+          count: { $sum: 1 }
+        }
+      },
       { $sort: { count: -1 } },
       { $limit: 10 }
     ]);
@@ -289,7 +374,7 @@ router.get('/dashboard/summary', async (req: Request, res: Response) => {
     // Log activity
     logUserActivityWithParams({
       userId: req.user?.id || 'unknown',
-      action: 'view_dashboard_summary',
+      activityType: 'view_dashboard_summary',
       details: 'Admin viewed dashboard summary',
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'] as string,

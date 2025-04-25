@@ -180,8 +180,8 @@ export const userSchema = z.object({
   currentRole: z.string().optional(),
   experience: z.string().optional(),
   education: z.string().optional(),
-  skills: z.string().optional(),
-  interests: z.string().optional(),
+  skills: z.array(z.string()).optional().default([]),
+  interests: z.array(z.string()).optional().default([]),
   avatarUrl: z.string().optional(),
 });
 
