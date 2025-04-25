@@ -73,7 +73,7 @@ export class MongoDBStorage implements IStorage {
         const demoUser = new UserModel({
           fullName: "Demo User",
           email: "demo@skillgenix.com",
-          password: await hashPassword("Demo123456!"),
+          password: await hashPassword("demo123456"),
           securityQuestion: "What was the name of your first pet?",
           securityAnswer: "Buddy",
         });
