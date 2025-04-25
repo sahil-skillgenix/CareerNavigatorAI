@@ -1,28 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
+import { logSystemError } from '../models/SystemErrorLogModel';
 
 /**
- * Middleware to require admin role for protected admin routes
+ * Middleware to check if the user is authenticated and has admin role
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  // First check if user is authenticated
+  // First check if the user is authenticated
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ 
-      error: 'Authentication required', 
-      redirectTo: '/auth'
-    });
+    return res.status(401).json({ error: 'Authentication required' });
   }
   
-  // Then check if user has admin or superadmin role
-  if (
-    req.user?.role !== 'admin' && 
-    req.user?.role !== 'superadmin' && 
-    // Handle legacy admin access (in case role field not set yet)
-    req.user?.email !== 'admin@skillgenix.com'
-  ) {
-    return res.status(403).json({ 
-      error: 'Admin access required',
-      message: 'You do not have permission to access this resource'
-    });
+  // Then check if the user has admin or superadmin role
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'superadmin')) {
+    // Log unauthorized access attempt
+    logSystemError('warning', 'Unauthorized admin access attempt', {
+      userId: req.user?.id,
+      req
+    }).catch(err => console.error('Error logging unauthorized access:', err));
+    
+    return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
   }
   
   // User is authenticated and has admin role
@@ -30,27 +26,23 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Middleware to require superadmin role for highly protected admin routes
+ * Middleware to check if the user is authenticated and has superadmin role
  */
 export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
-  // First check if user is authenticated
+  // First check if the user is authenticated
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ 
-      error: 'Authentication required', 
-      redirectTo: '/auth'
-    });
+    return res.status(401).json({ error: 'Authentication required' });
   }
   
-  // Then check if user has superadmin role
-  if (
-    req.user?.role !== 'superadmin' && 
-    // Handle legacy admin access (in case role field not set yet)
-    req.user?.email !== 'admin@skillgenix.com'
-  ) {
-    return res.status(403).json({ 
-      error: 'Super admin access required',
-      message: 'You do not have permission to access this resource'
-    });
+  // Then check if the user has superadmin role
+  if (!req.user || req.user.role !== 'superadmin') {
+    // Log unauthorized access attempt
+    logSystemError('warning', 'Unauthorized superadmin access attempt', {
+      userId: req.user?.id,
+      req
+    }).catch(err => console.error('Error logging unauthorized access:', err));
+    
+    return res.status(403).json({ error: 'Access denied. Super admin privileges required.' });
   }
   
   // User is authenticated and has superadmin role
@@ -58,78 +50,133 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
 }
 
 /**
- * Middleware to handle pagination parameters
+ * Middleware to extract and normalize pagination parameters
  */
 export function paginationMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Set default values for pagination parameters
-  req.query.page = req.query.page || '1';
-  req.query.limit = req.query.limit || '20';
+  const page = parseInt(req.query.page as string || '1', 10);
+  const limit = parseInt(req.query.limit as string || '20', 10);
   
-  // Validate pagination parameters
-  const page = parseInt(req.query.page as string, 10);
-  const limit = parseInt(req.query.limit as string, 10);
-  
-  if (isNaN(page) || page < 1) {
-    req.query.page = '1';
-  }
-  
-  if (isNaN(limit) || limit < 1 || limit > 100) {
-    req.query.limit = '20';
-  }
+  // Validate and set reasonable defaults/limits
+  req.query.page = Math.max(1, page).toString();
+  req.query.limit = Math.min(Math.max(1, limit), 100).toString();
   
   next();
 }
 
 /**
- * Middleware to track API requests for monitoring
+ * Custom error handler for admin routes
  */
-export function requestTrackingMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Skip tracking for static assets
-  if (req.path.startsWith('/static/') || req.path.startsWith('/assets/')) {
-    return next();
-  }
+export function adminErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+  // Log the error
+  logSystemError('error', `Admin API error: ${err.message}`, {
+    userId: req.user?.id,
+    req,
+    error: err
+  }).catch(logErr => console.error('Error logging admin API error:', logErr));
   
-  // Set start time
-  const startTime = Date.now();
-  
-  // Once response is finished, record the request
-  res.on('finish', () => {
-    const duration = Date.now() - startTime;
-    const userId = req.user?.id || 'anonymous';
-    
-    // Log API request to database (implement using your SystemUsageStats or APIRequestLog model)
-    // This is just a placeholder - implement according to your needs
-    try {
-      // Example call pattern - adapt to your actual implementation
-      // recordApiRequest({
-      //   endpoint: req.path,
-      //   method: req.method,
-      //   statusCode: res.statusCode,
-      //   responseTime: duration,
-      //   userId,
-      //   userIP: req.ip,
-      //   success: res.statusCode < 400
-      // });
-      
-      // Log detailed request info for errors
-      if (res.statusCode >= 400) {
-        console.log(`API Request Error: ${req.method} ${req.path} - Status: ${res.statusCode} - User: ${userId} - Duration: ${duration}ms`);
-      }
-    } catch (err) {
-      console.error('Error recording API request:', err);
-    }
+  // Send appropriate error response
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'production' 
+      ? 'An unexpected error occurred' 
+      : err.message
   });
-  
-  next();
 }
 
 /**
- * Middleware to rate limit API requests
+ * Query parameter validation middleware
  */
-export function rateLimitMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Implement rate limiting based on user ID or IP address
-  // This is just a placeholder - implement according to your needs
-  // You can use the FeatureLimits functionality for more complex limiting
-  
-  next();
+export function validateQueryParams(
+  allowedParams: string[]
+) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const queryParams = Object.keys(req.query);
+    
+    // Check if any query parameters are not in the allowed list
+    const invalidParams = queryParams.filter(param => !allowedParams.includes(param));
+    
+    if (invalidParams.length > 0) {
+      return res.status(400).json({
+        error: 'Invalid query parameters',
+        invalidParams
+      });
+    }
+    
+    next();
+  };
+}
+
+/**
+ * IP allowlist middleware
+ */
+export function ipAllowlist(allowedIPs: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const clientIP = req.ip || req.connection.remoteAddress;
+    
+    // Skip IP check in development environment
+    if (process.env.NODE_ENV === 'development') {
+      return next();
+    }
+    
+    if (!clientIP || !allowedIPs.includes(clientIP)) {
+      logSystemError('warning', 'Access attempt from unauthorized IP', {
+        userId: req.user?.id,
+        req
+      }).catch(err => console.error('Error logging IP access attempt:', err));
+      
+      return res.status(403).json({
+        error: 'Access denied',
+        message: 'Your IP address is not authorized to access this resource'
+      });
+    }
+    
+    next();
+  };
+}
+
+/**
+ * Rate limiting middleware for admin actions
+ */
+const adminActionRateLimit = new Map<string, { count: number, resetTime: number }>();
+
+export function adminActionRateLimiter(
+  maxActions: number = 100,
+  windowMs: number = 60 * 60 * 1000 // 1 hour
+) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const userId = req.user.id;
+    const now = Date.now();
+    
+    // Initialize or get the user's rate limit data
+    let userData = adminActionRateLimit.get(userId);
+    
+    if (!userData || userData.resetTime < now) {
+      // Reset the counter if the time window has passed
+      userData = { count: 0, resetTime: now + windowMs };
+      adminActionRateLimit.set(userId, userData);
+    }
+    
+    // Increment the counter
+    userData.count += 1;
+    
+    // Check if the user has exceeded the rate limit
+    if (userData.count > maxActions) {
+      logSystemError('warning', 'Admin rate limit exceeded', {
+        userId,
+        req
+      }).catch(err => console.error('Error logging rate limit:', err));
+      
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'You have performed too many admin actions. Please try again later.',
+        resetIn: Math.ceil((userData.resetTime - now) / 1000 / 60) + ' minutes'
+      });
+    }
+    
+    next();
+  };
 }
