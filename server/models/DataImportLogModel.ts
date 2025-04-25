@@ -1,253 +1,183 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { DATA_IMPORT_TYPES, DATA_IMPORT_STATUS } from '../../shared/schema';
+
+// Available import types
+export type ImportType = 'skills' | 'roles' | 'industries' | 'learningResources';
+
+// Import status values
+export type ImportStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export interface DataImportLog extends Document {
-  importType: typeof DATA_IMPORT_TYPES[number];
+  importType: ImportType;
   filename: string;
-  status: typeof DATA_IMPORT_STATUS[number];
-  recordsProcessed: number;
-  recordsSucceeded: number;
-  recordsFailed: number;
-  errors?: string[];
-  importedBy: string;
-  startedAt?: Date;
-  completedAt?: Date;
+  status: ImportStatus;
+  createdBy: string;
   createdAt: Date;
+  completedAt?: Date;
+  processedRecords?: number;
+  totalRecords?: number;
+  errors?: string[];
+  notes?: string;
 }
 
-// Define data import log schema
 const DataImportLogSchema = new Schema<DataImportLog>({
   importType: { 
     type: String, 
-    enum: DATA_IMPORT_TYPES,
-    required: true
+    required: true, 
+    enum: ['skills', 'roles', 'industries', 'learningResources'] 
   },
-  filename: { 
-    type: String, 
-    required: true 
-  },
+  filename: { type: String, required: true },
   status: { 
     type: String, 
-    enum: DATA_IMPORT_STATUS,
+    required: true, 
+    enum: ['pending', 'processing', 'completed', 'failed'],
     default: 'pending'
   },
-  recordsProcessed: { 
-    type: Number, 
-    default: 0 
-  },
-  recordsSucceeded: { 
-    type: Number, 
-    default: 0 
-  },
-  recordsFailed: { 
-    type: Number, 
-    default: 0 
-  },
-  errors: [{ 
-    type: String 
-  }],
-  importedBy: { 
-    type: String, 
-    required: true 
-  },
-  startedAt: { 
-    type: Date 
-  },
-  completedAt: { 
-    type: Date 
-  },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  }
+  createdBy: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  completedAt: { type: Date },
+  processedRecords: { type: Number },
+  totalRecords: { type: Number },
+  errors: [{ type: String }],
+  notes: { type: String }
+}, { 
+  timestamps: { createdAt: true, updatedAt: false }, 
+  collection: 'dataImportLogs' 
 });
 
-// Create indices for faster lookups
-DataImportLogSchema.index({ importType: 1, createdAt: -1 });
-DataImportLogSchema.index({ importedBy: 1, createdAt: -1 });
-DataImportLogSchema.index({ status: 1 });
+// Create indexes for efficient querying
+DataImportLogSchema.index({ importType: 1, status: 1, createdAt: -1 });
+DataImportLogSchema.index({ createdBy: 1, createdAt: -1 });
 
-// Create data import log model
 export const DataImportLogModel = mongoose.model<DataImportLog>('DataImportLog', DataImportLogSchema);
 
 /**
- * Create a new data import log
+ * Create a new import log
  */
 export async function createImportLog(
-  importType: typeof DATA_IMPORT_TYPES[number],
+  importType: ImportType,
   filename: string,
-  importedBy: string
+  createdBy: string
 ): Promise<DataImportLog> {
-  try {
-    const importLog = new DataImportLogModel({
-      importType,
-      filename,
-      status: 'pending',
-      recordsProcessed: 0,
-      recordsSucceeded: 0,
-      recordsFailed: 0,
-      importedBy,
-      createdAt: new Date()
-    });
-    
-    await importLog.save();
-    return importLog;
-  } catch (error) {
-    console.error('Error creating import log:', error);
-    throw error;
-  }
+  const importLog = new DataImportLogModel({
+    importType,
+    filename,
+    createdBy,
+    status: 'pending'
+  });
+  
+  await importLog.save();
+  return importLog;
 }
 
 /**
- * Update import log status when import starts
+ * Get an import log by ID
  */
-export async function markImportStarted(importId: string): Promise<DataImportLog | null> {
-  try {
-    const updatedLog = await DataImportLogModel.findByIdAndUpdate(
-      importId,
-      {
-        status: 'in_progress',
-        startedAt: new Date()
-      },
-      { new: true }
-    );
-    
-    return updatedLog;
-  } catch (error) {
-    console.error('Error marking import as started:', error);
-    return null;
-  }
+export async function getImportLogById(id: string): Promise<DataImportLog | null> {
+  return DataImportLogModel.findById(id);
 }
 
 /**
- * Update import log status when import completes successfully
+ * Update an import log status
  */
-export async function markImportCompleted(
-  importId: string,
-  recordsProcessed: number,
-  recordsSucceeded: number,
-  recordsFailed: number = 0,
-  errors: string[] = []
+export async function updateImportStatus(
+  id: string, 
+  status: ImportStatus, 
+  updates?: {
+    processedRecords?: number;
+    totalRecords?: number;
+    errors?: string[];
+    notes?: string;
+  }
 ): Promise<DataImportLog | null> {
-  try {
-    const updatedLog = await DataImportLogModel.findByIdAndUpdate(
-      importId,
-      {
-        status: recordsFailed > 0 ? 'completed' : 'completed',
-        recordsProcessed,
-        recordsSucceeded,
-        recordsFailed,
-        errors,
-        completedAt: new Date()
-      },
-      { new: true }
-    );
-    
-    return updatedLog;
-  } catch (error) {
-    console.error('Error marking import as completed:', error);
-    return null;
+  const updateData: any = { status };
+  
+  // If status is completed or failed, set the completedAt date
+  if (status === 'completed' || status === 'failed') {
+    updateData.completedAt = new Date();
   }
+  
+  // Add any additional updates
+  if (updates) {
+    if (updates.processedRecords !== undefined) {
+      updateData.processedRecords = updates.processedRecords;
+    }
+    
+    if (updates.totalRecords !== undefined) {
+      updateData.totalRecords = updates.totalRecords;
+    }
+    
+    if (updates.errors !== undefined) {
+      updateData.errors = updates.errors;
+    }
+    
+    if (updates.notes !== undefined) {
+      updateData.notes = updates.notes;
+    }
+  }
+  
+  return DataImportLogModel.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true }
+  );
 }
 
 /**
- * Update import log status when import fails
- */
-export async function markImportFailed(
-  importId: string,
-  recordsProcessed: number = 0,
-  recordsSucceeded: number = 0,
-  recordsFailed: number = 0,
-  errors: string[] = ['Unknown error occurred']
-): Promise<DataImportLog | null> {
-  try {
-    const updatedLog = await DataImportLogModel.findByIdAndUpdate(
-      importId,
-      {
-        status: 'failed',
-        recordsProcessed,
-        recordsSucceeded,
-        recordsFailed,
-        errors,
-        completedAt: new Date()
-      },
-      { new: true }
-    );
-    
-    return updatedLog;
-  } catch (error) {
-    console.error('Error marking import as failed:', error);
-    return null;
-  }
-}
-
-/**
- * Get recent import logs with pagination
+ * Get all import logs with filtering and pagination
  */
 export async function getImportLogs(
   page: number = 1,
   limit: number = 20,
-  importType?: typeof DATA_IMPORT_TYPES[number],
-  status?: typeof DATA_IMPORT_STATUS[number]
+  importType?: ImportType,
+  status?: ImportStatus
 ): Promise<{ logs: DataImportLog[], total: number }> {
-  try {
-    const query: any = {};
-    
-    if (importType) {
-      query.importType = importType;
-    }
-    
-    if (status) {
-      query.status = status;
-    }
-    
-    const total = await DataImportLogModel.countDocuments(query);
-    const logs = await DataImportLogModel.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .exec();
-    
-    return { logs, total };
-  } catch (error) {
-    console.error('Error getting import logs:', error);
-    return { logs: [], total: 0 };
+  const query: any = {};
+  
+  if (importType) {
+    query.importType = importType;
   }
+  
+  if (status) {
+    query.status = status;
+  }
+  
+  // Get total count
+  const total = await DataImportLogModel.countDocuments(query);
+  
+  // Get paginated logs
+  const logs = await DataImportLogModel.find(query)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
+  
+  return { logs, total };
 }
 
 /**
- * Get recent import logs for a specific admin
+ * Get the most recent import log by type
  */
-export async function getImportLogsByAdmin(
-  adminId: string,
+export async function getMostRecentImport(importType: ImportType): Promise<DataImportLog | null> {
+  return DataImportLogModel.findOne({ importType })
+    .sort({ createdAt: -1 })
+    .limit(1);
+}
+
+/**
+ * Get all import logs for a specific user
+ */
+export async function getUserImportLogs(
+  userId: string,
   page: number = 1,
   limit: number = 20
 ): Promise<{ logs: DataImportLog[], total: number }> {
-  try {
-    const query = { importedBy: adminId };
-    
-    const total = await DataImportLogModel.countDocuments(query);
-    const logs = await DataImportLogModel.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .exec();
-    
-    return { logs, total };
-  } catch (error) {
-    console.error('Error getting import logs for admin:', error);
-    return { logs: [], total: 0 };
-  }
-}
-
-/**
- * Get a specific import log by ID
- */
-export async function getImportLogById(importId: string): Promise<DataImportLog | null> {
-  try {
-    return await DataImportLogModel.findById(importId);
-  } catch (error) {
-    console.error('Error getting import log by ID:', error);
-    return null;
-  }
+  // Get total count
+  const total = await DataImportLogModel.countDocuments({ createdBy: userId });
+  
+  // Get paginated logs
+  const logs = await DataImportLogModel.find({ createdBy: userId })
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
+  
+  return { logs, total };
 }

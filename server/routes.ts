@@ -24,6 +24,7 @@ import {
 } from "./services/logging-service";
 import { UserActivityModel } from "./db/models";
 import { getDatabaseStatus } from "./db/mongodb";
+import adminRoutes from "./routes/admin-routes";
 
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
   // Use provided storage or fallback to in-memory storage
@@ -1913,6 +1914,9 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       });
     }
   });
+
+  // Register admin routes
+  app.use('/api/admin', adminRoutes);
 
   const httpServer = createServer(app);
 
