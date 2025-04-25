@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -11,6 +11,12 @@ import {
   registerRateLimiter, 
   passwordResetRateLimiter 
 } from "./middleware/rate-limiter";
+import { 
+  generateToken, 
+  verifyToken, 
+  jwtAuthMiddleware 
+} from "./services/jwt-service";
+import { encryptFields, decryptFields } from "./services/encryption-service";
 
 declare global {
   namespace Express {
@@ -100,8 +106,18 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
 
       req.login(user, (err) => {
         if (err) return next(err);
+        
+        // Generate JWT token with 2 hour expiration
+        const token = generateToken(user);
+        
+        // Remove sensitive data before sending response
         const { password, securityAnswer, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
+        
+        // Send token and user data
+        res.status(201).json({
+          ...userWithoutPassword,
+          token
+        });
       });
     } catch (error) {
       next(error);
@@ -201,8 +217,18 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
       
       req.login(user, (err) => {
         if (err) return next(err);
-        const { password, ...userWithoutPassword } = user;
-        return res.status(200).json(userWithoutPassword);
+        
+        // Generate JWT token with 2 hour expiration
+        const token = generateToken(user);
+        
+        // Remove sensitive data before sending response
+        const { password, securityAnswer, ...userWithoutPassword } = user;
+        
+        // Send token and user data
+        return res.status(200).json({
+          ...userWithoutPassword,
+          token
+        });
       });
     })(req, res, next);
   });
@@ -214,9 +240,45 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     });
   });
 
+  // Add JWT auth middleware to the API routes that need protection
+  app.use("/api/user", jwtAuthMiddleware({ requireAuth: false, excludePaths: ["/api/login", "/api/register", "/api/find-account", "/api/verify-security-answer", "/api/reset-password"] }));
+  
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
+    // First check JWT authentication
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : req.cookies?.token;
+    
+    if (token) {
+      const decoded = verifyToken(token);
+      if (decoded) {
+        // Find user in database
+        storageInstance.getUser(decoded.userId)
+          .then(user => {
+            if (!user) {
+              return res.status(401).json({ message: "User not found" });
+            }
+            const { password, securityAnswer, ...userWithoutPassword } = user;
+            return res.json({
+              ...userWithoutPassword,
+              token  // Return the token for auto-refresh on client
+            });
+          })
+          .catch(err => {
+            console.error("JWT user lookup error:", err);
+            return res.status(500).json({ message: "Error retrieving user data" });
+          });
+        return;
+      }
+    }
+    
+    // Fall back to session-based authentication
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const { password, securityAnswer, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
   });
 }
