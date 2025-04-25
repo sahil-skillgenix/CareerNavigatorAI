@@ -76,11 +76,9 @@ export async function logUserActivityWithParams(params: UserActivityLog) {
     // Create the activity log
     const activityLog = new UserActivityModel({
       userId: userId,
-      action,
-      details,
+      activityType: action, // Map action to activityType for compatibility
+      details: typeof details === 'string' ? { message: details } : details || {}, // Convert string to object if needed
       timestamp: new Date(),
-      targetUserId: targetUserId,
-      metadata: metadata || {},
       ipAddress: ipAddress,
       userAgent: userAgent
     });
@@ -122,7 +120,7 @@ export async function getUserActivityLogs(
     }
     
     if (actions && actions.length > 0) {
-      filter.action = { $in: actions };
+      filter.activityType = { $in: actions };
     }
     
     // Add date range filter if provided
@@ -187,7 +185,7 @@ export async function getUserActivitySummary(userId: string, days: number = 30) 
       },
       {
         $group: {
-          _id: '$action',
+          _id: '$activityType',
           count: { $sum: 1 },
           lastActivity: { $max: '$timestamp' }
         }
@@ -261,13 +259,13 @@ export async function logUserActivity(
   try {
     const activityLog = new UserActivityModel({
       userId: userId,
-      action: activityType,
-      details: `${action}: ${status}`,
-      timestamp: new Date(),
-      metadata: {
+      activityType: activityType, // Use activityType field instead of action
+      details: { 
+        message: `${action}: ${status}`,
         ...metadata,
-        status
+        status 
       },
+      timestamp: new Date(),
       ipAddress: req.ip,
       userAgent: req.headers['user-agent']
     });
