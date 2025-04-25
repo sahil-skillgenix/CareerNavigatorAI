@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logSystemError } from '../models/SystemErrorLogModel';
+import { logError } from '../services/logging-service';
 
 /**
  * Middleware to check if the user is authenticated and has admin role
@@ -13,9 +13,14 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   // Then check if the user has admin or superadmin role
   if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'superadmin')) {
     // Log unauthorized access attempt
-    logSystemError('warning', 'Unauthorized admin access attempt', {
+    logError({
+      message: 'Unauthorized admin access attempt',
+      severity: 'medium',
+      category: 'security',
       userId: req.user?.id,
-      req
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: { path: req.path }
     }).catch(err => console.error('Error logging unauthorized access:', err));
     
     return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
@@ -37,9 +42,14 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
   // Then check if the user has superadmin role
   if (!req.user || req.user.role !== 'superadmin') {
     // Log unauthorized access attempt
-    logSystemError('warning', 'Unauthorized superadmin access attempt', {
+    logError({
+      message: 'Unauthorized superadmin access attempt',
+      severity: 'high',
+      category: 'security',
       userId: req.user?.id,
-      req
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'] as string,
+      metadata: { path: req.path }
     }).catch(err => console.error('Error logging unauthorized access:', err));
     
     return res.status(403).json({ error: 'Access denied. Super admin privileges required.' });
@@ -68,10 +78,17 @@ export function paginationMiddleware(req: Request, res: Response, next: NextFunc
  */
 export function adminErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   // Log the error
-  logSystemError('error', `Admin API error: ${err.message}`, {
+  logError({
+    message: `Admin API error: ${err.message}`,
+    severity: 'high',
+    category: 'api',
     userId: req.user?.id,
-    req,
-    error: err
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'] as string,
+    endpoint: req.path,
+    method: req.method,
+    stack: err.stack,
+    metadata: { error: err }
   }).catch(logErr => console.error('Error logging admin API error:', logErr));
   
   // Send appropriate error response
@@ -119,9 +136,16 @@ export function ipAllowlist(allowedIPs: string[]) {
     }
     
     if (!clientIP || !allowedIPs.includes(clientIP)) {
-      logSystemError('warning', 'Access attempt from unauthorized IP', {
+      logError({
+        message: 'Access attempt from unauthorized IP',
+        severity: 'medium',
+        category: 'security',
         userId: req.user?.id,
-        req
+        ipAddress: clientIP,
+        userAgent: req.headers['user-agent'] as string,
+        endpoint: req.path,
+        method: req.method,
+        metadata: { allowedIPs }
       }).catch(err => console.error('Error logging IP access attempt:', err));
       
       return res.status(403).json({
@@ -165,9 +189,16 @@ export function adminActionRateLimiter(
     
     // Check if the user has exceeded the rate limit
     if (userData.count > maxActions) {
-      logSystemError('warning', 'Admin rate limit exceeded', {
-        userId,
-        req
+      logError({
+        message: 'Admin rate limit exceeded',
+        severity: 'medium',
+        category: 'security',
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] as string,
+        endpoint: req.path,
+        method: req.method,
+        metadata: { maxActions, count: userData.count, windowMs }
       }).catch(err => console.error('Error logging rate limit:', err));
       
       return res.status(429).json({

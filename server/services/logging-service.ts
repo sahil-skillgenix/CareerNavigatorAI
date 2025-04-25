@@ -1,325 +1,647 @@
-import { Request, Response } from 'express';
-import { ErrorLogModel, UserActivityModel, APIRequestLogModel } from '../db/models';
-import { log } from '../vite';
+import mongoose from 'mongoose';
+import { UserActivityModel, UserActivity, type UserActivityType } from '../models/UserActivityModel';
+import { SystemErrorLogModel, type ErrorSeverity, type ErrorCategory } from '../models/SystemErrorLogModel';
+import { APIRequestLogModel, type RequestStatus } from '../models/APIRequestLogModel';
 
-/**
- * Logs error information to both console and database
- */
-export async function logError(options: {
-  level: "error" | "warn" | "info" | "debug";
-  message: string;
-  stack?: string;
-  context?: Record<string, any>;
-  req?: Request;
-}) {
-  const { level, message, stack, context, req } = options;
-  
-  try {
-    // Log to console first
-    log(`${level.toUpperCase()}: ${message}${stack ? '\n' + stack : ''}`, "error");
-    
-    // Create structured log object
-    const errorLog = {
-      level,
-      message,
-      stack,
-      context,
-      timestamp: new Date()
-    };
-    
-    // Add request information if available
-    if (req) {
-      Object.assign(errorLog, {
-        userId: req.user?.id,
-        userAgent: req.headers['user-agent'],
-        ipAddress: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-        endpoint: req.originalUrl,
-        requestMethod: req.method,
-        requestBody: req.body,
-      });
-    }
-    
-    // Save to database asynchronously
-    await ErrorLogModel.create(errorLog);
-  } catch (error) {
-    // Fallback to console-only logging if database insertion fails
-    log(`Failed to save error log to database: ${error}`, "error");
-    log(`Original error: ${message}${stack ? '\n' + stack : ''}`, "error");
-  }
-}
-
-/**
- * Logs user activity to database
- */
-export async function logUserActivity(options: {
+// Interface for the log user activity function
+export interface UserActivityLog {
   userId: string;
-  activityType: string;
-  details?: Record<string, any>;
-  req?: Request;
-}) {
-  const { userId, activityType, details, req } = options;
-  
+  action: UserActivityType;
+  details?: string;
+  targetUserId?: string;
+  metadata?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+/**
+ * Log user activity for auditing and monitoring
+ * 
+ * @param params Activity parameters
+ * @returns The saved activity log
+ */
+export async function logUserActivityWithParams(params: UserActivityLog) {
   try {
-    // Create structured log object
-    const activityLog = {
+    const {
       userId,
-      activityType,
+      action,
       details,
-      timestamp: new Date()
-    };
+      targetUserId,
+      metadata,
+      ipAddress,
+      userAgent
+    } = params;
+
+    // Create the activity log
+    const activityLog = new UserActivityModel({
+      userId: userId,
+      action,
+      details,
+      timestamp: new Date(),
+      targetUserId: targetUserId,
+      metadata: metadata || {},
+      ipAddress: ipAddress,
+      userAgent: userAgent
+    });
+
+    // Save and return the log
+    return await activityLog.save();
+  } catch (error) {
+    console.error('Error logging user activity:', error);
+    // Don't throw, just log the error - activity logging should never block application flow
+    return null;
+  }
+}
+
+/**
+ * Get user activity logs with pagination
+ * 
+ * @param userId User ID to filter by (optional)
+ * @param page Page number (starting from 1)
+ * @param limit Number of items per page
+ * @param actions Array of action types to filter by (optional)
+ * @param startDate Start date to filter by (optional)
+ * @param endDate End date to filter by (optional)
+ * @returns Object with logs array and total count
+ */
+export async function getUserActivityLogs(
+  userId?: string,
+  page: number = 1,
+  limit: number = 20,
+  actions?: UserActivityType[],
+  startDate?: Date,
+  endDate?: Date
+) {
+  try {
+    // Build filter
+    const filter: any = {};
     
-    // Add request information if available
-    if (req) {
-      Object.assign(activityLog, {
-        userAgent: req.headers['user-agent'],
-        ipAddress: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-      });
+    if (userId) {
+      filter.userId = userId;
     }
     
-    // Save to database asynchronously
-    await UserActivityModel.create(activityLog);
+    if (actions && actions.length > 0) {
+      filter.action = { $in: actions };
+    }
+    
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filter.timestamp = {};
+      
+      if (startDate) {
+        filter.timestamp.$gte = startDate;
+      }
+      
+      if (endDate) {
+        filter.timestamp.$lte = endDate;
+      }
+    }
+    
+    // Calculate skip value for pagination
+    const skip = (Math.max(1, page) - 1) * limit;
+    
+    // Get total count
+    const total = await UserActivityModel.countDocuments(filter);
+    
+    // Get paginated logs
+    const logs = await UserActivityModel.find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    return {
+      logs,
+      total
+    };
   } catch (error) {
-    // Log error but don't disrupt the user's flow
-    log(`Failed to log user activity: ${error}`, "error");
+    console.error('Error getting user activity logs:', error);
+    return {
+      logs: [],
+      total: 0
+    };
   }
 }
 
 /**
- * Logs API request details to database
+ * Get activity summary for a user
+ * 
+ * @param userId User ID
+ * @param days Number of days to look back
+ * @returns Summary of user activities
  */
-export async function logAPIRequest(options: {
-  req: Request;
-  res: Response;
-  responseTimeMs: number;
-}) {
-  const { req, res, responseTimeMs } = options;
+export async function getUserActivitySummary(userId: string, days: number = 30) {
+  try {
+    // Calculate date threshold
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Aggregation pipeline
+    const summary = await UserActivityModel.aggregate([
+      {
+        $match: {
+          userId,
+          timestamp: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: '$action',
+          count: { $sum: 1 },
+          lastActivity: { $max: '$timestamp' }
+        }
+      },
+      {
+        $sort: { lastActivity: -1 }
+      }
+    ]);
+    
+    // Count total activities
+    const totalActivities = await UserActivityModel.countDocuments({
+      userId,
+      timestamp: { $gte: startDate }
+    });
+    
+    // Format response
+    return {
+      userId,
+      period: `Last ${days} days`,
+      totalActivities,
+      startDate: startDate.toISOString(),
+      endDate: new Date().toISOString(),
+      activityBreakdown: summary.map((item: any) => ({
+        action: item._id,
+        count: item.count,
+        lastActivity: item.lastActivity.toISOString()
+      }))
+    };
+  } catch (error) {
+    console.error('Error getting user activity summary:', error);
+    const errorStartDate = new Date();
+    errorStartDate.setDate(errorStartDate.getDate() - days);
+    return {
+      userId,
+      period: `Last ${days} days`,
+      totalActivities: 0,
+      startDate: errorStartDate.toISOString(),
+      endDate: new Date().toISOString(),
+      activityBreakdown: []
+    };
+  }
+}
+
+/**
+ * Legacy function to support existing auth.ts implementation
+ * 
+ * @param userId The user ID
+ * @param action The action type
+ * @param status 'success' or 'failure'
+ * @param req Express request object (for IP and user agent)
+ * @param metadata Additional data to log
+ * @returns The saved activity log
+ */
+export async function logUserActivity(
+  userId: string,
+  action: string,
+  status: 'success' | 'failure',
+  req: any,
+  metadata: Record<string, any> = {}
+) {
+  // Map old action format to new UserActivityType
+  let activityType: UserActivityType = 'other';
+  
+  if (action === 'register') activityType = 'login_success';
+  if (action === 'login') activityType = 'login_success';
+  if (action === 'login_attempt' && status === 'failure') activityType = 'login_failure';
+  if (action === 'logout') activityType = 'logout';
+  if (action === 'password_reset_complete') activityType = 'password_reset';
+  if (action === 'security_answer_verification') activityType = 'security_question_update';
   
   try {
-    // Create structured log object
-    const apiLog = {
-      endpoint: req.originalUrl,
-      method: req.method,
-      userId: req.user?.id,
-      statusCode: res.statusCode,
-      responseTimeMs,
-      userAgent: req.headers['user-agent'],
-      ipAddress: req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-      queryParams: req.query,
-      requestBody: req.method !== 'GET' ? req.body : undefined,
-      timestamp: new Date()
-    };
-    
-    // Save to database asynchronously - don't await to avoid impacting response time
-    APIRequestLogModel.create(apiLog).catch(error => {
-      log(`Failed to log API request: ${error}`, "error");
+    const activityLog = new UserActivityModel({
+      userId: userId,
+      action: activityType,
+      details: `${action}: ${status}`,
+      timestamp: new Date(),
+      metadata: {
+        ...metadata,
+        status
+      },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
     });
+
+    // Save and return the log
+    return await activityLog.save();
   } catch (error) {
-    // Log error but don't disrupt the response
-    log(`Failed to log API request: ${error}`, "error");
+    console.error('Error logging user activity:', error);
+    // Don't throw, just log the error - activity logging should never block application flow
+    return null;
   }
 }
 
 /**
- * Express middleware to log API requests
+ * Get user activity history for a specific user
+ * 
+ * @param userId User ID
+ * @param limit Number of records to return
+ * @returns Array of user activity logs
  */
-export function apiRequestLogger() {
-  return (req: Request, res: Response, next: Function) => {
-    // Record request start time
-    const startTime = Date.now();
-    
-    // Once the response is finished, log the API request
-    res.on('finish', () => {
-      const responseTimeMs = Date.now() - startTime;
-      logAPIRequest({ req, res, responseTimeMs });
-    });
-    
-    next();
-  };
-}
-
-/**
- * Express error handling middleware that logs errors
- */
-export function errorLogger() {
-  return (err: any, req: Request, res: Response, next: Function) => {
-    // Log the error
-    logError({
-      level: 'error',
-      message: err.message || 'Unknown error occurred',
-      stack: err.stack,
-      context: { originalUrl: req.originalUrl },
-      req
-    });
-    
-    // Continue to the next error handler
-    next(err);
-  };
-}
-
-/**
- * Express middleware that logs user authentication events
- */
-export function authEventLogger() {
-  return (req: Request, res: Response, next: Function) => {
-    // Store original methods
-    const originalLogin = req.login;
-    const originalLogout = req.logout;
-    
-    // Override login method to log successful logins
-    // Handle all the function overloads
-    req.login = function(user: any, optionsOrDone?: any, done?: any) {
-      let options: any;
-      let callback: (err: any) => void;
-      
-      // Handle different call signatures
-      if (typeof optionsOrDone === 'function') {
-        options = {};
-        callback = optionsOrDone;
-      } else {
-        options = optionsOrDone || {};
-        callback = done;
-      }
-      
-      // Call original login method
-      return originalLogin.call(this, user, options, (err: any) => {
-        if (!err && user) {
-          // Log successful login
-          const userId = user.id?.toString() || '';
-          if (userId) {
-            logUserActivity({
-              userId,
-              activityType: 'login',
-              req
-            });
-          }
-        }
-        
-        // Continue with original callback
-        if (callback) return callback(err);
-      });
-    };
-    
-    // Override logout method to log logouts
-    req.logout = function(done?: any) {
-      // Get user ID before logout
-      const userId = req.user?.id?.toString() || '';
-      
-      // Passport.js expects a callback function
-      if (typeof done !== 'function') {
-        done = (err: any) => {
-          if (err) console.error("Error during logout:", err);
-        };
-      }
-      
-      // Call original logout method with appropriate argument
-      return originalLogout.call(this, (err: any) => {
-        if (!err && userId) {
-          // Log successful logout
-          logUserActivity({
-            userId,
-            activityType: 'logout',
-            req
-          }).catch(e => console.error("Error logging logout:", e));
-        }
-        
-        // Continue with original callback
-        return done(err);
-      });
-    };
-    
-    next();
-  };
-}
-
-/**
- * Gets the most recent user activities for a specific user
- */
-export async function getUserActivityHistory(userId: string, limit: number = 50) {
+export async function getUserActivityHistory(userId: string, limit: number = 20) {
   try {
     return await UserActivityModel.find({ userId })
       .sort({ timestamp: -1 })
-      .limit(limit);
+      .limit(limit)
+      .lean();
   } catch (error) {
-    log(`Failed to fetch user activity history: ${error}`, "error");
+    console.error('Error fetching user activity history:', error);
     return [];
   }
 }
 
-/**
- * Gets error logs filtered by various criteria
- */
-export async function getErrorLogs(options: {
-  level?: string;
-  userId?: string;
-  endpoint?: string;
-  startDate?: Date;
-  endDate?: Date;
-  limit?: number;
-}) {
-  const { level, userId, endpoint, startDate, endDate, limit = 100 } = options;
-  
-  // Build query filter
-  const filter: any = {};
-  if (level) filter.level = level;
-  if (userId) filter.userId = userId;
-  if (endpoint) filter.endpoint = { $regex: endpoint, $options: 'i' };
-  
-  // Add date range if provided
-  if (startDate || endDate) {
-    filter.timestamp = {};
-    if (startDate) filter.timestamp.$gte = startDate;
-    if (endDate) filter.timestamp.$lte = endDate;
-  }
-  
-  try {
-    return await ErrorLogModel.find(filter)
-      .sort({ timestamp: -1 })
-      .limit(limit);
-  } catch (error) {
-    log(`Failed to fetch error logs: ${error}`, "error");
-    return [];
-  }
-}
-
-/**
- * Gets API request logs filtered by various criteria
- */
-export async function getAPIRequestLogs(options: {
+// Interface for error log parameters
+export interface ErrorLogParams {
+  message: string;
+  stack?: string;
+  code?: string;
+  severity?: ErrorSeverity;
+  category?: ErrorCategory;
   endpoint?: string;
   method?: string;
   userId?: string;
-  statusCode?: number;
-  minResponseTime?: number;
+  userAgent?: string;
+  ipAddress?: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Log a system error
+ * 
+ * @param params Error parameters
+ * @returns The saved error log
+ */
+export async function logError(params: ErrorLogParams) {
+  try {
+    const {
+      message,
+      stack,
+      code,
+      severity = 'medium',
+      category = 'other',
+      endpoint,
+      method,
+      userId,
+      userAgent,
+      ipAddress,
+      metadata
+    } = params;
+
+    // Create the error log
+    const errorLog = new SystemErrorLogModel({
+      message,
+      stack,
+      code,
+      timestamp: new Date(),
+      severity,
+      category,
+      endpoint,
+      method,
+      userId,
+      userAgent,
+      ipAddress,
+      resolved: false,
+      metadata: metadata || {}
+    });
+
+    // Save and return the log
+    return await errorLog.save();
+  } catch (error) {
+    console.error('Error logging system error:', error);
+    // Don't throw, just log to console - error logging should never fail
+    return null;
+  }
+}
+
+// Interface for error log query parameters
+export interface ErrorLogQueryParams {
+  page?: number;
+  limit?: number;
+  severity?: ErrorSeverity[];
+  category?: ErrorCategory[];
+  resolved?: boolean;
+  userId?: string;
   startDate?: Date;
   endDate?: Date;
-  limit?: number;
-}) {
-  const { 
-    endpoint, method, userId, statusCode, 
-    minResponseTime, startDate, endDate, limit = 100 
-  } = options;
-  
-  // Build query filter
-  const filter: any = {};
-  if (endpoint) filter.endpoint = { $regex: endpoint, $options: 'i' };
-  if (method) filter.method = method;
-  if (userId) filter.userId = userId;
-  if (statusCode) filter.statusCode = statusCode;
-  if (minResponseTime) filter.responseTimeMs = { $gte: minResponseTime };
-  
-  // Add date range if provided
-  if (startDate || endDate) {
-    filter.timestamp = {};
-    if (startDate) filter.timestamp.$gte = startDate;
-    if (endDate) filter.timestamp.$lte = endDate;
-  }
-  
+  searchTerm?: string;
+}
+
+/**
+ * Get error logs with pagination and filtering
+ * 
+ * @param params Query parameters
+ * @returns Object with logs array and total count
+ */
+export async function getErrorLogs(params: ErrorLogQueryParams = {}) {
   try {
-    return await APIRequestLogModel.find(filter)
+    const {
+      page = 1,
+      limit = 20,
+      severity,
+      category,
+      resolved,
+      userId,
+      startDate,
+      endDate,
+      searchTerm
+    } = params;
+
+    // Build filter
+    const filter: any = {};
+
+    if (severity && severity.length > 0) {
+      filter.severity = { $in: severity };
+    }
+
+    if (category && category.length > 0) {
+      filter.category = { $in: category };
+    }
+
+    if (resolved !== undefined) {
+      filter.resolved = resolved;
+    }
+
+    if (userId) {
+      filter.userId = userId;
+    }
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filter.timestamp = {};
+      
+      if (startDate) {
+        filter.timestamp.$gte = startDate;
+      }
+      
+      if (endDate) {
+        filter.timestamp.$lte = endDate;
+      }
+    }
+
+    // Add text search if provided
+    if (searchTerm) {
+      filter.$or = [
+        { message: { $regex: searchTerm, $options: 'i' } },
+        { code: { $regex: searchTerm, $options: 'i' } }
+      ];
+    }
+
+    // Calculate skip value for pagination
+    const skip = (Math.max(1, page) - 1) * limit;
+    
+    // Get total count
+    const total = await SystemErrorLogModel.countDocuments(filter);
+    
+    // Get paginated logs
+    const logs = await SystemErrorLogModel.find(filter)
       .sort({ timestamp: -1 })
-      .limit(limit);
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    return {
+      logs,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit
+    };
   } catch (error) {
-    log(`Failed to fetch API request logs: ${error}`, "error");
-    return [];
+    console.error('Error getting error logs:', error);
+    return {
+      logs: [],
+      total: 0,
+      page: 1,
+      pages: 0,
+      limit: 20
+    };
+  }
+}
+
+// Interface for API request log query parameters
+export interface APIRequestLogQueryParams {
+  page?: number;
+  limit?: number;
+  status?: number[];
+  requestStatus?: RequestStatus[];
+  userId?: string;
+  endpoint?: string;
+  method?: string;
+  startDate?: Date;
+  endDate?: Date;
+  minDuration?: number;
+  maxDuration?: number;
+}
+
+/**
+ * Get API request logs with pagination and filtering
+ * 
+ * @param params Query parameters
+ * @returns Object with logs array and total count
+ */
+export async function getAPIRequestLogs(params: APIRequestLogQueryParams = {}) {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      status,
+      requestStatus,
+      userId,
+      endpoint,
+      method,
+      startDate,
+      endDate,
+      minDuration,
+      maxDuration
+    } = params;
+
+    // Build filter
+    const filter: any = {};
+
+    if (status && status.length > 0) {
+      filter.status = { $in: status };
+    }
+
+    if (requestStatus && requestStatus.length > 0) {
+      filter.requestStatus = { $in: requestStatus };
+    }
+
+    if (userId) {
+      filter.userId = userId;
+    }
+
+    if (endpoint) {
+      filter.endpoint = { $regex: endpoint, $options: 'i' };
+    }
+
+    if (method) {
+      filter.method = method.toUpperCase();
+    }
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filter.timestamp = {};
+      
+      if (startDate) {
+        filter.timestamp.$gte = startDate;
+      }
+      
+      if (endDate) {
+        filter.timestamp.$lte = endDate;
+      }
+    }
+
+    // Add duration filter if provided
+    if (minDuration !== undefined || maxDuration !== undefined) {
+      filter.duration = {};
+      
+      if (minDuration !== undefined) {
+        filter.duration.$gte = minDuration;
+      }
+      
+      if (maxDuration !== undefined) {
+        filter.duration.$lte = maxDuration;
+      }
+    }
+
+    // Calculate skip value for pagination
+    const skip = (Math.max(1, page) - 1) * limit;
+    
+    // Get total count
+    const total = await APIRequestLogModel.countDocuments(filter);
+    
+    // Get paginated logs
+    const logs = await APIRequestLogModel.find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    return {
+      logs,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit
+    };
+  } catch (error) {
+    console.error('Error getting API request logs:', error);
+    return {
+      logs: [],
+      total: 0,
+      page: 1,
+      pages: 0,
+      limit: 20
+    };
+  }
+}
+
+/**
+ * Get error summary statistics for a given time period
+ * 
+ * @param days Number of days to look back (default: 30)
+ * @returns Object with error count by severity, category, and daily trend
+ */
+export async function getErrorSummary(days: number = 30) {
+  try {
+    // Calculate start date
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Base query for the date range
+    const dateQuery = { timestamp: { $gte: startDate } };
+    
+    // Get total error count
+    const totalCount = await SystemErrorLogModel.countDocuments(dateQuery);
+    
+    // Get count by severity
+    const countBySeverity = await SystemErrorLogModel.aggregate([
+      { $match: dateQuery },
+      { $group: { _id: '$severity', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    
+    // Get count by category
+    const countByCategory = await SystemErrorLogModel.aggregate([
+      { $match: dateQuery },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    
+    // Get daily trend
+    const dailyTrend = await SystemErrorLogModel.aggregate([
+      { $match: dateQuery },
+      { 
+        $group: { 
+          _id: { 
+            year: { $year: '$timestamp' },
+            month: { $month: '$timestamp' },
+            day: { $dayOfMonth: '$timestamp' }
+          },
+          count: { $sum: 1 },
+          criticalCount: { 
+            $sum: { $cond: [{ $eq: ['$severity', 'critical'] }, 1, 0] }
+          } 
+        } 
+      },
+      { 
+        $project: {
+          _id: 0,
+          date: { 
+            $dateFromParts: { 
+              year: '$_id.year', 
+              month: '$_id.month', 
+              day: '$_id.day'
+            } 
+          },
+          count: 1,
+          criticalCount: 1
+        }
+      },
+      { $sort: { date: 1 } }
+    ]);
+    
+    // Get resolved vs. unresolved count
+    const resolvedCount = await SystemErrorLogModel.countDocuments({ 
+      ...dateQuery, 
+      resolved: true 
+    });
+    
+    const unresolvedCount = totalCount - resolvedCount;
+    
+    // Return summary object
+    return {
+      totalCount,
+      countBySeverity: countBySeverity.map(item => ({
+        severity: item._id,
+        count: item.count
+      })),
+      countByCategory: countByCategory.map(item => ({
+        category: item._id,
+        count: item.count
+      })),
+      dailyTrend,
+      resolvedCount,
+      unresolvedCount
+    };
+  } catch (error) {
+    console.error('Error getting error summary:', error);
+    return {
+      totalCount: 0,
+      countBySeverity: [],
+      countByCategory: [],
+      dailyTrend: [],
+      resolvedCount: 0,
+      unresolvedCount: 0
+    };
   }
 }

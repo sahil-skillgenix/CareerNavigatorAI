@@ -15,9 +15,9 @@ import {
   updateImportStatus
 } from '../models/DataImportLogModel';
 import { 
-  getErrorLogs,
-  getErrorSummary
-} from '../models/SystemErrorLogModel';
+  getErrorLogs
+} from '../services/logging-service';
+import { SystemErrorLogModel } from '../models/SystemErrorLogModel';
 import {
   getAggregatedStats
 } from '../models/SystemUsageStatsModel';
@@ -30,6 +30,9 @@ import {
   getUserFeatureLimit,
   initializeDefaultFeatureLimits
 } from '../models/FeatureLimitsModel';
+
+// Import admin user management routes
+import userManagementRoutes from './admin-user-management';
 
 // Import any other necessary services or models
 // ...
@@ -47,6 +50,9 @@ adminRouter.use([
   '/users'
 ], paginationMiddleware);
 
+// Mount user management routes
+adminRouter.use('/user-management', userManagementRoutes);
+
 // Dashboard summary route
 adminRouter.get('/dashboard/summary', async (req: Request, res: Response) => {
   try {
@@ -60,7 +66,11 @@ adminRouter.get('/dashboard/summary', async (req: Request, res: Response) => {
     const notificationStats = await getNotificationStats();
     
     // Get error summary
-    const errorSummary = await getErrorSummary(days);
+    const errorSummary = await getErrorLogs({
+      page: 1,
+      limit: 1,
+      startDate: new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+    });
     
     // Return comprehensive dashboard data
     res.json({
@@ -250,7 +260,8 @@ adminRouter.get('/errors', async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string || '1', 10);
     const limit = parseInt(req.query.limit as string || '50', 10);
-    const level = req.query.level as any;
+    const severity = req.query.severity as any;
+    const category = req.query.category as any;
     const userId = req.query.userId as string;
     
     // Parse date ranges if provided
@@ -265,22 +276,23 @@ adminRouter.get('/errors', async (req: Request, res: Response) => {
       endDate = new Date(req.query.endDate as string);
     }
     
-    const { logs, total } = await getErrorLogs(
+    const result = await getErrorLogs({
       page,
       limit,
-      level,
+      severity: severity ? [severity] : undefined,
+      category: category ? [category] : undefined,
       userId,
       startDate,
       endDate
-    );
+    });
     
     res.json({
-      errors: logs,
+      errors: result.logs,
       pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        pages: result.pages
       }
     });
   } catch (error) {
@@ -292,7 +304,37 @@ adminRouter.get('/errors', async (req: Request, res: Response) => {
 adminRouter.get('/errors/summary', async (req: Request, res: Response) => {
   try {
     const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
-    const summary = await getErrorSummary(days);
+    
+    // For now, just return a simpler summary until we implement the full getErrorSummary
+    // Calculate start date for the summary period
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Get total errors in this period
+    const totalErrors = await SystemErrorLogModel.countDocuments({
+      timestamp: { $gte: startDate }
+    });
+    
+    // Get critical errors count
+    const criticalErrors = await SystemErrorLogModel.countDocuments({
+      timestamp: { $gte: startDate },
+      severity: 'critical'
+    });
+    
+    // Get unresolved errors
+    const unresolvedErrors = await SystemErrorLogModel.countDocuments({
+      timestamp: { $gte: startDate },
+      resolved: false
+    });
+    
+    const summary = {
+      period: `Last ${days} days`,
+      totalErrors,
+      criticalErrors,
+      unresolvedErrors,
+      resolvedErrors: totalErrors - unresolvedErrors
+    };
+    
     res.json(summary);
   } catch (error) {
     console.error('Error getting error summary:', error);

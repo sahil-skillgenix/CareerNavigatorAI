@@ -1,151 +1,201 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
-export interface UserActivity extends Document {
+// Possible user activity types
+export type UserActivityType = 
+  // Authentication activities
+  | 'login_success'
+  | 'login_failure'
+  | 'logout'
+  | 'password_reset'
+  | 'password_change'
+  | 'email_update'
+  | 'security_question_update'
+  | 'profile_update'
+  // Admin activities
+  | 'created_admin_user'
+  | 'updated_user_role'
+  | 'reset_user_password'
+  | 'suspended_user'
+  | 'reactivated_user'
+  | 'deleted_user'
+  // Feature limit activities
+  | 'set_feature_limit'
+  | 'removed_feature_limit'
+  // Career-related activities
+  | 'created_career_analysis'
+  | 'updated_career_progress'
+  | 'completed_career_milestone'
+  | 'downloaded_career_report'
+  | 'searched_skills'
+  | 'searched_roles'
+  | 'searched_industries'
+  // Data import/export activities
+  | 'imported_data'
+  | 'exported_data'
+  // API related
+  | 'api_request'
+  | 'api_rate_limit_exceeded'
+  // Other
+  | 'other';
+
+// User activity interface
+export interface UserActivity {
+  id: string;
   userId: string;
-  action: string;
+  action: UserActivityType;
+  details?: string;
   timestamp: Date;
+  targetUserId?: string;
+  metadata: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
-  details?: Record<string, any>;
-  status: 'success' | 'failure' | 'warning' | 'info';
 }
 
-// Define user activity schema for MongoDB
-const UserActivitySchema = new Schema<UserActivity>({
-  userId: { 
-    type: String, 
-    required: true, 
-    index: true 
+// Mongoose document interface
+export interface UserActivityDocument extends Omit<UserActivity, 'id'>, Document {
+  _id: mongoose.Types.ObjectId;
+}
+
+// Mongoose schema
+const userActivitySchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    required: true,
+    index: true
   },
-  action: { 
-    type: String, 
+  action: {
+    type: String,
     required: true,
     enum: [
-      'login', 
-      'login_attempt', 
-      'logout', 
-      'register', 
-      'password_reset_request', 
-      'password_reset_complete',
-      'security_answer_verification',
-      'account_update',
-      'data_export'
-    ]
+      // Authentication
+      'login_success',
+      'login_failure',
+      'logout',
+      'password_reset',
+      'password_change',
+      'email_update',
+      'security_question_update',
+      'profile_update',
+      // Admin
+      'created_admin_user',
+      'updated_user_role',
+      'reset_user_password',
+      'suspended_user',
+      'reactivated_user',
+      'deleted_user',
+      // Feature limits
+      'set_feature_limit',
+      'removed_feature_limit',
+      // Career-related
+      'created_career_analysis',
+      'updated_career_progress',
+      'completed_career_milestone',
+      'downloaded_career_report',
+      'searched_skills',
+      'searched_roles',
+      'searched_industries',
+      // Data import/export
+      'imported_data',
+      'exported_data',
+      // API
+      'api_request',
+      'api_rate_limit_exceeded',
+      // Other
+      'other'
+    ],
+    index: true
   },
-  timestamp: { 
-    type: Date, 
-    default: Date.now, 
-    index: true 
+  details: {
+    type: String
   },
-  ipAddress: { 
-    type: String 
+  timestamp: {
+    type: Date,
+    default: Date.now,
+    index: true
   },
-  userAgent: { 
-    type: String 
+  targetUserId: {
+    type: String,
+    index: true
   },
-  details: { 
-    type: Schema.Types.Mixed 
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
-  status: { 
-    type: String, 
-    required: true,
-    enum: ['success', 'failure', 'warning', 'info'],
-    default: 'info' 
+  ipAddress: {
+    type: String
+  },
+  userAgent: {
+    type: String
   }
 });
 
-// Create activity log model
-export const UserActivityModel = mongoose.model<UserActivity>('UserActivity', UserActivitySchema);
+// Create indexes for efficient querying
+userActivitySchema.index({ userId: 1, timestamp: -1 });
+userActivitySchema.index({ action: 1, timestamp: -1 });
 
-/**
- * Create a new user activity log entry
- */
-export async function logUserActivity(
-  userId: string, 
-  action: string, 
-  status: 'success' | 'failure' | 'warning' | 'info', 
-  req?: any, 
-  details?: Record<string, any>
-): Promise<UserActivity> {
-  try {
-    // Gather basic information
-    const activityData: Partial<UserActivity> = {
-      userId,
-      action,
-      timestamp: new Date(),
-      status,
-      details
-    };
+// Create model
+export const UserActivityModel = mongoose.model<UserActivityDocument>(
+  'UserActivity',
+  userActivitySchema
+);
 
-    // If request object is provided, extract IP and user agent
-    if (req) {
-      // Get IP address (accounting for proxies)
-      activityData.ipAddress = req.headers['x-forwarded-for'] || 
-                              req.connection?.remoteAddress || 
-                              req.socket?.remoteAddress || 
-                              req.ip || 
-                              'unknown';
-      
-      // Get user agent
-      activityData.userAgent = req.headers['user-agent'] || 'unknown';
-    }
-
-    // Create new activity record
-    const activity = new UserActivityModel(activityData);
-    await activity.save();
-    
-    return activity;
-  } catch (error) {
-    console.error('Error logging user activity:', error);
-    // Create a new activity with minimal info if there was an error
-    const fallbackActivity = new UserActivityModel({
-      userId,
-      action: 'log_error', // Mark that this was a logging error
-      timestamp: new Date(),
-      status: 'warning',
-      details: { error: String(error) }
-    });
-    
-    try {
-      await fallbackActivity.save();
-    } catch (innerError) {
-      console.error('Failed to save fallback activity log:', innerError);
-    }
-    
-    return fallbackActivity;
-  }
-}
-
-/**
- * Get recent activity for a user
- */
-export async function getUserActivity(
-  userId: string, 
-  limit: number = 50, 
-  actionFilter?: string[]
+// Function to get recent activity for a user
+export async function getRecentUserActivity(
+  userId: string,
+  limit: number = 10
 ): Promise<UserActivity[]> {
   try {
-    let query = UserActivityModel.find({ userId });
+    const activities = await UserActivityModel.find({ userId })
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .lean();
     
-    // Apply action filter if provided
-    if (actionFilter && actionFilter.length > 0) {
-      query = query.where('action').in(actionFilter);
-    }
-    
-    // Sort by timestamp descending (newest first) and limit results
-    return await query.sort({ timestamp: -1 }).limit(limit).exec();
+    return activities.map((doc: any) => ({
+      id: doc._id.toString(),
+      userId: doc.userId,
+      action: doc.action,
+      details: doc.details,
+      timestamp: doc.timestamp,
+      targetUserId: doc.targetUserId,
+      metadata: doc.metadata || {},
+      ipAddress: doc.ipAddress,
+      userAgent: doc.userAgent
+    }));
   } catch (error) {
-    console.error('Error getting user activity:', error);
+    console.error('Error getting recent user activity:', error);
     return [];
   }
 }
 
-/**
- * Get login history for a user
- */
-export async function getUserLoginHistory(
-  userId: string, 
-  limit: number = 10
-): Promise<UserActivity[]> {
-  return getUserActivity(userId, limit, ['login', 'login_attempt']);
+// Function to get activity count by type
+export async function getUserActivityCount(
+  userId: string,
+  action?: UserActivityType,
+  startDate?: Date,
+  endDate?: Date
+): Promise<number> {
+  try {
+    const query: any = { userId };
+    
+    if (action) {
+      query.action = action;
+    }
+    
+    if (startDate || endDate) {
+      query.timestamp = {};
+      
+      if (startDate) {
+        query.timestamp.$gte = startDate;
+      }
+      
+      if (endDate) {
+        query.timestamp.$lte = endDate;
+      }
+    }
+    
+    return await UserActivityModel.countDocuments(query);
+  } catch (error) {
+    console.error('Error getting user activity count:', error);
+    return 0;
+  }
 }

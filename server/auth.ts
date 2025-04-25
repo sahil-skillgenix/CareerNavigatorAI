@@ -18,7 +18,7 @@ import {
 } from "./services/jwt-service";
 import { encryptFields, decryptFields } from "./services/encryption-service";
 import { log } from "./vite";
-import { logUserActivity } from "./models/UserActivityModel";
+import { logUserActivity } from "./services/logging-service";
 
 declare global {
   namespace Express {

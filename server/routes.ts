@@ -16,11 +16,12 @@ import {
 import { seedDatabase } from "./seed-data";
 import * as CareerDataService from "./mongodb-career-data-service";
 import { 
-  getErrorLogs, 
-  getAPIRequestLogs, 
-  getUserActivityHistory, 
-  logUserActivity,
-  logError
+  getUserActivityLogs, 
+  getUserActivitySummary, 
+  getUserActivityHistory,
+  getErrorLogs,
+  getAPIRequestLogs,
+  logUserActivity
 } from "./services/logging-service";
 import { UserActivityModel } from "./db/models";
 import { getDatabaseStatus } from "./db/mongodb";
@@ -156,11 +157,13 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       
       // Log the password reset activity
       try {
-        await logUserActivity({
-          userId: userId,
-          action: 'password_reset',
-          details: 'Password reset via security question'
-        });
+        await logUserActivity(
+          userId,
+          'password_reset_complete',
+          'success',
+          req,
+          { method: 'security_question' }
+        );
       } catch (logError) {
         console.error('Error logging password reset:', logError);
         // Continue even if logging fails
