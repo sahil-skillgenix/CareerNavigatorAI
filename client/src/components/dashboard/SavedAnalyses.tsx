@@ -621,7 +621,7 @@ export function SavedAnalyses() {
                         <div className="mt-10 mb-10 bg-card border rounded-lg p-6 shadow-sm">
                           <h4 className="text-base font-semibold mb-4 text-center">Career Pathway Visualization</h4>
                           
-                          {/* AI Pathway Enhancement Insights */}
+                          {/* AI Pathway Enhancement Insights - Commented out as it may not be part of the data structure
                           {latestAnalysis.result.careerPathway.aiAnalysis && (
                             <div className="mb-6 bg-primary/5 border border-primary/10 rounded-lg p-4">
                               <div className="flex items-center mb-3">
@@ -634,13 +634,12 @@ export function SavedAnalyses() {
                                 {latestAnalysis.result.careerPathway.aiAnalysis}
                               </p>
                             </div>
-                          )}
+                          )} */}
                           
                           {/* Pathway Visualization */}
                           <div className="mt-6">
                             <CareerPathwayStepsDisplay 
-                              pathway={latestAnalysis.result.careerPathway} 
-                              variant="withDegree"
+                              results={latestAnalysis.result}
                             />
                           </div>
                         </div>
