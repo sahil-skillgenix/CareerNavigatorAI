@@ -8,8 +8,12 @@ interface CareerAnalysisResult {
   careerPathway: any;
   developmentPlan: any;
   similarRoles: any[];
-  socialSkillsDevelopment: any;
-  qualityReview: string;
+  socialSkills: any; // Renamed from socialSkillsDevelopment for consistency
+  reviewNotes: any; // Renamed from qualityReview for consistency
+  // Additional fields for explicit chart data
+  chartData?: any;
+  radarChartData?: any;
+  barChartData?: any;
 }
 
 // Interface for Career Analysis document
@@ -37,8 +41,12 @@ const CareerAnalysisResultSchema = new Schema({
   careerPathway: { type: Schema.Types.Mixed },
   developmentPlan: { type: Schema.Types.Mixed },
   similarRoles: [{ type: Schema.Types.Mixed }],
-  socialSkillsDevelopment: { type: Schema.Types.Mixed },
-  qualityReview: { type: String }
+  socialSkills: { type: Schema.Types.Mixed }, // Renamed from socialSkillsDevelopment
+  reviewNotes: { type: Schema.Types.Mixed }, // Renamed from qualityReview
+  // Additional fields for chart data
+  chartData: { type: Schema.Types.Mixed },
+  radarChartData: { type: Schema.Types.Mixed },
+  barChartData: { type: Schema.Types.Mixed }
 });
 
 // Schema for Career Analysis
