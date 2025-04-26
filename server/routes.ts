@@ -224,24 +224,14 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     }
   });
 
-  // Simple OpenAI test endpoint
+  // Simple OpenAI test endpoint 
   app.get('/api/openai-test', async (req: Request, res: Response) => {
     try {
-      // Import OpenAI directly here to isolate any issues
-      const OpenAI = require('openai');
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+      // Use our separate test service
+      const { testOpenAI } = await import('./openai-service-test');
       
-      // Make a simple request to check if the API key works
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: "Say hello" }],
-        max_tokens: 10,
-      });
-      
-      const content = response.choices[0].message.content;
-      return res.json({ success: true, message: content });
+      const message = await testOpenAI();
+      return res.json({ success: true, message });
     } catch (error) {
       console.error('OpenAI test error:', error);
       return res.status(500).json({ 
