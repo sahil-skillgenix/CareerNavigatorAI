@@ -323,42 +323,9 @@ export function SavedAnalyses() {
                     
                     {latestAnalysis.result.executiveSummary ? (
                       <div className="bg-card border rounded-lg p-6 shadow-sm">
-                        <div className="space-y-6">
-                          <p className="text-sm text-muted-foreground whitespace-pre-line">
-                            {latestAnalysis.result.executiveSummary.overview || latestAnalysis.result.executiveSummary}
-                          </p>
-                          
-                          {/* Key Points */}
-                          {latestAnalysis.result.executiveSummary.keyPoints && 
-                           latestAnalysis.result.executiveSummary.keyPoints.length > 0 && (
-                            <div className="mt-4">
-                              <h3 className="text-base font-semibold mb-3">Key Points</h3>
-                              <ul className="space-y-2">
-                                {latestAnalysis.result.executiveSummary.keyPoints.map((point, idx) => (
-                                  <li key={idx} className="flex items-start">
-                                    <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                                    <span className="text-sm">{point}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {/* Recommended Next Steps */}
-                          {latestAnalysis.result.executiveSummary.recommendedNextSteps && 
-                           latestAnalysis.result.executiveSummary.recommendedNextSteps.length > 0 && (
-                            <div>
-                              <h3 className="text-base font-semibold mb-3">Recommended Next Steps</h3>
-                              <ol className="space-y-2 ml-5 list-decimal">
-                                {latestAnalysis.result.executiveSummary.recommendedNextSteps.map((step, idx) => (
-                                  <li key={idx} className="text-sm">
-                                    <span>{step}</span>
-                                  </li>
-                                ))}
-                              </ol>
-                            </div>
-                          )}
-                        </div>
+                        <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                          {latestAnalysis.result.executiveSummary}
+                        </p>
                       </div>
                     ) : (
                       <div className="bg-muted/30 border rounded-lg p-6 text-center">
@@ -367,17 +334,7 @@ export function SavedAnalyses() {
                     )}
                   </section>
                   
-                  {showDebugPanel && (
-                    <div className="mt-8 border rounded-lg p-4 bg-muted/10">
-                      <h3 className="text-sm font-medium mb-2 flex items-center">
-                        <Eye className="h-4 w-4 mr-1.5 text-muted-foreground" />
-                        Raw Analysis Data
-                      </h3>
-                      <pre className="text-xs overflow-auto max-h-[300px] p-4 bg-muted/30 rounded-md">
-                        {JSON.stringify(latestAnalysis.result, null, 2)}
-                      </pre>
-                    </div>
-                  )}
+                  {/* SECTION 2: Skill Mapping */}
                   <section className="py-6 border-b border-muted">
                     <div className="flex justify-between items-start mb-4">
                       <h2 className="text-xl font-bold flex items-center text-primary">
