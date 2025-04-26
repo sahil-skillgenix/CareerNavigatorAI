@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, CheckCircle, PlusCircle } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, CheckCircle, PlusCircle, MoveUpRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -243,6 +243,30 @@ export function SavedAnalyses() {
                       From: <span className="font-medium">{latestAnalysis.careerHistory || "Current Position"}</span> → 
                       To: <span className="font-medium">{latestAnalysis.desiredRole}</span>
                     </p>
+                  </div>
+                  
+                  {/* Debug Information Panel */}
+                  <div className="py-4 mb-4">
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-md mb-4">
+                      <h5 className="text-sm font-medium text-amber-800 mb-2">Debug Information</h5>
+                      <p className="text-xs text-amber-700 mb-1">
+                        Analysis ID: {latestAnalysis.id}
+                      </p>
+                      <p className="text-xs text-amber-700 mb-1">
+                        Created: {latestAnalysis.createdAt}
+                      </p>
+                      <p className="text-xs text-amber-700 mb-1">
+                        Available sections: {Object.keys(latestAnalysis.result || {}).join(', ')}
+                      </p>
+                      <p className="text-xs text-amber-700 mb-1">
+                        Has careerPathway: {latestAnalysis.result?.careerPathway ? 'Yes' : 'No'}
+                      </p>
+                      {latestAnalysis.result?.careerPathway && (
+                        <p className="text-xs text-amber-700">
+                          Pathway keys: {Object.keys(latestAnalysis.result.careerPathway).join(', ')}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Executive Summary Section */}
@@ -616,34 +640,29 @@ export function SavedAnalyses() {
                         </div>
                       )}
                       
-                      {/* Career Pathway Steps Display */}
-                      {latestAnalysis.result.careerPathway && (
-                        <div className="mt-10 mb-10 bg-card border rounded-lg p-6 shadow-sm">
-                          <h4 className="text-base font-semibold mb-4 text-center">Career Pathway Visualization</h4>
-                          
-                          {/* AI Pathway Enhancement Insights - Commented out as it may not be part of the data structure
-                          {latestAnalysis.result.careerPathway.aiAnalysis && (
-                            <div className="mb-6 bg-primary/5 border border-primary/10 rounded-lg p-4">
-                              <div className="flex items-center mb-3">
-                                <Badge variant="outline" className="bg-primary/10 text-primary mr-2">
-                                  AI Insights
-                                </Badge>
-                                <h5 className="text-sm font-medium">Pathway Enhancement Analysis</h5>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {latestAnalysis.result.careerPathway.aiAnalysis}
-                              </p>
+                      {/* Career Pathway Section */}
+                      <div className="py-8">
+                        <h3 className="text-xl font-bold mb-4">Career Pathway Visualization</h3>
+                        
+                        {latestAnalysis.result.careerPathway ? (
+                          <div className="bg-card border rounded-lg p-6 shadow-sm">
+                            {/* Pathway Visualization */}
+                            <div className="mt-2">
+                              <CareerPathwayStepsDisplay 
+                                results={latestAnalysis.result}
+                              />
                             </div>
-                          )} */}
-                          
-                          {/* Pathway Visualization */}
-                          <div className="mt-6">
-                            <CareerPathwayStepsDisplay 
-                              results={latestAnalysis.result}
-                            />
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="bg-muted/20 border rounded-lg p-6 text-center">
+                            <MoveUpRight className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                            <h4 className="text-base font-medium mb-2">Career Pathway Not Available</h4>
+                            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                              This analysis does not include a career pathway visualization. Generate a new analysis to include career pathway data.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                       
                       {/* Development Plan - Learning Resources */}
                       {latestAnalysis.result.developmentPlan && (
