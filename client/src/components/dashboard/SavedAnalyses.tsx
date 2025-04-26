@@ -17,6 +17,9 @@ import { Link } from "wouter";
 import { SkillRadarChart } from "@/components/career-pathway/SkillRadarChart";
 import { ComparativeBarChart } from "@/components/career-pathway/ComparativeBarChart";
 import { AIRecommendationsPanel } from "@/components/career-pathway/AIRecommendationsPanel";
+import { CareerPathwayStepsDisplay } from "@/components/career-pathway/CareerPathwayStepsDisplay";
+import { LearningRecommendationsGrid } from "@/components/career-pathway/LearningRecommendationsGrid";
+import { PdfDownloader } from "@/components/career-pathway/PdfDownloader";
 
 interface SavedAnalysis {
   id: string;
@@ -399,6 +402,26 @@ export function SavedAnalyses() {
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Career Pathway Steps Section */}
+                        {latestAnalysis.result && latestAnalysis.result.careerPathway && (
+                          <div className="mb-8 mt-4">
+                            <h4 className="text-sm font-medium mb-4">Career Pathway Steps</h4>
+                            <div className="border rounded-md p-4 bg-muted/20">
+                              <CareerPathwayStepsDisplay results={latestAnalysis.result} />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Learning Recommendations Section */}
+                        {latestAnalysis.result && latestAnalysis.result.developmentPlan && (
+                          <div className="mb-8 mt-4">
+                            <h4 className="text-sm font-medium mb-4">Learning Recommendations</h4>
+                            <div className="border rounded-md p-4 bg-muted/20">
+                              <LearningRecommendationsGrid results={latestAnalysis.result} />
+                            </div>
+                          </div>
+                        )}
                         
                         {/* AI Recommendations Section - Only show if expanded */}
                         {latestAnalysis.result && 
