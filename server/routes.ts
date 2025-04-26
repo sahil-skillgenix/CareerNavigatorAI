@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { IStorage, storage } from "./storage";
 import { setupAuth } from "./auth";
 import { hashPassword } from "./mongodb-storage";
-import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service";
+// Import the fixed OpenAI service
+import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service-fixed";
 import { analyzeOrganizationPathway, OrganizationPathwayInput } from "./organization-service";
 import { jwtAuthMiddleware } from "./services/jwt-service";
 import { 
@@ -95,7 +96,10 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         });
       }
 
-      console.log('Processing career analysis request:', { input });
+      console.log('Processing career analysis request');
+      
+      // Use dynamic import to ensure we're using the fixed version with ESM compatibility
+      const { analyzeCareerPathway } = await import('./openai-service-fixed');
       
       // Call OpenAI service to analyze career pathway
       const result = await analyzeCareerPathway(input);
