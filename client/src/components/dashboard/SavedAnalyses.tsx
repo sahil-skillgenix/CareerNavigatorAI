@@ -234,113 +234,118 @@ export function SavedAnalyses() {
               <p className="text-sm text-muted-foreground mb-2">Professional Level: {latestAnalysis.professionalLevel}</p>
               
               {expandedAnalysis === latestAnalysis.id && latestAnalysis.result && (
-                <div className="mt-4 space-y-8 text-sm divide-y overflow-hidden max-w-full">
+                <div className="mt-6 space-y-10 text-sm divide-y overflow-hidden">
+                  {/* Page Title */}
+                  <div className="pb-4 text-center">
+                    <h2 className="text-2xl font-bold mb-2">Your Career Pathway Analysis</h2>
+                    <p className="text-muted-foreground">
+                      From: <span className="font-medium">{latestAnalysis.careerHistory || "Current Position"}</span> → 
+                      To: <span className="font-medium">{latestAnalysis.desiredRole}</span>
+                    </p>
+                  </div>
+                  
+                  {/* Executive Summary Section */}
                   {latestAnalysis.result.executiveSummary && (
-                    <div className="pb-4">
-                      <h3 className="text-base font-semibold mb-2">Executive Summary</h3>
-                      <p className="text-muted-foreground break-words">{latestAnalysis.result.executiveSummary}</p>
+                    <div className="py-8">
+                      <h3 className="text-xl font-bold mb-4">Executive Summary</h3>
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <p className="text-muted-foreground leading-relaxed">{latestAnalysis.result.executiveSummary}</p>
+                      </div>
                     </div>
                   )}
                   
                   {/* Skill Mapping Section */}
                   {latestAnalysis.result.skillMapping && (
-                    <div className="pt-4 pb-4">
-                      <h3 className="text-base font-semibold mb-2">Skill Mapping</h3>
+                    <div className="py-8">
+                      <h3 className="text-xl font-bold mb-4">Skill Mapping</h3>
                       
-                      {/* SFIA 9 Skills */}
-                      {latestAnalysis.result.skillMapping.sfia9 && latestAnalysis.result.skillMapping.sfia9.length > 0 && (
-                        <div className="mb-3">
-                          <h4 className="text-sm font-medium mb-1">SFIA 9 Framework</h4>
-                          <ul className="space-y-1">
-                            {latestAnalysis.result.skillMapping.sfia9.slice(0, 5).map((skill: any, index: number) => (
-                              <li key={index} className="flex items-start">
-                                <Badge variant="outline" className="mr-2 mt-0.5 shrink-0">
-                                  {skill.level}
-                                </Badge>
-                                <div className="overflow-hidden">
-                                  <span className="font-medium">{skill.skill}</span>
-                                  <p className="text-xs text-muted-foreground truncate" title={skill.description}>
-                                    {skill.description}
-                                  </p>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* SFIA 9 Skills */}
+                        {latestAnalysis.result.skillMapping.sfia9 && latestAnalysis.result.skillMapping.sfia9.length > 0 && (
+                          <div className="bg-card border rounded-lg p-6 shadow-sm h-full">
+                            <h4 className="text-base font-semibold mb-4 flex items-center">
+                              <Badge className="mr-2 bg-primary/20 text-primary border-none">SFIA 9</Badge>
+                              Framework Skills
+                            </h4>
+                            <div className="space-y-4">
+                              {latestAnalysis.result.skillMapping.sfia9.map((skill: any, index: number) => (
+                                <div key={index} className="pb-3 border-b last:border-0">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">{skill.skill}</span>
+                                    <Badge variant="outline" className="ml-2">
+                                      Level {skill.level}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">{skill.description}</p>
                                 </div>
-                              </li>
-                            ))}
-                            {latestAnalysis.result.skillMapping.sfia9.length > 5 && (
-                              <li className="text-xs text-muted-foreground italic">
-                                And {latestAnalysis.result.skillMapping.sfia9.length - 5} more skills...
-                              </li>
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      {/* DigComp 2.2 Skills */}
-                      {latestAnalysis.result.skillMapping.digcomp22 && latestAnalysis.result.skillMapping.digcomp22.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium mb-1">DigComp 2.2 Framework</h4>
-                          <ul className="space-y-1">
-                            {latestAnalysis.result.skillMapping.digcomp22.slice(0, 5).map((comp: any, index: number) => (
-                              <li key={index} className="flex items-start">
-                                <Badge variant="outline" className="mr-2 mt-0.5 shrink-0">
-                                  {comp.level}
-                                </Badge>
-                                <div className="overflow-hidden">
-                                  <span className="font-medium">{comp.competency}</span>
-                                  <p className="text-xs text-muted-foreground truncate" title={comp.description}>
-                                    {comp.description}
-                                  </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* DigComp 2.2 Skills */}
+                        {latestAnalysis.result.skillMapping.digcomp22 && latestAnalysis.result.skillMapping.digcomp22.length > 0 && (
+                          <div className="bg-card border rounded-lg p-6 shadow-sm h-full">
+                            <h4 className="text-base font-semibold mb-4 flex items-center">
+                              <Badge className="mr-2 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-none">DigComp 2.2</Badge>
+                              Framework Competencies
+                            </h4>
+                            <div className="space-y-4">
+                              {latestAnalysis.result.skillMapping.digcomp22.map((comp: any, index: number) => (
+                                <div key={index} className="pb-3 border-b last:border-0">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">{comp.competency}</span>
+                                    <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                      Level {comp.level}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">{comp.description}</p>
                                 </div>
-                              </li>
-                            ))}
-                            {latestAnalysis.result.skillMapping.digcomp22.length > 5 && (
-                              <li className="text-xs text-muted-foreground italic">
-                                And {latestAnalysis.result.skillMapping.digcomp22.length - 5} more competencies...
-                              </li>
-                            )}
-                          </ul>
-                        </div>
-                      )}
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                   
                   {/* Skill Gap Analysis */}
                   {latestAnalysis.result.skillGapAnalysis && (
-                    <div className="pt-4 pb-4">
-                      <h3 className="text-base font-semibold mb-3">Skill Gap Analysis</h3>
+                    <div className="py-8">
+                      <h3 className="text-xl font-bold mb-4">Skill Gap Analysis</h3>
                       
-                      {/* Limited AI Analysis */}
+                      {/* AI Analysis */}
                       {latestAnalysis.result.skillGapAnalysis.aiAnalysis && (
-                        <div className="mb-4">
-                          <p className="text-muted-foreground text-sm break-words">
-                            {latestAnalysis.result.skillGapAnalysis.aiAnalysis.length > 150 ? 
-                              `${latestAnalysis.result.skillGapAnalysis.aiAnalysis.substring(0, 150)}...` : 
-                              latestAnalysis.result.skillGapAnalysis.aiAnalysis}
+                        <div className="mb-6 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-2">Analysis Overview</h4>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            {latestAnalysis.result.skillGapAnalysis.aiAnalysis}
                           </p>
                         </div>
                       )}
                       
                       {/* Grid layout for gaps and strengths */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                         {/* Skill Gaps */}
                         {latestAnalysis.result.skillGapAnalysis.gaps && latestAnalysis.result.skillGapAnalysis.gaps.length > 0 && (
-                          <div className="border rounded-md overflow-hidden">
-                            <div className="bg-destructive/10 p-2">
-                              <h4 className="text-sm font-medium">Key Skill Gaps</h4>
+                          <div className="bg-card border rounded-lg shadow-sm overflow-hidden h-full">
+                            <div className="bg-destructive/10 p-4 border-b">
+                              <h4 className="font-semibold">Key Skill Gaps</h4>
                             </div>
-                            <div className="p-3">
-                              <div className="space-y-3">
-                                {latestAnalysis.result.skillGapAnalysis.gaps.slice(0, 3).map((gap: any, index: number) => (
-                                  <div key={index} className="flex items-start">
-                                    <Badge 
-                                      variant={gap.importance.toLowerCase() === 'high' ? 'destructive' : 'outline'} 
-                                      className="mr-2 mt-0.5 shrink-0"
-                                    >
-                                      {gap.importance}
-                                    </Badge>
-                                    <div>
+                            <div className="p-4">
+                              <div className="space-y-4">
+                                {latestAnalysis.result.skillGapAnalysis.gaps.map((gap: any, index: number) => (
+                                  <div key={index} className="pb-3 border-b last:border-0">
+                                    <div className="flex items-center mb-1">
+                                      <Badge 
+                                        variant={gap.importance.toLowerCase() === 'high' ? 'destructive' : 'outline'} 
+                                        className="mr-2"
+                                      >
+                                        {gap.importance}
+                                      </Badge>
                                       <span className="font-medium">{gap.skill}</span>
-                                      <p className="text-xs text-muted-foreground line-clamp-2">{gap.description}</p>
                                     </div>
+                                    <p className="text-xs text-muted-foreground">{gap.description}</p>
                                   </div>
                                 ))}
                               </div>
@@ -350,26 +355,31 @@ export function SavedAnalyses() {
                         
                         {/* Strengths */}
                         {latestAnalysis.result.skillGapAnalysis.strengths && latestAnalysis.result.skillGapAnalysis.strengths.length > 0 && (
-                          <div className="border rounded-md overflow-hidden">
-                            <div className="bg-green-100 dark:bg-green-950/30 p-2">
-                              <h4 className="text-sm font-medium text-green-800 dark:text-green-200">Key Strengths</h4>
+                          <div className="bg-card border rounded-lg shadow-sm overflow-hidden h-full">
+                            <div className="bg-green-100 dark:bg-green-950/30 p-4 border-b">
+                              <h4 className="font-semibold text-green-800 dark:text-green-200">Key Strengths</h4>
                             </div>
-                            <div className="p-3">
-                              <div className="space-y-3">
-                                {latestAnalysis.result.skillGapAnalysis.strengths.slice(0, 3).map((strength: any, index: number) => (
-                                  <div key={index} className="flex items-start">
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="mr-2 mt-0.5 shrink-0 bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200"
-                                    >
-                                      {strength.level}
-                                    </Badge>
-                                    <div>
+                            <div className="p-4">
+                              <div className="space-y-4">
+                                {latestAnalysis.result.skillGapAnalysis.strengths.map((strength: any, index: number) => (
+                                  <div key={index} className="pb-3 border-b last:border-0">
+                                    <div className="flex items-center mb-1">
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="mr-2 bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-200"
+                                      >
+                                        {strength.level}
+                                      </Badge>
                                       <span className="font-medium">{strength.skill}</span>
-                                      <p className="text-xs text-muted-foreground">
-                                        <span className="font-medium text-xs">Relevance:</span> {strength.relevance}
-                                      </p>
                                     </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      {strength.description}
+                                      {strength.relevance && (
+                                        <span className="block mt-1">
+                                          <span className="font-medium">Relevance:</span> {strength.relevance}
+                                        </span>
+                                      )}
+                                    </p>
                                   </div>
                                 ))}
                               </div>
@@ -378,142 +388,135 @@ export function SavedAnalyses() {
                         )}
                       </div>
                       
-                      {/* Skill Visualization Charts */}
-                      <div className="mt-8 border-t border-muted pt-6">
-                        <h4 className="text-sm font-medium mb-4">Skill Visualizations</h4>
-                        
-                        {/* Chart Grid */}
-                        <div className="grid grid-cols-1 gap-8 mb-6">
-                          {/* Skill Radar Chart */}
-                          <div className="border rounded-md p-3 bg-muted/20">
-                            <h4 className="text-sm font-medium mb-3 text-center">Skill Gap Visualization</h4>
-                            <div className="w-full flex justify-center" style={{ height: '320px' }}>
-                              {latestAnalysis.result && <SkillRadarChart results={latestAnalysis.result} />}
+                      {/* Charts Section */}
+                      {latestAnalysis.result.skillGapAnalysis.visualData && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {latestAnalysis.result.skillGapAnalysis.visualData.radarData && (
+                            <div className="bg-card border rounded-lg p-4 shadow-sm">
+                              <h4 className="text-base font-semibold mb-3">Skill Proficiency Overview</h4>
+                              <div className="w-full h-80 mx-auto">
+                                <SkillRadarChart results={latestAnalysis.result} />
+                              </div>
                             </div>
-                          </div>
+                          )}
                           
-                          {/* Comparative Bar Chart */}
-                          <div className="border rounded-md p-3 bg-muted/20">
-                            <h4 className="text-sm font-medium mb-3 text-center">Skills Comparison</h4>
-                            <div className="w-full flex justify-center" style={{ height: '320px' }}>
-                              {latestAnalysis.result && <ComparativeBarChart results={latestAnalysis.result} />}
+                          {latestAnalysis.result.skillGapAnalysis.visualData.barData && (
+                            <div className="bg-card border rounded-lg p-4 shadow-sm">
+                              <h4 className="text-base font-semibold mb-3">Gap Analysis Comparison</h4>
+                              <div className="w-full h-80 mx-auto">
+                                <ComparativeBarChart results={latestAnalysis.result} />
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
-                        
-                        {/* Career Pathway Steps Section */}
-                        {latestAnalysis.result && latestAnalysis.result.careerPathway && (
-                          <div className="mb-8 mt-4">
-                            <h4 className="text-sm font-medium mb-4">Career Pathway Steps</h4>
-                            <div className="border rounded-md p-4 bg-muted/20">
-                              <CareerPathwayStepsDisplay results={latestAnalysis.result} />
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Learning Recommendations Section */}
-                        {latestAnalysis.result && latestAnalysis.result.developmentPlan && (
-                          <div className="mb-8 mt-4">
-                            <h4 className="text-sm font-medium mb-4">Learning Recommendations</h4>
-                            <div className="border rounded-md p-4 bg-muted/20">
-                              <LearningRecommendationsGrid results={latestAnalysis.result} />
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* AI Recommendations Section - Only show if expanded */}
-                        {latestAnalysis.result && 
-                          (latestAnalysis.result.skillGapAnalysis?.aiAnalysis ||
-                           latestAnalysis.result.careerPathway?.aiRecommendations ||
-                           latestAnalysis.result.developmentPlan?.personalizedGrowthInsights) && (
-                          <div className="mb-4">
-                            {latestAnalysis.result && <AIRecommendationsPanel results={latestAnalysis.result} />}
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   )}
                   
-                  {/* Career Pathway */}
+                  {/* Career Pathway Section */}
                   {latestAnalysis.result.careerPathway && (
-                    <div className="pt-6 border-t border-muted">
-                      <h3 className="text-base font-semibold mb-3">Career Pathway</h3>
+                    <div className="py-8">
+                      <h3 className="text-xl font-bold mb-4">Career Pathway</h3>
                       
-                      {/* Limit the AI recommendations to prevent overflow */}
-                      {latestAnalysis.result.careerPathway.aiRecommendations && (
-                        <div className="mb-4">
-                          <p className="text-muted-foreground text-sm">
-                            {latestAnalysis.result.careerPathway.aiRecommendations.length > 150 ? 
-                              `${latestAnalysis.result.careerPathway.aiRecommendations.substring(0, 150)}...` : 
-                              latestAnalysis.result.careerPathway.aiRecommendations}
+                      {/* Career Transition AI Analysis */}
+                      {latestAnalysis.result.careerPathway.aiAnalysis && (
+                        <div className="mb-6 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-2">Transition Strategy</h4>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            {latestAnalysis.result.careerPathway.aiAnalysis}
                           </p>
                         </div>
                       )}
                       
-                      {/* Pathway Tabs for Degree/Non-Degree paths */}
-                      <div className="mb-4">
-                        <div className="grid grid-cols-2 gap-4">
+                      {/* Fallback for old format */}
+                      {latestAnalysis.result.careerPathway.aiRecommendations && !latestAnalysis.result.careerPathway.aiAnalysis && (
+                        <div className="mb-6 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-2">Transition Strategy</h4>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            {latestAnalysis.result.careerPathway.aiRecommendations}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Career Steps */}
+                      {latestAnalysis.result.careerPathway.steps && latestAnalysis.result.careerPathway.steps.length > 0 && (
+                        <div className="mt-6 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4">Career Progression Steps</h4>
+                          <div className="mt-4">
+                            <CareerPathwayStepsDisplay results={latestAnalysis.result} />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Legacy Pathway Tabs for Degree/Non-Degree paths */}
+                      {(!latestAnalysis.result.careerPathway.steps && 
+                        (latestAnalysis.result.careerPathway.withDegree || latestAnalysis.result.careerPathway.withoutDegree)) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                           {/* University Pathway */}
                           {latestAnalysis.result.careerPathway.withDegree && latestAnalysis.result.careerPathway.withDegree.length > 0 && (
-                            <div className="border rounded-md overflow-hidden">
-                              <div className="bg-primary/10 p-2">
-                                <h4 className="text-sm font-medium">University Pathway</h4>
+                            <div className="bg-card border rounded-lg shadow-sm overflow-hidden">
+                              <div className="bg-primary/10 p-4 border-b">
+                                <h4 className="font-semibold">University Pathway</h4>
                               </div>
-                              <div className="p-3">
-                                {latestAnalysis.result.careerPathway.withDegree.slice(0, 2).map((step: any, index: number) => (
-                                  <div key={index} className="flex items-start mb-3 last:mb-0">
-                                    <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 text-primary mr-2">
-                                      {index + 1}
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">{step.role}</span>
-                                      <p className="text-xs text-muted-foreground">{step.timeframe}</p>
-                                      <div className="flex flex-wrap gap-1 mt-1">
-                                        {step.keySkillsNeeded.slice(0, 3).map((skill: string, idx: number) => (
-                                          <Badge key={idx} variant="outline" className="text-xs">
-                                            {skill}
-                                          </Badge>
-                                        ))}
+                              <div className="p-4">
+                                <div className="space-y-6">
+                                  {latestAnalysis.result.careerPathway.withDegree.map((step: any, index: number) => (
+                                    <div key={index} className="flex items-start pb-4 border-b last:border-0 last:pb-0">
+                                      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 text-primary mr-3 mt-1">
+                                        <span className="font-semibold">{index + 1}</span>
+                                      </div>
+                                      <div>
+                                        <h5 className="font-semibold mb-1">{step.role}</h5>
+                                        <p className="text-sm text-muted-foreground mb-2">{step.timeframe}</p>
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                          <p className="text-xs font-medium w-full mb-1">Key Skills:</p>
+                                          {step.keySkillsNeeded.map((skill: string, idx: number) => (
+                                            <Badge key={idx} variant="outline" className="text-xs">
+                                              {skill}
+                                            </Badge>
+                                          ))}
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           )}
                           
                           {/* Vocational Pathway */}
                           {latestAnalysis.result.careerPathway.withoutDegree && latestAnalysis.result.careerPathway.withoutDegree.length > 0 && (
-                            <div className="border rounded-md overflow-hidden">
-                              <div className="bg-emerald-50 dark:bg-emerald-950/20 p-2">
-                                <h4 className="text-sm font-medium">Vocational Pathway</h4>
+                            <div className="bg-card border rounded-lg shadow-sm overflow-hidden">
+                              <div className="bg-emerald-100 dark:bg-emerald-950/30 p-4 border-b">
+                                <h4 className="font-semibold text-emerald-800 dark:text-emerald-300">Vocational Pathway</h4>
                               </div>
-                              <div className="p-3">
-                                {latestAnalysis.result.careerPathway.withoutDegree.slice(0, 2).map((step: any, index: number) => (
-                                  <div key={index} className="flex items-start mb-3 last:mb-0">
-                                    <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 mr-2">
-                                      {index + 1}
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">{step.role}</span>
-                                      <p className="text-xs text-muted-foreground">{step.timeframe}</p>
-                                      <div className="flex flex-wrap gap-1 mt-1">
-                                        {step.keySkillsNeeded.slice(0, 3).map((skill: string, idx: number) => (
-                                          <Badge key={idx} variant="outline" className="text-xs">
-                                            {skill}
-                                          </Badge>
-                                        ))}
+                              <div className="p-4">
+                                <div className="space-y-6">
+                                  {latestAnalysis.result.careerPathway.withoutDegree.map((step: any, index: number) => (
+                                    <div key={index} className="flex items-start pb-4 border-b last:border-0 last:pb-0">
+                                      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 mr-3 mt-1">
+                                        <span className="font-semibold">{index + 1}</span>
+                                      </div>
+                                      <div>
+                                        <h5 className="font-semibold mb-1">{step.role}</h5>
+                                        <p className="text-sm text-muted-foreground mb-2">{step.timeframe}</p>
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                          <p className="text-xs font-medium w-full mb-1">Key Skills:</p>
+                                          {step.keySkillsNeeded.map((skill: string, idx: number) => (
+                                            <Badge key={idx} variant="outline" className="text-xs">
+                                              {skill}
+                                            </Badge>
+                                          ))}
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           )}
                         </div>
-                      </div>
-                      
-                      {/* Removed call to action for full view */}
+                      )}
                     </div>
                   )}
                 </div>
