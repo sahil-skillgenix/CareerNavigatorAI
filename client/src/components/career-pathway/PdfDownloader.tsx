@@ -200,22 +200,45 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         return chartImage;
       };
       
-      // Capture charts first for including in HTML with retry capabilities
+      // Add data validation logging to help diagnose issues
+      console.log('Starting data validation for HTML report...');
+      const hasSkillMapping = results.skillMapping && 
+        results.skillMapping.sfia9 && 
+        results.skillMapping.digcomp22;
+      const hasGapAnalysis = results.skillGapAnalysis && 
+        results.skillGapAnalysis.gaps && 
+        results.skillGapAnalysis.strengths;
+      
+      console.log('Data validation results:', {
+        hasSkillMapping,
+        skillMappingSfia: results.skillMapping?.sfia9?.length || 0,
+        skillMappingDigcomp: results.skillMapping?.digcomp22?.length || 0,
+        hasGapAnalysis,
+        gapsCount: results.skillGapAnalysis?.gaps?.length || 0,
+        strengthsCount: results.skillGapAnalysis?.strengths?.length || 0,
+        hasCareerPathway: !!results.careerPathway,
+        hasAiAnalysis: !!results.careerPathway?.aiAnalysis
+      });
+      
+      // Capture charts first with retry capabilities
       console.log('Starting chart capture for HTML report...');
       const radarChartImage = await captureChartWithRetry(radarChartRef);
       const barChartImage = await captureChartWithRetry(barChartRef);
       
-      // Log outcome
+      // Log outcome with detailed info
       if (radarChartImage) {
         console.log('Radar chart successfully captured');
       } else {
-        console.warn('Failed to capture radar chart after multiple attempts');
+        console.warn('Failed to capture radar chart - data validation:', 
+          results.skillMapping ? 'Has skillMapping' : 'Missing skillMapping',
+          results.skillGapAnalysis ? 'Has skillGapAnalysis' : 'Missing skillGapAnalysis');
       }
       
       if (barChartImage) {
         console.log('Bar chart successfully captured');
       } else {
-        console.warn('Failed to capture bar chart after multiple attempts');
+        console.warn('Failed to capture bar chart - data validation:',
+          results.skillGapAnalysis?.gaps ? `Has ${results.skillGapAnalysis.gaps.length} gaps` : 'Missing gaps array');
       }
       
       // Create HTML content for download

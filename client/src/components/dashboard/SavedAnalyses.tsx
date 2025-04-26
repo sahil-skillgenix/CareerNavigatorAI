@@ -395,7 +395,20 @@ export function SavedAnalyses() {
                           <h4 className="text-base font-semibold mb-4 text-center">Skill Proficiency Overview</h4>
                           <div className="w-full h-96 mx-auto flex items-center justify-center border-b pb-2" id="radar-chart-container">
                             <div className="max-w-md w-full mx-auto">
-                              <SkillRadarChart results={latestAnalysis.result} />
+                              {JSON.stringify(latestAnalysis.result) !== '{}' ? (
+                                <SkillRadarChart results={latestAnalysis.result} />
+                              ) : (
+                                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm">Chart data is unavailable</p>
+                                  <p className="text-xs mt-1">Analysis result may be incomplete</p>
+                                  <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-xs max-w-md">
+                                    <p>Debug info: {JSON.stringify(latestAnalysis).substring(0, 150)}...</p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex justify-center mt-6 gap-4">
@@ -416,7 +429,22 @@ export function SavedAnalyses() {
                         <div className="bg-card border rounded-lg p-6 shadow-sm">
                           <h4 className="text-base font-semibold mb-4 text-center">Gap Analysis Comparison</h4>
                           <div className="w-full h-96 mx-auto" id="bar-chart-container">
-                            <ComparativeBarChart results={latestAnalysis.result} />
+                            {JSON.stringify(latestAnalysis.result) !== '{}' ? (
+                              <ComparativeBarChart results={latestAnalysis.result} />
+                            ) : (
+                              <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <p className="text-sm">Gap analysis data is unavailable</p>
+                                <p className="text-xs mt-1">Analysis result may be incomplete</p>
+                                <p className="text-xs mt-3 max-w-sm text-center text-amber-700">
+                                  Diagnostic info: {typeof latestAnalysis.result === 'object' ? 
+                                    (latestAnalysis.result?.skillGapAnalysis ? 'Has skillGapAnalysis' : 'Missing skillGapAnalysis') : 
+                                    'Invalid result type'}
+                                </p>
+                              </div>
+                            )}
                           </div>
                           <div className="flex justify-center mt-6 gap-4">
                             <div className="flex items-center">
