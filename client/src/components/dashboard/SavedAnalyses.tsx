@@ -1496,41 +1496,14 @@ export function SavedAnalyses() {
                     )}
                   </section>
                   
-                  {/* SECTION 4: Career Pathway with dual options */}
-                  <section className="py-6 border-b border-muted">
-                    <div className="flex justify-between items-start mb-4">
-                      <h2 className="text-xl font-bold flex items-center text-primary">
-                        <GanttChart className="mr-2 h-5 w-5" />
-                        Career Pathway
-                      </h2>
-                    </div>
-                    
-                    {latestAnalysis.result.careerPathway ? (
-                      <div>
 
-                        
-                        {latestAnalysis.result.careerPathway.pathwayExplanation && (
-                          <div className="bg-card border rounded-lg p-6 shadow-sm mt-4">
-                            <h3 className="text-base font-semibold mb-3">Pathway Explanation</h3>
-                            <p className="text-sm text-muted-foreground whitespace-pre-line">
-                              {latestAnalysis.result.careerPathway.pathwayExplanation}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="bg-muted/30 border rounded-lg p-6 text-center">
-                        <p className="text-muted-foreground">No career pathway data available</p>
-                      </div>
-                    )}
-                  </section>
                   
                   {/* SECTION 5: Similar/Alternative Roles */}
                   <section className="py-6 border-b border-muted">
                     <div className="flex justify-between items-start mb-4">
                       <h2 className="text-xl font-bold flex items-center text-primary">
                         <Users className="mr-2 h-5 w-5" />
-                        Similar Roles
+                        Similar Roles To Consider
                       </h2>
                     </div>
                     
@@ -1636,12 +1609,12 @@ export function SavedAnalyses() {
                     )}
                   </section>
                   
-                  {/* SECTION 6: Industry Analysis */}
+                  {/* SECTION 6: Recommended Educational Programs */}
                   <section className="py-6 border-b border-muted">
                     <div className="flex justify-between items-start mb-4">
                       <h2 className="text-xl font-bold flex items-center text-primary">
                         <Briefcase className="mr-2 h-5 w-5" />
-                        Industry Analysis
+                        Recommended Educational Programs
                       </h2>
                     </div>
                     

@@ -82,20 +82,67 @@ const levelToValue = (level: string | number | undefined): number => {
 
 // Function to extract skills for comparative bar chart
 const extractSkillsForBarChart = (results: CareerAnalysisResult): any[] => {
-  // Extract gaps to show as bars
-  const gapSkills = results.skillGapAnalysis.gaps.map(gap => ({
-    name: gap.skill,
-    currentLevel: 1, // Set to low value since it's a gap
-    requiredLevel: levelToValue(gap.importance) + 1,
-    gap: (levelToValue(gap.importance) + 1) - 1,
-    importance: gap.importance
-  }));
-  
-  // Sort by gap size (descending)
-  gapSkills.sort((a, b) => b.gap - a.gap);
-  
-  // Take top 8 skills with largest gaps
-  return gapSkills.slice(0, 8);
+  try {
+    // Check if required data exists
+    if (!results.skillGapAnalysis || !Array.isArray(results.skillGapAnalysis.gaps)) {
+      console.error('ComparativeBarChart: Missing gaps data');
+      
+      // Try to extract data from other sources if gaps are missing
+      if (results.skillMapping && (Array.isArray(results.skillMapping.sfia9) || Array.isArray(results.skillMapping.digcomp22))) {
+        console.log('ComparativeBarChart: Attempting to extract data from skillMapping instead');
+        
+        // Combine skills from skill mapping
+        const mappedSkills: any[] = [];
+        
+        if (Array.isArray(results.skillMapping.sfia9)) {
+          mappedSkills.push(...results.skillMapping.sfia9.map(s => ({
+            name: s.skill,
+            currentLevel: levelToValue(s.level),
+            requiredLevel: levelToValue(s.level) + 1,
+            gap: 1,
+            importance: 'Medium'
+          })));
+        }
+        
+        if (Array.isArray(results.skillMapping.digcomp22)) {
+          mappedSkills.push(...results.skillMapping.digcomp22.map(s => ({
+            name: s.competency,
+            currentLevel: levelToValue(s.level),
+            requiredLevel: levelToValue(s.level) + 1,
+            gap: 1,
+            importance: 'Medium'
+          })));
+        }
+        
+        // Sort by name alphabetically
+        mappedSkills.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Take top 5 skills
+        return mappedSkills.slice(0, 5);
+      }
+      
+      // If we still have no data, return empty array
+      return [];
+    }
+    
+    // Extract gaps to show as bars
+    const gapSkills = results.skillGapAnalysis.gaps.map(gap => ({
+      name: gap.skill,
+      currentLevel: 1, // Set to low value since it's a gap
+      requiredLevel: levelToValue(gap.importance) + 1,
+      gap: (levelToValue(gap.importance) + 1) - 1,
+      importance: gap.importance
+    }));
+    
+    // Sort by gap size (descending)
+    gapSkills.sort((a, b) => b.gap - a.gap);
+    
+    // Take top 8 skills with largest gaps
+    return gapSkills.slice(0, 8);
+  } catch (error) {
+    console.error('ComparativeBarChart: Error extracting skills for bar chart', error);
+    return [];
+  }
 };
 
 export function ComparativeBarChart({ results }: ComparativeBarChartProps) {
