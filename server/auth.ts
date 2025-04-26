@@ -76,11 +76,28 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         passwordField: "password",
       },
       async (email, password, done) => {
-        const user = await storageInstance.getUserByEmail(email);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
-        } else {
+        console.log("LocalStrategy auth attempt:", email);
+        try {
+          const user = await storageInstance.getUserByEmail(email);
+          console.log("User found?", !!user);
+          
+          if (!user) {
+            console.log("User not found");
+            return done(null, false);
+          }
+          
+          const passwordValid = await comparePasswords(password, user.password);
+          console.log("Password valid?", passwordValid);
+          
+          if (!passwordValid) {
+            return done(null, false);
+          }
+          
+          console.log("Authentication successful for user:", email);
           return done(null, user);
+        } catch (error) {
+          console.error("LocalStrategy auth error:", error);
+          return done(error);
         }
       },
     ),
@@ -406,7 +423,8 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   app.post("/api/login", loginRateLimiter, (req, res, next) => {
     const { email } = req.body;
     
-    // Log login attempt
+    // Log login attempt with more details
+    console.log("LOGIN ATTEMPT:", email, req.body);
     log(`Login attempt for: ${email}`, "auth");
     
     passport.authenticate("local", async (err: any, user: SelectUser | false, info: any) => {
