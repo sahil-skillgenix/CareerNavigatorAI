@@ -148,29 +148,40 @@ export function SkillRadarChart({ results }: SkillRadarChartProps) {
   const radarData = extractTopSkills(results);
   
   return (
-    <div className="w-full h-[400px] mt-4" id="skill-radar-chart">
-      <h3 className="text-xl font-semibold text-center mb-2 text-primary">
-        Skill Matching and Gap Analysis
-      </h3>
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="skill" tick={{ fill: '#666', fontSize: 12 }} />
-          <PolarRadiusAxis angle={30} domain={[0, 5]} />
+    <div className="w-full h-full" id="skill-radar-chart">
+      <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+          <PolarGrid stroke="#cccccc" />
+          <PolarAngleAxis 
+            dataKey="skill" 
+            tick={{ 
+              fill: '#555555', 
+              fontSize: 12,
+              fontWeight: 'bold',
+            }} 
+            axisLineType="polygon"
+            stroke="#aaaaaa"
+          />
+          <PolarRadiusAxis 
+            angle={30} 
+            domain={[0, 5]} 
+            tick={{ fill: '#888888', fontSize: 11 }}
+            stroke="#bbbbbb"
+          />
           
           <Radar
             name="Current Skill Level"
             dataKey="currentLevel"
-            stroke="#888888"
-            fill="#d3d3d3"
+            stroke="#7b8cb8"
+            fill="#a4b4d5"
             fillOpacity={0.6}
           />
           
           <Radar
             name="Required Skill Level"
             dataKey="requiredLevel"
-            stroke="rgb(163, 29, 82)"
-            fill="rgb(163, 29, 82)"
+            stroke="#1c3b82"
+            fill="#1c3b82"
             fillOpacity={0.4}
           />
           
@@ -179,6 +190,8 @@ export function SkillRadarChart({ results }: SkillRadarChartProps) {
             verticalAlign="bottom" 
             layout="horizontal" 
             wrapperStyle={{ paddingTop: '10px' }}
+            iconSize={10}
+            iconType="circle"
           />
           
           <Tooltip formatter={(value) => [`Level ${value}`, '']} />

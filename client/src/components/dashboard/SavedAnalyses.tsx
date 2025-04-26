@@ -389,21 +389,43 @@ export function SavedAnalyses() {
                       </div>
                       
                       {/* Charts Section - always show charts for better experience */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="bg-card border rounded-lg p-4 shadow-sm">
-                          <h4 className="text-base font-semibold mb-3">Skill Proficiency Overview</h4>
-                          <div className="w-full h-80 mx-auto">
-                            <SkillRadarChart results={latestAnalysis.result} />
+                      <div className="grid grid-cols-1 gap-10 mb-10">
+                        <div className="bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4 text-center">Skill Proficiency Overview</h4>
+                          <div className="w-full h-96 mx-auto flex items-center justify-center border-b pb-2">
+                            <div className="max-w-md w-full mx-auto">
+                              <SkillRadarChart results={latestAnalysis.result} />
+                            </div>
+                          </div>
+                          <div className="flex justify-center mt-6 gap-4">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-gray-400 mr-2"></div>
+                              <span className="text-sm">Current Skill Level</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-primary mr-2"></div>
+                              <span className="text-sm">Required Skill Level</span>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-4 text-center">
                             This radar chart visualizes your skill levels compared to the desired role's requirements
                           </p>
                         </div>
                         
-                        <div className="bg-card border rounded-lg p-4 shadow-sm">
-                          <h4 className="text-base font-semibold mb-3">Gap Analysis Comparison</h4>
-                          <div className="w-full h-80 mx-auto">
+                        <div className="bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4 text-center">Gap Analysis Comparison</h4>
+                          <div className="w-full h-96 mx-auto">
                             <ComparativeBarChart results={latestAnalysis.result} />
+                          </div>
+                          <div className="flex justify-center mt-6 gap-4">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-blue-400 mr-2"></div>
+                              <span className="text-sm">Current Skill Level</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-red-600 mr-2"></div>
+                              <span className="text-sm">Required Skill Level</span>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-4 text-center">
                             This chart compares your current skill levels with the levels required for your target role

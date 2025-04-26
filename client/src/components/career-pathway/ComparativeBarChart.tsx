@@ -101,27 +101,29 @@ const extractSkillsForBarChart = (results: CareerAnalysisResult): any[] => {
 export function ComparativeBarChart({ results }: ComparativeBarChartProps) {
   const barData = extractSkillsForBarChart(results);
   
+  // Limit to 5 skills for better display in saved analyses view
+  const limitedData = barData.slice(0, 5);
+  
   return (
-    <div className="w-full h-[400px] mt-8" id="comparative-bar-chart">
-      <h3 className="text-xl font-semibold text-center mb-2 text-primary">
-        Skill Gap Comparison
-      </h3>
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full" id="comparative-bar-chart">
+      <ResponsiveContainer width="100%" height="100%" minHeight={300}>
         <BarChart
-          data={barData}
+          data={limitedData}
           layout="vertical"
-          margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+          margin={{ top: 20, right: 60, left: 100, bottom: 10 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.6} />
           <XAxis 
             type="number" 
             domain={[0, 5]} 
             label={{ value: 'Skill Level', position: 'insideBottom', offset: -5 }}
+            tick={{ fontSize: 11 }}
           />
           <YAxis 
             type="category" 
             dataKey="name" 
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fontWeight: '500' }}
+            width={100}
           />
           <Tooltip 
             formatter={(value, name) => {
@@ -131,22 +133,38 @@ export function ComparativeBarChart({ results }: ComparativeBarChartProps) {
               ];
             }}
           />
-          <Legend />
+          <Legend 
+            iconSize={10}
+            iconType="circle" 
+            wrapperStyle={{ paddingTop: '10px' }}
+          />
           <Bar 
             dataKey="currentLevel" 
             name="Current Skill Level" 
-            fill="#8884d8" 
-            barSize={20}
+            fill="#6366f1" 
+            barSize={16}
+            radius={[0, 4, 4, 0]}
           >
-            <LabelList dataKey="currentLevel" position="right" />
+            <LabelList 
+              dataKey="currentLevel" 
+              position="right" 
+              formatter={(value: number) => `${value}`}
+              style={{ fontSize: '11px', fill: '#666' }}
+            />
           </Bar>
           <Bar 
             dataKey="requiredLevel" 
             name="Required Skill Level" 
-            fill="rgb(163, 29, 82)" 
-            barSize={20}
+            fill="#be123c" 
+            barSize={16}
+            radius={[0, 4, 4, 0]}
           >
-            <LabelList dataKey="requiredLevel" position="right" />
+            <LabelList 
+              dataKey="requiredLevel" 
+              position="right" 
+              formatter={(value: number) => `${value}`}
+              style={{ fontSize: '11px', fill: '#666' }}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
