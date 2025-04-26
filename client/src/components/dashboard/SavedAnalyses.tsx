@@ -388,23 +388,73 @@ export function SavedAnalyses() {
                         )}
                       </div>
                       
-                      {/* Charts Section */}
-                      {latestAnalysis.result.skillGapAnalysis.visualData && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {latestAnalysis.result.skillGapAnalysis.visualData.radarData && (
-                            <div className="bg-card border rounded-lg p-4 shadow-sm">
-                              <h4 className="text-base font-semibold mb-3">Skill Proficiency Overview</h4>
-                              <div className="w-full h-80 mx-auto">
-                                <SkillRadarChart results={latestAnalysis.result} />
-                              </div>
+                      {/* Charts Section - always show charts for better experience */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-card border rounded-lg p-4 shadow-sm">
+                          <h4 className="text-base font-semibold mb-3">Skill Proficiency Overview</h4>
+                          <div className="w-full h-80 mx-auto">
+                            <SkillRadarChart results={latestAnalysis.result} />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-4 text-center">
+                            This radar chart visualizes your skill levels compared to the desired role's requirements
+                          </p>
+                        </div>
+                        
+                        <div className="bg-card border rounded-lg p-4 shadow-sm">
+                          <h4 className="text-base font-semibold mb-3">Gap Analysis Comparison</h4>
+                          <div className="w-full h-80 mx-auto">
+                            <ComparativeBarChart results={latestAnalysis.result} />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-4 text-center">
+                            This chart compares your current skill levels with the levels required for your target role
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Development Plan - Learning Resources */}
+                      {latestAnalysis.result.developmentPlan && (
+                        <div className="mt-6 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4">Learning Plan</h4>
+                          {latestAnalysis.result.developmentPlan.personalizedGrowthInsights && (
+                            <div className="mb-4">
+                              <h5 className="text-sm font-medium mb-2">Personal Growth Insights</h5>
+                              <p className="text-sm text-muted-foreground">
+                                {latestAnalysis.result.developmentPlan.personalizedGrowthInsights}
+                              </p>
                             </div>
                           )}
                           
-                          {latestAnalysis.result.skillGapAnalysis.visualData.barData && (
-                            <div className="bg-card border rounded-lg p-4 shadow-sm">
-                              <h4 className="text-base font-semibold mb-3">Gap Analysis Comparison</h4>
-                              <div className="w-full h-80 mx-auto">
-                                <ComparativeBarChart results={latestAnalysis.result} />
+                          {latestAnalysis.result.developmentPlan.resources && 
+                           latestAnalysis.result.developmentPlan.resources.length > 0 && (
+                            <div className="mt-4">
+                              <h5 className="text-sm font-medium mb-3">Recommended Resources</h5>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {latestAnalysis.result.developmentPlan.resources.map((resource, idx) => (
+                                  <div key={idx} className="bg-muted/20 rounded-md p-3 border">
+                                    <h6 className="font-medium text-sm">{resource.title}</h6>
+                                    <p className="text-xs text-muted-foreground mt-1">{resource.description}</p>
+                                    <div className="flex items-center justify-between mt-2">
+                                      <Badge variant="outline" className="text-xs">
+                                        {resource.type}
+                                      </Badge>
+                                      {resource.estimatedTime && (
+                                        <span className="text-xs text-muted-foreground">
+                                          {resource.estimatedTime}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {resource.link && (
+                                      <a 
+                                        href={resource.link} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-primary hover:underline mt-2 inline-block"
+                                      >
+                                        View Resource
+                                      </a>
+                                    )}
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
