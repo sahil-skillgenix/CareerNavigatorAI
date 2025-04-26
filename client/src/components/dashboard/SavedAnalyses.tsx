@@ -332,64 +332,24 @@ export function SavedAnalyses() {
                     )}
                   </section>
                   
-                  {/* SECTION 2 & 3: Skill Mapping and Gap Analysis with Charts */}
+                  {/* SECTION 2: Skill Mapping */}
                   <section className="py-6 border-b border-muted">
                     <div className="flex justify-between items-start mb-4">
                       <h2 className="text-xl font-bold flex items-center text-primary">
                         <Gauge className="mr-2 h-5 w-5" />
-                        Skill Assessment
+                        Skill Mapping
                       </h2>
                     </div>
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                      {/* Radar Chart */}
+                    <div className="space-y-6">
+                      {/* 2.1 SFIA 9 Framework */}
                       <div className="bg-card border rounded-lg p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold mb-4">Skill Mapping</h3>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-primary/20 text-primary border-none">2.1</Badge>
+                          Skill Mapping in SFIA 9 Framework
+                        </h3>
                         
-                        {(latestAnalysis.result.radarChartData?.skills || 
-                          latestAnalysis.result.chartData?.currentSkills) ? (
-                          <div className="h-72">
-                            {/* Temporarily render a placeholder instead of SkillRadarChart */}
-                            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                              <p className="text-center">Skill Radar Chart Visualization</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-72 flex items-center justify-center bg-muted/30 rounded-lg">
-                            <p className="text-muted-foreground">No skill mapping data available</p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Gap Analysis Chart */}
-                      <div className="bg-card border rounded-lg p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold mb-4">Skill Gap Analysis</h3>
-                        
-                        {(latestAnalysis.result.barChartData?.skills || 
-                          latestAnalysis.result.chartData?.skillGaps) ? (
-                          <div className="h-72">
-                            {/* Temporarily render a placeholder instead of ComparativeBarChart */}
-                            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                              <p className="text-center">Comparative Bar Chart Visualization</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-72 flex items-center justify-center bg-muted/30 rounded-lg">
-                            <p className="text-muted-foreground">No skill gap data available</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Skill Framework Details */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
-                      {/* SFIA 9 Skills */}
-                      {latestAnalysis.result.skillMapping?.sfia9 && latestAnalysis.result.skillMapping.sfia9.length > 0 && (
-                        <div className="bg-card border rounded-lg p-6 shadow-sm h-full">
-                          <h4 className="text-base font-semibold mb-4 flex items-center">
-                            <Badge className="mr-2 bg-primary/20 text-primary border-none">SFIA 9</Badge>
-                            Framework Skills
-                          </h4>
+                        {latestAnalysis.result.skillMapping?.sfia9 && latestAnalysis.result.skillMapping.sfia9.length > 0 ? (
                           <div className="space-y-4">
                             {latestAnalysis.result.skillMapping.sfia9.map((skill, index) => (
                               <div key={index} className="pb-3 border-b last:border-0">
@@ -403,16 +363,21 @@ export function SavedAnalyses() {
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No SFIA 9 framework mapping available</p>
+                          </div>
+                        )}
+                      </div>
                       
-                      {/* DigComp 2.2 Skills */}
-                      {latestAnalysis.result.skillMapping?.digcomp22 && latestAnalysis.result.skillMapping.digcomp22.length > 0 && (
-                        <div className="bg-card border rounded-lg p-6 shadow-sm h-full">
-                          <h4 className="text-base font-semibold mb-4 flex items-center">
-                            <Badge className="mr-2 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-none">DigComp 2.2</Badge>
-                            Framework Competencies
-                          </h4>
+                      {/* 2.2 DigComp 2.2 Framework */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-none">2.2</Badge>
+                          Skill Mapping in DigComp 2.2 Framework
+                        </h3>
+                        
+                        {latestAnalysis.result.skillMapping?.digcomp22 && latestAnalysis.result.skillMapping.digcomp22.length > 0 ? (
                           <div className="space-y-4">
                             {latestAnalysis.result.skillMapping.digcomp22.map((skill, index) => (
                               <div key={index} className="pb-3 border-b last:border-0">
@@ -426,65 +391,155 @@ export function SavedAnalyses() {
                               </div>
                             ))}
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No DigComp 2.2 framework mapping available</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                  
+                  {/* SECTION 3: Framework-Based Skill Gap Analysis */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <BarChart3 className="mr-2 h-5 w-5" />
+                        Framework-Based Skill Gap Analysis
+                      </h2>
                     </div>
                     
-                    {/* Skill Gap Details */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Skill Gaps */}
-                      {latestAnalysis.result.skillGapAnalysis?.gaps && latestAnalysis.result.skillGapAnalysis.gaps.length > 0 && (
+                    <div className="space-y-6">
+                      {/* 3.1 Radar Chart */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-primary/20 text-primary border-none">3.1</Badge>
+                          Radar Chart Visualization
+                        </h3>
+                        
+                        {(latestAnalysis.result.radarChartData?.skills || 
+                          latestAnalysis.result.chartData?.currentSkills) ? (
+                          <div className="h-72">
+                            {/* Temporarily render a placeholder instead of SkillRadarChart */}
+                            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                              <p className="text-center">Skill Radar Chart Visualization</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-72 flex items-center justify-center bg-muted/30 rounded-lg">
+                            <p className="text-muted-foreground">No radar chart data available</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 3.2 Bar Chart */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-none">3.2</Badge>
+                          Bar Chart Visualization
+                        </h3>
+                        
+                        {(latestAnalysis.result.barChartData?.skills || 
+                          latestAnalysis.result.chartData?.skillGaps) ? (
+                          <div className="h-72">
+                            {/* Temporarily render a placeholder instead of ComparativeBarChart */}
+                            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                              <p className="text-center">Comparative Bar Chart Visualization</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-72 flex items-center justify-center bg-muted/30 rounded-lg">
+                            <p className="text-muted-foreground">No bar chart data available</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 3.3 AI-Enhanced Analysis */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-none">3.3</Badge>
+                          AI-Enhanced Analysis
+                        </h3>
+                        
+                        {latestAnalysis.result.skillGapAnalysis?.aiAnalysis ? (
+                          <div className="rounded-lg bg-blue-50 border border-blue-100 p-4">
+                            <p className="text-sm text-blue-800 whitespace-pre-line">
+                              {latestAnalysis.result.skillGapAnalysis.aiAnalysis}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No AI-enhanced analysis available</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 3.4 Skill Gaps and Strengths */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Skill Gaps */}
                         <div className="bg-card border rounded-lg shadow-sm overflow-hidden h-full">
                           <div className="bg-destructive/10 p-4 border-b">
-                            <h4 className="font-semibold">Key Skill Gaps</h4>
+                            <h4 className="font-semibold">Skill Gaps</h4>
                           </div>
                           <div className="p-4">
-                            <div className="space-y-4">
-                              {latestAnalysis.result.skillGapAnalysis.gaps.map((gap, index) => (
-                                <div key={index} className="pb-3 border-b last:border-0">
-                                  <div className="flex items-center mb-1">
-                                    <Badge 
-                                      variant={gap.importance?.toLowerCase() === 'high' ? 'destructive' : 'outline'} 
-                                      className="mr-2"
-                                    >
-                                      {gap.importance}
-                                    </Badge>
-                                    <span className="font-medium">{gap.skill}</span>
+                            {latestAnalysis.result.skillGapAnalysis?.gaps && 
+                             latestAnalysis.result.skillGapAnalysis.gaps.length > 0 ? (
+                              <div className="space-y-4">
+                                {latestAnalysis.result.skillGapAnalysis.gaps.map((gap, index) => (
+                                  <div key={index} className="pb-3 border-b last:border-0">
+                                    <div className="flex items-center mb-1">
+                                      <Badge 
+                                        variant={gap.importance?.toLowerCase() === 'high' ? 'destructive' : 'outline'} 
+                                        className="mr-2"
+                                      >
+                                        {gap.importance}
+                                      </Badge>
+                                      <span className="font-medium">{gap.skill}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{gap.description}</p>
                                   </div>
-                                  <p className="text-xs text-muted-foreground">{gap.description}</p>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4">
+                                <p className="text-muted-foreground">No skill gaps identified</p>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      )}
-                      
-                      {/* Strengths */}
-                      {latestAnalysis.result.skillGapAnalysis?.strengths && latestAnalysis.result.skillGapAnalysis.strengths.length > 0 && (
+                        
+                        {/* Strengths */}
                         <div className="bg-card border rounded-lg shadow-sm overflow-hidden h-full">
                           <div className="bg-green-100 dark:bg-green-950/30 p-4 border-b">
-                            <h4 className="font-semibold text-green-800 dark:text-green-200">Key Strengths</h4>
+                            <h4 className="font-semibold text-green-800 dark:text-green-200">Strengths</h4>
                           </div>
                           <div className="p-4">
-                            <div className="space-y-4">
-                              {latestAnalysis.result.skillGapAnalysis.strengths.map((strength, index) => (
-                                <div key={index} className="pb-3 border-b last:border-0">
-                                  <div className="flex items-center mb-1">
-                                    <Badge 
-                                      variant="outline" 
-                                      className="mr-2 bg-green-50 text-green-700 border-green-200"
-                                    >
-                                      {strength.relevance || "Relevant"}
-                                    </Badge>
-                                    <span className="font-medium">{strength.skill}</span>
+                            {latestAnalysis.result.skillGapAnalysis?.strengths && 
+                             latestAnalysis.result.skillGapAnalysis.strengths.length > 0 ? (
+                              <div className="space-y-4">
+                                {latestAnalysis.result.skillGapAnalysis.strengths.map((strength, index) => (
+                                  <div key={index} className="pb-3 border-b last:border-0">
+                                    <div className="flex items-center mb-1">
+                                      <Badge 
+                                        variant="outline" 
+                                        className="mr-2 bg-green-50 text-green-700 border-green-200"
+                                      >
+                                        {strength.relevance || "Relevant"}
+                                      </Badge>
+                                      <span className="font-medium">{strength.skill}</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{strength.description || strength.applicationToRole}</p>
                                   </div>
-                                  <p className="text-xs text-muted-foreground">{strength.description || strength.applicationToRole}</p>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4">
+                                <p className="text-muted-foreground">No key strengths identified</p>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </section>
                   
