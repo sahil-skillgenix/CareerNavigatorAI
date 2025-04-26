@@ -233,10 +233,21 @@ export function SavedAnalyses() {
               </div>
             </CardHeader>
             <CardContent className="pt-0 pb-2">
-              <p className="text-sm text-muted-foreground mb-1">Professional Level: {latestAnalysis.professionalLevel}</p>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground">Professional Level: {latestAnalysis.professionalLevel}</p>
+                
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="text-primary"
+                  onClick={() => viewFullAnalysis(latestAnalysis.id)}
+                >
+                  View Analysis →
+                </Button>
+              </div>
               
               {expandedAnalysis === latestAnalysis.id && latestAnalysis.result && (
-                <div className="mt-4 space-y-6 text-sm divide-y overflow-hidden">
+                <div className="mt-4 space-y-8 text-sm divide-y overflow-hidden max-w-full">
                   {latestAnalysis.result.executiveSummary && (
                     <div className="pb-4">
                       <h3 className="text-base font-semibold mb-2">Executive Summary</h3>
@@ -385,11 +396,11 @@ export function SavedAnalyses() {
                         <h4 className="text-sm font-medium mb-4">Skill Visualizations</h4>
                         
                         {/* Chart Grid */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div className="grid grid-cols-1 gap-8 mb-6">
                           {/* Skill Radar Chart */}
                           <div className="border rounded-md p-3 bg-muted/20">
                             <h4 className="text-sm font-medium mb-3 text-center">Skill Gap Visualization</h4>
-                            <div className="w-full" style={{ height: '280px' }}>
+                            <div className="w-full flex justify-center" style={{ height: '320px' }}>
                               {latestAnalysis.result && <SkillRadarChart results={latestAnalysis.result} />}
                             </div>
                           </div>
@@ -397,7 +408,7 @@ export function SavedAnalyses() {
                           {/* Comparative Bar Chart */}
                           <div className="border rounded-md p-3 bg-muted/20">
                             <h4 className="text-sm font-medium mb-3 text-center">Skills Comparison</h4>
-                            <div className="w-full" style={{ height: '280px' }}>
+                            <div className="w-full flex justify-center" style={{ height: '320px' }}>
                               {latestAnalysis.result && <ComparativeBarChart results={latestAnalysis.result} />}
                             </div>
                           </div>
@@ -558,10 +569,10 @@ export function SavedAnalyses() {
                 <Button 
                   variant="default" 
                   size="sm"
-                  className="px-2"
+                  className="flex items-center gap-1"
                   onClick={() => window.open(`/api/career-analyses/${latestAnalysis.id}/pdf`, '_blank')}
                 >
-                  <Download className="h-4 w-4" />
+                  <Download className="h-4 w-4" /> PDF
                 </Button>
               </div>
             </CardFooter>
