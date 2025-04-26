@@ -172,14 +172,18 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
   };
 
   // HTML Report Generation Function
-  const generateHTMLReport = () => {
+  const generateHTMLReport = async () => {
     try {
       setIsGenerating(true);
       toast({
         title: 'Preparing HTML Report',
-        description: 'Creating your career pathway analysis HTML report...',
+        description: 'Creating your career pathway analysis HTML report with visualizations...',
       });
-
+      
+      // Capture charts first for including in HTML
+      const radarChartImage = await captureChart(radarChartRef);
+      const barChartImage = await captureChart(barChartRef);
+      
       // Create HTML content for download
       const htmlContent = `
         <!DOCTYPE html>
@@ -272,6 +276,24 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
             <h3>Analysis Overview</h3>
             <p>${results.skillGapAnalysis.aiAnalysis}</p>
           </div>` : ''}
+          
+          <!-- Skill Visualizations -->
+          <div class="card">
+            <h3>Skill Visualization</h3>
+            ${radarChartImage ? `
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h4>Skill Radar Chart</h4>
+                <img src="${radarChartImage}" alt="Skill Radar Chart" style="max-width: 100%; height: auto;" />
+              </div>
+            ` : '<p>Skill radar chart visualization could not be generated.</p>'}
+            
+            ${barChartImage ? `
+              <div style="text-align: center;">
+                <h4>Skill Gap Comparison</h4>
+                <img src="${barChartImage}" alt="Skill Gap Comparison Chart" style="max-width: 100%; height: auto;" />
+              </div>
+            ` : '<p>Skill gap comparison chart could not be generated.</p>'}
+          </div>
           
           <div class="two-columns">
             <!-- Skill Gaps -->
