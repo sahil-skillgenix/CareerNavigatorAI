@@ -534,6 +534,88 @@ export function SavedAnalyses() {
                         </div>
                       </div>
                       
+                      {/* Skill Priority Distribution */}
+                      {latestAnalysis.result.skillGapAnalysis?.priorityDistribution && (
+                        <div className="mb-10 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4 text-center">Skill Priority Distribution</h4>
+                          <div className="space-y-3 mt-4 max-w-3xl mx-auto">
+                            {Object.entries(latestAnalysis.result.skillGapAnalysis.priorityDistribution).map(([skill, info]: [string, any], idx: number) => (
+                              <div key={idx} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span>{skill}</span>
+                                  <span className="font-medium">{info.priority}</span>
+                                </div>
+                                <div className="w-full bg-muted rounded-full h-2.5">
+                                  <div 
+                                    className={`h-2.5 rounded-full ${
+                                      info.priority === 'High' ? 'bg-red-500' : 
+                                      info.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500'
+                                    }`}
+                                    style={{ width: `${
+                                      info.priority === 'High' ? '100%' : 
+                                      info.priority === 'Medium' ? '66%' : '33%'
+                                    }` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-center mt-6 gap-5">
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-red-500 mr-2 rounded-full"></div>
+                              <span className="text-xs">High Priority</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-amber-500 mr-2 rounded-full"></div>
+                              <span className="text-xs">Medium Priority</span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 bg-blue-500 mr-2 rounded-full"></div>
+                              <span className="text-xs">Low Priority</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-4 text-center">
+                            Focus on high priority skills first to maximize your career transition impact
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Social & Soft Skills Development */}
+                      {latestAnalysis.result.skillGapAnalysis?.softSkills && latestAnalysis.result.skillGapAnalysis.softSkills.length > 0 && (
+                        <div className="mb-10 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4 text-center">Social & Soft Skills Development</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            {latestAnalysis.result.skillGapAnalysis.softSkills.map((skill: any, idx: number) => (
+                              <div key={idx} className="bg-primary/5 rounded-lg p-4 border border-primary/10">
+                                <div className="font-medium mb-1">{skill.name || skill.skill}</div>
+                                <p className="text-sm text-muted-foreground mb-2">{skill.description}</p>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {skill.developmentActivities && skill.developmentActivities.map((activity: string, actIdx: number) => (
+                                    <Badge key={actIdx} variant="outline" className="text-xs">
+                                      {activity}
+                                    </Badge>
+                                  ))}
+                                </div>
+                                {skill.importance && (
+                                  <div className="mt-2 text-xs">
+                                    <span className="font-medium">Importance:</span> 
+                                    <span className={`ml-1 ${
+                                      skill.importance === 'High' ? 'text-red-500' : 
+                                      skill.importance === 'Medium' ? 'text-amber-500' : 'text-blue-500'
+                                    }`}>
+                                      {skill.importance}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-6 text-center">
+                            Soft skills are critical for career advancement and often differentiate top performers
+                          </p>
+                        </div>
+                      )}
+                      
                       {/* Development Plan - Learning Resources */}
                       {latestAnalysis.result.developmentPlan && (
                         <div className="mt-6 bg-card border rounded-lg p-6 shadow-sm">
