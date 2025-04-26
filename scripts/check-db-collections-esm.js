@@ -109,8 +109,7 @@ async function checkCollections() {
       });
       
       // Generate cleanup script
-      const cleanupCode = `
-/**
+      const cleanupCode = `/**
  * Script to drop unknown/unnecessary collections
  * IMPORTANT: Review carefully before running!
  */
@@ -122,7 +121,7 @@ dotenv.config();
 
 // Collections to drop
 const COLLECTIONS_TO_DROP = [
-  ${unknownCollections.map(name => `  '${name}'`).join(',\n')}
+${unknownCollections.map(name => `  '${name}'`).join(',\n')}
 ];
 
 // MongoDB URI
@@ -149,16 +148,16 @@ async function dropCollections() {
     });
     
     console.log('The following collections will be dropped:');
-    COLLECTIONS_TO_DROP.forEach(name => console.log(\`- \${name}\`));
+    COLLECTIONS_TO_DROP.forEach(name => console.log('- ' + name));
     
     rl.question('\\nWARNING: This will permanently delete these collections!\\nAre you sure you want to proceed? (yes/no): ', async (answer) => {
       if (answer.toLowerCase() === 'yes') {
         for (const name of COLLECTIONS_TO_DROP) {
           try {
             await db.collection(name).drop();
-            console.log(\`✅ Dropped collection: \${name}\`);
+            console.log('✅ Dropped collection: ' + name);
           } catch (error) {
-            console.error(\`❌ Error dropping collection \${name}: \${error.message}\`);
+            console.error('❌ Error dropping collection ' + name + ': ' + error.message);
           }
         }
         console.log('\\nCleanup complete!');

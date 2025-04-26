@@ -39,18 +39,18 @@ async function finishCleanup() {
     // Identify collections to drop (all except valid ones)
     const collectionsToRemove = collectionNames.filter(name => !VALID_COLLECTIONS.includes(name));
     
-    console.log(`\nWill keep these collections (${VALID_COLLECTIONS.length}):`);
+    console.log('\nWill keep these collections (' + VALID_COLLECTIONS.length + '):');
     VALID_COLLECTIONS.forEach(name => {
       if (collectionNames.includes(name)) {
-        console.log(`- ${name}`);
+        console.log('- ' + name);
       } else {
-        console.log(`- ${name} (not found - will be created if needed)`);
+        console.log('- ' + name + ' (not found - will be created if needed)');
       }
     });
     
-    console.log(`\nWill drop these collections (${collectionsToRemove.length}):`);
+    console.log('\nWill drop these collections (' + collectionsToRemove.length + '):');
     collectionsToRemove.forEach(name => {
-      console.log(`- ${name}`);
+      console.log('- ' + name);
     });
     
     // Perform cleanup
@@ -62,27 +62,27 @@ async function finishCleanup() {
     for (const name of collectionsToRemove) {
       try {
         await db.collection(name).drop();
-        console.log(`✅ Dropped: ${name}`);
+        console.log('✅ Dropped: ' + name);
         droppedCount++;
       } catch (err) {
-        console.error(`❌ Error dropping ${name}: ${err.message}`);
+        console.error('❌ Error dropping ' + name + ': ' + err.message);
         errorCount++;
       }
     }
     
     // Print summary
     console.log('\n=== CLEANUP SUMMARY ===');
-    console.log(`Collections dropped: ${droppedCount}`);
-    console.log(`Errors encountered: ${errorCount}`);
+    console.log('Collections dropped: ' + droppedCount);
+    console.log('Errors encountered: ' + errorCount);
     
     // Verify final state
     const remainingCollections = (await db.listCollections().toArray())
       .map(c => c.name)
       .filter(name => !name.startsWith('system.'));
     
-    console.log(`\nFinal state: ${remainingCollections.length} collections remaining`);
+    console.log('\nFinal state: ' + remainingCollections.length + ' collections remaining');
     remainingCollections.sort().forEach(name => {
-      console.log(`- ${name}`);
+      console.log('- ' + name);
     });
     
   } catch (error) {

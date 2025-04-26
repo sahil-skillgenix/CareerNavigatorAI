@@ -142,7 +142,7 @@ async function migrateAndCleanup() {
     const db = client.db();
     const collectionNames = (await db.listCollections().toArray()).map(c => c.name);
     
-    console.log(`Found ${collectionNames.length} collections in the database`);
+    console.log('Found ' + collectionNames.length + ' collections in the database');
     
     // Create readline interface for user confirmation
     const rl = readline.createInterface({
@@ -161,11 +161,11 @@ async function migrateAndCleanup() {
       
       // Perform migrations
       for (const [targetCollection, sourceCollections] of Object.entries(MIGRATION_MAP)) {
-        console.log(`\n== Processing migration to ${targetCollection} ==`);
+        console.log('\n== Processing migration to ' + targetCollection + ' ==');
         
         // Ensure target collection exists
         if (!collectionNames.includes(targetCollection)) {
-          console.log(`Creating target collection: ${targetCollection}`);
+          console.log('Creating target collection: ' + targetCollection);
           await db.createCollection(targetCollection);
         }
         
@@ -178,7 +178,7 @@ async function migrateAndCleanup() {
             try {
               // Count documents in source
               const sourceCount = await db.collection(sourceCollection).countDocuments();
-              console.log(`Migrating from ${sourceCollection} (${sourceCount} documents)...`);
+              console.log('Migrating from ' + sourceCollection + ' (' + sourceCount + ' documents)...');
               
               if (sourceCount > 0) {
                 // Get all documents from source
@@ -209,11 +209,11 @@ async function migrateAndCleanup() {
                 // Insert transformed documents into target collection
                 if (transformedDocuments.length > 0) {
                   await db.collection(targetCollection).insertMany(transformedDocuments);
-                  console.log(`✅ Migrated ${transformedDocuments.length} documents from ${sourceCollection}`);
+                  console.log('✅ Migrated ' + transformedDocuments.length + ' documents from ' + sourceCollection);
                 }
               }
             } catch (err) {
-              console.error(`Error migrating from ${sourceCollection}: ${err.message}`);
+              console.error('Error migrating from ' + sourceCollection + ': ' + err.message);
             }
           }
         }
@@ -241,9 +241,9 @@ async function migrateAndCleanup() {
           if (collectionNames.includes(collection)) {
             try {
               await db.collection(collection).drop();
-              console.log(`✅ Dropped: ${collection}`);
+              console.log('✅ Dropped: ' + collection);
             } catch (err) {
-              console.error(`❌ Error dropping ${collection}: ${err.message}`);
+              console.error('❌ Error dropping ' + collection + ': ' + err.message);
             }
           }
         }
