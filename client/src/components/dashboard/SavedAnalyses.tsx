@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, ChartBarIcon } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -99,10 +99,8 @@ export function SavedAnalyses() {
     }
   };
 
-  const viewFullAnalysis = (id: string) => {
-    // Use document.location to ensure the page refreshes
-    document.location.href = `/career-analysis/${id}`;
-  };
+  // Completely removed the viewFullAnalysis function
+  // We'll display analysis inline instead of navigating to a new page
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
@@ -233,18 +231,7 @@ export function SavedAnalyses() {
               </div>
             </CardHeader>
             <CardContent className="pt-0 pb-2">
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">Professional Level: {latestAnalysis.professionalLevel}</p>
-                
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="text-primary"
-                  onClick={() => viewFullAnalysis(latestAnalysis.id)}
-                >
-                  View Analysis →
-                </Button>
-              </div>
+              <p className="text-sm text-muted-foreground mb-2">Professional Level: {latestAnalysis.professionalLevel}</p>
               
               {expandedAnalysis === latestAnalysis.id && latestAnalysis.result && (
                 <div className="mt-4 space-y-8 text-sm divide-y overflow-hidden max-w-full">
@@ -526,17 +513,7 @@ export function SavedAnalyses() {
                         </div>
                       </div>
                       
-                      {/* Call to action for full view */}
-                      <div className="flex justify-center mt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-xs"
-                          onClick={() => viewFullAnalysis(latestAnalysis.id)}
-                        >
-                          View Complete Pathway Analysis
-                        </Button>
-                      </div>
+                      {/* Removed call to action for full view */}
                     </div>
                   )}
                 </div>
@@ -547,6 +524,7 @@ export function SavedAnalyses() {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => toggleExpand(latestAnalysis.id)}
+                className="flex-1 justify-start"
               >
                 {expandedAnalysis === latestAnalysis.id ? (
                   <>
@@ -558,23 +536,14 @@ export function SavedAnalyses() {
                   </>
                 )}
               </Button>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => viewFullAnalysis(latestAnalysis.id)}
-                >
-                  View Full Analysis
-                </Button>
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={() => window.open(`/api/career-analyses/${latestAnalysis.id}/pdf`, '_blank')}
-                >
-                  <Download className="h-4 w-4" /> PDF
-                </Button>
-              </div>
+              <Button 
+                variant="default" 
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => window.open(`/api/career-analyses/${latestAnalysis.id}/pdf`, '_blank')}
+              >
+                <Download className="h-4 w-4" /> Download PDF
+              </Button>
             </CardFooter>
           </Card>
         ) : (
