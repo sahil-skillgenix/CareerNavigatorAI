@@ -180,9 +180,43 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         description: 'Creating your career pathway analysis HTML report with visualizations...',
       });
       
-      // Capture charts first for including in HTML
-      const radarChartImage = await captureChart(radarChartRef);
-      const barChartImage = await captureChart(barChartRef);
+      // Function to retry chart capture with timeout
+      const captureChartWithRetry = async (ref: React.RefObject<HTMLDivElement>, maxAttempts: number = 3): Promise<string | null> => {
+        let attempts = 0;
+        let chartImage: string | null = null;
+        
+        while (attempts < maxAttempts && !chartImage) {
+          attempts++;
+          console.log(`Capturing chart, attempt ${attempts}...`);
+          
+          // Slight delay between attempts
+          if (attempts > 1) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          
+          chartImage = await captureChart(ref);
+        }
+        
+        return chartImage;
+      };
+      
+      // Capture charts first for including in HTML with retry capabilities
+      console.log('Starting chart capture for HTML report...');
+      const radarChartImage = await captureChartWithRetry(radarChartRef);
+      const barChartImage = await captureChartWithRetry(barChartRef);
+      
+      // Log outcome
+      if (radarChartImage) {
+        console.log('Radar chart successfully captured');
+      } else {
+        console.warn('Failed to capture radar chart after multiple attempts');
+      }
+      
+      if (barChartImage) {
+        console.log('Bar chart successfully captured');
+      } else {
+        console.warn('Failed to capture bar chart after multiple attempts');
+      }
       
       // Create HTML content for download
       const htmlContent = `
