@@ -1507,58 +1507,7 @@ export function SavedAnalyses() {
                     
                     {latestAnalysis.result.careerPathway ? (
                       <div>
-                        <div className="bg-card border rounded-lg p-6 shadow-sm mb-4">
-                          {/* Temporarily render a placeholder instead of CareerPathwayStepsDisplay */}
-                          <div className="p-4 bg-muted/20 rounded-lg">
-                            <div className="flex justify-between items-center mb-6">
-                              <h3 className="text-lg font-medium">Career Pathway Options</h3>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100">
-                                  University Path
-                                </Badge>
-                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-100">
-                                  Vocational Path
-                                </Badge>
-                              </div>
-                            </div>
-                            
-                            {/* University Pathway Preview */}
-                            {latestAnalysis.result.careerPathway.withDegree && (
-                              <div className="mb-8">
-                                <h4 className="font-medium mb-2 text-blue-700">University Pathway</h4>
-                                <div className="flex flex-col gap-2">
-                                  {latestAnalysis.result.careerPathway.withDegree.map((step, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                      <Badge variant="outline" className="w-6 h-6 flex items-center justify-center p-0 bg-blue-50">
-                                        {step.step}
-                                      </Badge>
-                                      <div className="text-sm font-medium">{step.role}</div>
-                                      <div className="text-xs text-muted-foreground ml-auto">{step.timeframe}</div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Vocational Pathway Preview */}
-                            {latestAnalysis.result.careerPathway.withoutDegree && (
-                              <div>
-                                <h4 className="font-medium mb-2 text-amber-700">Vocational Pathway</h4>
-                                <div className="flex flex-col gap-2">
-                                  {latestAnalysis.result.careerPathway.withoutDegree.map((step, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                      <Badge variant="outline" className="w-6 h-6 flex items-center justify-center p-0 bg-amber-50">
-                                        {step.step}
-                                      </Badge>
-                                      <div className="text-sm font-medium">{step.role}</div>
-                                      <div className="text-xs text-muted-foreground ml-auto">{step.timeframe}</div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+
                         
                         {latestAnalysis.result.careerPathway.pathwayExplanation && (
                           <div className="bg-card border rounded-lg p-6 shadow-sm mt-4">
@@ -1593,7 +1542,11 @@ export function SavedAnalyses() {
                         </p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {(latestAnalysis.result.similarRoles || latestAnalysis.result.alternativeRoles).map((role, idx) => (
+                          {/* Create a combined array from both similarRoles and alternativeRoles */}
+                          {[
+                            ...(Array.isArray(latestAnalysis.result.similarRoles) ? latestAnalysis.result.similarRoles : []),
+                            ...(Array.isArray(latestAnalysis.result.alternativeRoles) ? latestAnalysis.result.alternativeRoles : [])
+                          ].map((role, idx) => (
                             <div key={idx} className="bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-sm">
                               <h4 className="text-lg font-medium text-blue-700 mb-1">{role.title || role.role}</h4>
                               
