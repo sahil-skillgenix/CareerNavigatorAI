@@ -907,6 +907,85 @@ export function SavedAnalyses() {
                         )}
                       </div>
                       
+                      {/* Similar Roles To Consider */}
+                      {latestAnalysis.result.alternativeRoles && latestAnalysis.result.alternativeRoles.length > 0 && (
+                        <div className="py-6">
+                          <h3 className="text-xl font-bold mb-4">Similar Roles To Consider</h3>
+                          
+                          <div className="bg-card border rounded-lg p-6 shadow-sm">
+                            <p className="text-sm text-muted-foreground mb-4">
+                              Based on your skills, experience, and career goals, these related roles might offer alternative paths that leverage your abilities:
+                            </p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {latestAnalysis.result.alternativeRoles.map((role: any, idx: number) => (
+                                <div key={idx} className="bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-sm">
+                                  <h4 className="text-lg font-medium text-blue-700 mb-1">{role.title}</h4>
+                                  
+                                  {role.match && (
+                                    <div className="mb-2">
+                                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">
+                                        Match: {role.match}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  
+                                  <p className="text-sm text-blue-800 mb-3">{role.description}</p>
+                                  
+                                  {/* Key Skill Overlaps */}
+                                  {role.keySkillOverlaps && role.keySkillOverlaps.length > 0 && (
+                                    <div className="mb-2">
+                                      <h5 className="text-xs font-semibold text-blue-700 mb-1">Key skill overlaps:</h5>
+                                      <div className="flex flex-wrap gap-1">
+                                        {role.keySkillOverlaps.map((skill: string, skillIdx: number) => (
+                                          <Badge key={skillIdx} variant="secondary" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200">
+                                            {skill}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Key Difference */}
+                                  {role.keyDifference && (
+                                    <div className="mb-2">
+                                      <h5 className="text-xs font-semibold text-amber-600 mb-1">Key difference:</h5>
+                                      <p className="text-xs text-amber-700 bg-amber-50 p-1 rounded">
+                                        {role.keyDifference}
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Salary Range & Growth */}
+                                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-blue-200">
+                                    {role.salaryRange && (
+                                      <div className="text-xs">
+                                        <span className="text-slate-500">Salary Range:</span><br />
+                                        <span className="font-semibold text-slate-700">{role.salaryRange}</span>
+                                      </div>
+                                    )}
+                                    
+                                    {role.growthOutlook && (
+                                      <div className="text-xs">
+                                        <span className="text-slate-500">Growth Outlook:</span><br />
+                                        <span className={`font-semibold ${
+                                          role.growthOutlook.toLowerCase().includes('excellent') ? 'text-emerald-600' :
+                                          role.growthOutlook.toLowerCase().includes('good') ? 'text-blue-600' :
+                                          role.growthOutlook.toLowerCase().includes('strong') ? 'text-indigo-600' :
+                                          'text-slate-700'
+                                        }`}>
+                                          {role.growthOutlook}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* Development Plan - Learning Resources */}
                       {latestAnalysis.result.developmentPlan && (
                         <div className="mt-6 bg-card border rounded-lg p-6 shadow-sm">
@@ -917,6 +996,65 @@ export function SavedAnalyses() {
                               <p className="text-sm text-muted-foreground">
                                 {latestAnalysis.result.developmentPlan.personalizedGrowthInsights}
                               </p>
+                            </div>
+                          )}
+                          
+                          {/* Micro-Learning Quick Tips */}
+                          {latestAnalysis.result.developmentPlan.microLearningTips && 
+                           latestAnalysis.result.developmentPlan.microLearningTips.length > 0 && (
+                            <div className="mb-6">
+                              <h5 className="text-sm font-medium mb-3 flex items-center">
+                                <span className="text-rose-500 mr-1">✦</span> 
+                                Micro-Learning Quick Tips by GenAI
+                              </h5>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                {latestAnalysis.result.developmentPlan.microLearningTips.map((tip: any, idx: number) => (
+                                  <div 
+                                    key={idx} 
+                                    className="bg-rose-50 border border-rose-100 rounded-lg p-4 shadow-sm"
+                                  >
+                                    <div className="flex items-start mb-2">
+                                      <div className="w-6 h-6 bg-rose-500 text-white rounded-full mr-2 flex items-center justify-center text-xs font-medium flex-shrink-0">
+                                        {idx + 1}
+                                      </div>
+                                      <h6 className="font-medium text-sm text-rose-700">{tip.title || tip.skill}</h6>
+                                    </div>
+                                    <p className="text-xs text-rose-700/80 ml-8">{tip.description}</p>
+                                    
+                                    <div className="flex items-center mt-2 ml-8">
+                                      <div className="flex items-center text-xs text-rose-600">
+                                        <div className="mr-1">
+                                          <span className="font-medium">{tip.impact || "High"} Impact</span>
+                                        </div>
+                                      </div>
+                                      
+                                      {tip.timeEstimate && (
+                                        <div className="flex items-center text-xs text-rose-600 ml-auto">
+                                          <Clock className="h-3 w-3 mr-1" />
+                                          <span>{tip.timeEstimate}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Personalized Skill Growth Trajectory */}
+                          {latestAnalysis.result.developmentPlan.skillGrowthTrajectory && (
+                            <div className="mb-6">
+                              <h5 className="text-sm font-medium mb-3 flex items-center">
+                                <span className="text-indigo-500 mr-1">↗</span> 
+                                Personalized Skill Growth Trajectory
+                              </h5>
+                              
+                              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                                <p className="text-sm text-indigo-700">
+                                  {latestAnalysis.result.developmentPlan.skillGrowthTrajectory}
+                                </p>
+                              </div>
                             </div>
                           )}
                           
