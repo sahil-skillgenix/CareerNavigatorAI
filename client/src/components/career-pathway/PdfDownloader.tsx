@@ -513,80 +513,70 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
 
   return (
     <div className="w-full">
-      <div className="border rounded-lg p-4 bg-muted/10 shadow-sm">
-        <div className="flex items-center mb-4">
-          <FileText className="h-5 w-5 mr-2 text-primary" />
-          <h3 className="text-lg font-semibold">Complete Analysis Report</h3>
-        </div>
-        
-        <p className="text-sm text-muted-foreground mb-4">
-          Your complete career analysis contains all sections including executive summary, 
-          skill mapping, gap analysis, career pathways, and development plan with 
-          recommended resources in a professionally designed report.
-        </p>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-xs text-muted-foreground">
-            <span className="inline-flex items-center mr-3">
-              <FileText className="h-3 w-3 mr-1" /> PDF Format
-            </span>
-            <span className="inline-flex items-center">
-              <svg viewBox="0 0 24 24" className="h-3 w-3 mr-1 fill-current">
-                <path d="M12 16l-5-5h3V7h4v4h3l-5 5zm0-14a10 10 0 100 20 10 10 0 000-20z" />
-              </svg>
-              {isGenerating ? 'Preparing...' : 'Ready for download'}
-            </span>
+      <div className="border rounded-lg p-4 bg-blue-600 shadow-sm relative">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center">
+            <FileText className="h-5 w-5 mr-2 text-white" />
+            <h3 className="text-lg font-semibold text-white">Download Report</h3>
           </div>
           
-          <Button 
-            onClick={generatePDF} 
-            size="sm" 
-            className={`${
-              isGenerating 
-                ? 'bg-blue-600/90 text-white border-0' 
-                : 'bg-blue-700 text-white hover:bg-blue-800'
-            } font-medium gap-2 transition-all rounded-md shadow-md border-0`}
-            disabled={isGenerating || !chartsReady}
-          >
-            {isGenerating ? (
-              <>
-                <svg 
-                  className="h-4 w-4 animate-spin text-white" 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  fill="none" 
-                  viewBox="0 0 24 24"
-                >
-                  <circle 
-                    className="opacity-25" 
-                    cx="12" 
-                    cy="12" 
-                    r="10" 
-                    stroke="currentColor" 
-                    strokeWidth="4"
-                  />
-                  <path 
-                    className="opacity-75" 
-                    fill="currentColor" 
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span>Generating Report...</span>
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                <span>Download PDF Report</span>
-              </>
-            )}
-          </Button>
+          <div className="group relative">
+            <button className="text-white hover:text-blue-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </button>
+            <div className="absolute right-0 mt-2 w-64 bg-white p-2 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <p className="text-xs text-gray-700">
+                Complete career analysis with executive summary, skill mapping, gap analysis, career pathways, and development plan in a professionally designed PDF.
+              </p>
+            </div>
+          </div>
         </div>
         
-        <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
-          <p>
-            Your report includes professionally designed data visualizations and 
-            comprehensive development recommendations based on SFIA 9 and DigComp 2.2 frameworks.
-          </p>
-        </div>
+        <Button 
+          onClick={generatePDF} 
+          size="default" 
+          className={`${
+            isGenerating 
+              ? 'bg-blue-700/90 text-white' 
+              : 'bg-blue-800 text-white hover:bg-blue-900'
+          } font-medium gap-2 transition-all rounded-md shadow-md border-0 w-full`}
+          disabled={isGenerating || !chartsReady}
+        >
+          {isGenerating ? (
+            <>
+              <svg 
+                className="h-4 w-4 animate-spin text-white" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24"
+              >
+                <circle 
+                  className="opacity-25" 
+                  cx="12" 
+                  cy="12" 
+                  r="10" 
+                  stroke="currentColor" 
+                  strokeWidth="4"
+                />
+                <path 
+                  className="opacity-75" 
+                  fill="currentColor" 
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span>Generating...</span>
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4" />
+              <span>Download PDF Report</span>
+            </>
+          )}
+        </Button>
       </div>
       
       {/* Hidden divs for chart rendering - these will be captured for the PDF */}
