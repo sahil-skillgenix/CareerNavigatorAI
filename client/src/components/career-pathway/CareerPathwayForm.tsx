@@ -2805,8 +2805,8 @@ function CareerAnalysisResults({
                     
                     console.log("Saving analysis with data:", formDataToSave);
                     
-                    // We're saving the current analysis with the results
-                    const response = await fetch('/api/career-analysis', {
+                    // We're saving the current analysis with the results using our dedicated endpoint
+                    const response = await fetch('/api/save-career-analysis', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',

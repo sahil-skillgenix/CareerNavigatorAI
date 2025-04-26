@@ -246,6 +246,122 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
     }
   });
 
+  // Dashboard API endpoint
+  app.get('/api/dashboard', jwtAuthMiddleware, async (req: Request, res: Response) => {
+    try {
+      // Ensure user is authenticated
+      if (!req.user) {
+        console.log('User not authenticated when accessing dashboard');
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to access dashboard data'
+        });
+      }
+
+      const userId = req.user.id;
+      if (!userId) {
+        return res.status(400).json({
+          error: 'Invalid user ID',
+          message: 'Could not determine user ID from authentication'
+        });
+      }
+      
+      console.log(`Fetching dashboard data for user: ${userId}`);
+      
+      // Get career analyses for the user
+      const careerAnalyses = await storageInstance.getUserCareerAnalyses(userId);
+      console.log(`Found ${careerAnalyses.length} career analyses for user ${userId}`);
+      
+      // Get user progress items
+      const progressItems = await storageInstance.getUserProgress(userId);
+      
+      // Get user badges
+      const badges = await storageInstance.getUserBadges(userId);
+      
+      // Get user activity
+      const recentActivity = await getUserActivity(userId.toString(), 5);
+
+      return res.json({
+        careerAnalyses,
+        progressItems,
+        badges,
+        recentActivity
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      return res.status(500).json({
+        error: 'Failed to fetch dashboard data',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
+    }
+  });
+  
+  // Route to save career analysis to database
+  app.post('/api/save-career-analysis', jwtAuthMiddleware, async (req: Request, res: Response) => {
+    try {
+      // Ensure user is authenticated
+      if (!req.user) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to save an analysis'
+        });
+      }
+      
+      const userId = req.user.id;
+      console.log(`Saving career analysis for user: ${userId}`);
+      
+      // Extract data from the request body
+      const { 
+        professionalLevel, 
+        currentSkills, 
+        educationalBackground, 
+        careerHistory, 
+        desiredRole, 
+        state, 
+        country, 
+        result 
+      } = req.body;
+      
+      // Validate required fields
+      if (!professionalLevel || !currentSkills || !educationalBackground || !careerHistory || !desiredRole) {
+        return res.status(400).json({
+          error: 'Missing required fields',
+          message: 'Please provide all required fields to save the analysis'
+        });
+      }
+      
+      // Create new career analysis record
+      const analysis = await storageInstance.saveCareerAnalysis({
+        userId,
+        professionalLevel,
+        currentSkills,
+        educationalBackground,
+        careerHistory,
+        desiredRole,
+        state,
+        country,
+        result,
+        progress: 0
+      });
+      
+      // Log the activity
+      await logUserActivity(userId, 'save_career_analysis', 'FEATURE', 'saved a career analysis', {
+        analysisId: analysis.id,
+        desiredRole
+      });
+      
+      console.log(`Successfully saved career analysis with ID: ${analysis.id}`);
+      
+      return res.status(201).json(analysis);
+    } catch (error) {
+      console.error('Error saving career analysis:', error);
+      return res.status(500).json({
+        error: 'Failed to save career analysis',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
