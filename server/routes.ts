@@ -247,10 +247,10 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
 
   // Dashboard API endpoint
-  app.get('/api/dashboard', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.get('/api/dashboard', jwtAuthMiddleware, async (req: Request & { jwtUser?: any, user?: any }, res: Response) => {
     try {
-      // Ensure user is authenticated
-      if (!req.user) {
+      // Ensure user is authenticated - check both jwtUser (JWT auth) and user (session auth)
+      if (!req.jwtUser && !req.user) {
         console.log('User not authenticated when accessing dashboard');
         return res.status(401).json({
           error: 'Unauthorized',
@@ -258,7 +258,15 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         });
       }
 
-      const userId = req.user.id;
+      // Get user ID from either JWT or session
+      console.log('Dashboard - Auth info:', { 
+        hasJwtUser: !!req.jwtUser, 
+        jwtUserId: req.jwtUser?.userId,
+        hasUser: !!req.user,
+        userId: req.user?.id
+      });
+      
+      const userId = req.jwtUser?.userId || req.user?.id;
       if (!userId) {
         return res.status(400).json({
           error: 'Invalid user ID',
@@ -297,17 +305,25 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Route to save career analysis to database
-  app.post('/api/save-career-analysis', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.post('/api/save-career-analysis', jwtAuthMiddleware, async (req: Request & { jwtUser?: any, user?: any }, res: Response) => {
     try {
-      // Ensure user is authenticated
-      if (!req.user) {
+      // Ensure user is authenticated - check both jwtUser (JWT auth) and user (session auth)
+      if (!req.jwtUser && !req.user) {
         return res.status(401).json({
           error: 'Unauthorized',
           message: 'You must be logged in to save an analysis'
         });
       }
       
-      const userId = req.user.id;
+      // Get user ID from either JWT or session
+      console.log('Save Analysis - Auth info:', { 
+        hasJwtUser: !!req.jwtUser, 
+        jwtUserId: req.jwtUser?.userId,
+        hasUser: !!req.user,
+        userId: req.user?.id
+      });
+      
+      const userId = req.jwtUser?.userId || req.user?.id;
       if (!userId) {
         return res.status(400).json({
           error: 'Invalid user ID',
