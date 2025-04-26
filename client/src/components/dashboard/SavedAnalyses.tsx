@@ -616,6 +616,36 @@ export function SavedAnalyses() {
                         </div>
                       )}
                       
+                      {/* Career Pathway Steps Display */}
+                      {latestAnalysis.result.careerPathway && (
+                        <div className="mt-10 mb-10 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4 text-center">Career Pathway Visualization</h4>
+                          
+                          {/* AI Pathway Enhancement Insights */}
+                          {latestAnalysis.result.careerPathway.aiAnalysis && (
+                            <div className="mb-6 bg-primary/5 border border-primary/10 rounded-lg p-4">
+                              <div className="flex items-center mb-3">
+                                <Badge variant="outline" className="bg-primary/10 text-primary mr-2">
+                                  AI Insights
+                                </Badge>
+                                <h5 className="text-sm font-medium">Pathway Enhancement Analysis</h5>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {latestAnalysis.result.careerPathway.aiAnalysis}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Pathway Visualization */}
+                          <div className="mt-6">
+                            <CareerPathwayStepsDisplay 
+                              pathway={latestAnalysis.result.careerPathway} 
+                              variant="withDegree"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* Development Plan - Learning Resources */}
                       {latestAnalysis.result.developmentPlan && (
                         <div className="mt-6 bg-card border rounded-lg p-6 shadow-sm">
