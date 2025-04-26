@@ -313,15 +313,86 @@ export async function analyzeCareerPathway(input: CareerAnalysisInput): Promise<
         const parsedResponse = JSON.parse(content) as CareerAnalysisOutput;
         
         // Validate essential fields to ensure we have a complete analysis
-        const requiredFields = ['executiveSummary', 'skillMapping', 'skillGapAnalysis', 'careerPathway', 'developmentPlan'];
+        const requiredFields = [
+          'executiveSummary', 
+          'skillMapping', 
+          'skillGapAnalysis', 
+          'careerPathway', 
+          'developmentPlan',
+          'similarRoles',
+          'socialSkills',
+          'reviewNotes'
+        ];
         const missingFields = requiredFields.filter(field => !parsedResponse[field as keyof CareerAnalysisOutput]);
         
         if (missingFields.length > 0) {
           throw new Error(`Incomplete analysis response. Missing fields: ${missingFields.join(', ')}`);
         }
+
+        // Create chart data from the existing data elements
+        // 1. Radar chart data - extracted from skill mapping and gap analysis
+        const currentSkills = parsedResponse.skillMapping.sfia9.map(skill => ({
+          skill: skill.skill,
+          level: parseInt(skill.level.split(' ')[0]) || 1
+        }));
+
+        const requiredSkills = parsedResponse.skillGapAnalysis.gaps.map(gap => ({
+          skill: gap.skill,
+          level: gap.importance === 'High' ? 3 : (gap.importance === 'Medium' ? 2 : 1)
+        }));
+
+        // Combine them for the radar chart
+        const radarChartData = {
+          skills: [...new Set([...currentSkills.map(s => s.skill), ...requiredSkills.map(s => s.skill)])].map(skillName => {
+            const current = currentSkills.find(s => s.skill === skillName);
+            const required = requiredSkills.find(s => s.skill === skillName);
+            return {
+              skill: skillName,
+              currentLevel: current ? current.level : 0,
+              requiredLevel: required ? required.level : 0,
+              fullMark: 5
+            };
+          })
+        };
+
+        // 2. Bar chart data for skill gaps
+        const barChartData = {
+          skills: parsedResponse.skillGapAnalysis.gaps.map(gap => ({
+            name: gap.skill,
+            currentLevel: currentSkills.find(s => s.skill === gap.skill)?.level || 0,
+            requiredLevel: gap.importance === 'High' ? 3 : (gap.importance === 'Medium' ? 2 : 1),
+            gap: (gap.importance === 'High' ? 3 : (gap.importance === 'Medium' ? 2 : 1)) - 
+                 (currentSkills.find(s => s.skill === gap.skill)?.level || 0),
+            importance: gap.importance
+          }))
+        };
+
+        // 3. Generic chart data for future use
+        const chartData = {
+          currentSkills,
+          requiredSkills,
+          skillGaps: parsedResponse.skillGapAnalysis.gaps.map(gap => ({
+            name: gap.skill,
+            importance: gap.importance,
+            description: gap.description
+          })),
+          strengths: parsedResponse.skillGapAnalysis.strengths.map(strength => ({
+            name: strength.skill,
+            level: strength.level,
+            relevance: strength.relevance
+          }))
+        };
+
+        // Add chart data to the response
+        const enhancedResponse = {
+          ...parsedResponse,
+          chartData,
+          radarChartData,
+          barChartData
+        };
         
-        console.log("Career analysis generated successfully");
-        return parsedResponse;
+        console.log("Career analysis generated successfully with enhanced chart data");
+        return enhancedResponse;
       } catch (parseError) {
         throw new Error(`Failed to parse OpenAI response: ${parseError instanceof Error ? parseError.message : 'Invalid JSON format'}`);
       }

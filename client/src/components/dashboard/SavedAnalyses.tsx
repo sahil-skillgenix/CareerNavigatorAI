@@ -908,8 +908,9 @@ export function SavedAnalyses() {
                       </div>
                       
                       {/* Similar Roles To Consider */}
-                      {(latestAnalysis.result.alternativeRoles || latestAnalysis.result.similarRoles) && 
-                       (latestAnalysis.result.alternativeRoles?.length > 0 || latestAnalysis.result.similarRoles?.length > 0) && (
+                      {/* Use similarRoles (correct field name from OpenAI) with fallback to alternativeRoles (old field name) */}
+                      {(latestAnalysis.result.similarRoles || latestAnalysis.result.alternativeRoles) && 
+                       (latestAnalysis.result.similarRoles?.length > 0 || latestAnalysis.result.alternativeRoles?.length > 0) && (
                         <div className="py-6">
                           <h3 className="text-xl font-bold mb-4">Similar Roles To Consider</h3>
                           
@@ -919,7 +920,7 @@ export function SavedAnalyses() {
                             </p>
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {(latestAnalysis.result.alternativeRoles || latestAnalysis.result.similarRoles).map((role: any, idx: number) => (
+                              {(latestAnalysis.result.similarRoles || latestAnalysis.result.alternativeRoles).map((role: any, idx: number) => (
                                 <div key={idx} className="bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-sm">
                                   <h4 className="text-lg font-medium text-blue-700 mb-1">{role.title || role.role}</h4>
                                   
