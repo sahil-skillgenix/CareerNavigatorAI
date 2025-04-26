@@ -1,3 +1,16 @@
+/**
+ * ⚠️ PROTECTED SERVICE - DO NOT MODIFY ⚠️
+ * 
+ * This file contains the fixed OpenAI integration for the Career Pathway Analysis feature,
+ * which is considered stable and production-ready. Any changes to this file could 
+ * disrupt critical functionality. See PROTECTED_FEATURES.md at project root.
+ * 
+ * This service uses dynamic imports to resolve the "require is not defined" error 
+ * in ESM context. The fix has been tested and verified to work correctly.
+ * 
+ * Last modified: April 26, 2025
+ */
+
 import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
