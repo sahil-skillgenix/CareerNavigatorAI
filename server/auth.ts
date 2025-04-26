@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
-import session from "express-session";
+import session, { SessionData } from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { IStorage, storage } from "./storage";
@@ -19,6 +19,18 @@ import { logUserActivity, authEventLogger } from "./services/activity-logger";
 declare global {
   namespace Express {
     interface User extends SelectUser {}
+  }
+}
+
+// Extend the SessionData interface
+declare module 'express-session' {
+  interface SessionData {
+    passwordReset?: {
+      userId: string;
+      email: string;
+      timestamp: number;
+      expiresAt: number;
+    }
   }
 }
 
@@ -260,11 +272,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         return res.status(400).json({ message: "Incorrect security answer" });
       }
       
-      // Generate a one-time reset token that will expire in 15 minutes
-      const resetToken = generateToken(
-        { userId: user.id, email: user.email, purpose: 'passwordReset' },
-        '15m' // 15 minute expiration
-      );
+      // Store the reset info in the session instead of using a token
+      req.session.passwordReset = {
+        userId: user.id,
+        email: user.email,
+        timestamp: Date.now(),
+        // Set expiry to 15 minutes from now
+        expiresAt: Date.now() + (15 * 60 * 1000)
+      };
       
       // Log successful security answer verification
       await logUserActivity({
@@ -276,11 +291,11 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         metadata: { email, result: 'success' }
       });
       
-      log(`Password reset: Security answer verified for ${email}, reset token generated`, "auth");
+      log(`Password reset: Security answer verified for ${email}, reset info stored in session`, "auth");
       
       return res.status(200).json({ 
-        message: "Security answer verified",
-        resetToken
+        message: "Security answer verified. Please reset your password now.",
+        success: true
       });
     } catch (error) {
       log(`Password reset verification error: ${error}`, "auth");
@@ -290,12 +305,28 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
   
   app.post("/api/reset-password", passwordResetRateLimiter, async (req, res, next) => {
     try {
-      const { resetToken, newPassword, confirmPassword } = req.body;
+      const { newPassword, confirmPassword } = req.body;
+      const passwordResetInfo = req.session.passwordReset;
       
       // Validate inputs
-      if (!resetToken || !newPassword) {
+      if (!passwordResetInfo) {
         return res.status(400).json({ 
-          message: "Reset token and new password are required" 
+          message: "Password reset session not found. Please restart the password reset process." 
+        });
+      }
+      
+      // Check if the reset session has expired (15 minutes)
+      if (Date.now() > passwordResetInfo.expiresAt) {
+        // Clear the expired reset info
+        delete req.session.passwordReset;
+        return res.status(401).json({ 
+          message: "Password reset session has expired. Please restart the password reset process."
+        });
+      }
+      
+      if (!newPassword) {
+        return res.status(400).json({ 
+          message: "New password is required" 
         });
       }
       
@@ -327,16 +358,7 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         });
       }
       
-      // Verify the reset token
-      const decoded = verifyToken(resetToken);
-      if (!decoded || decoded.purpose !== 'passwordReset') {
-        log(`Password reset: Invalid or expired reset token`, "auth");
-        return res.status(401).json({ 
-          message: "Invalid or expired reset token. Please try the password reset process again."
-        });
-      }
-      
-      const userId = decoded.userId;
+      const userId = passwordResetInfo.userId;
       
       // Get the user
       const user = await storageInstance.getUser(userId);
@@ -369,15 +391,11 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
         metadata: { email: user.email }
       });
       
-      // Invalidate all existing sessions for this user for security
-      // (This is a mock as we don't have direct session invalidation)
-      
-      // Generate a new login token that the client can use immediately
-      const newLoginToken = generateToken(user);
+      // Clear the password reset info from session
+      delete req.session.passwordReset;
       
       return res.status(200).json({ 
-        message: "Password reset successful. You can now log in with your new password.",
-        token: newLoginToken
+        message: "Password reset successful. You can now log in with your new password."
       });
     } catch (error) {
       log(`Password reset error: ${error}`, "auth");
@@ -442,19 +460,13 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
           metadata: { email }
         });
         
-        // Generate JWT token with 2 hour expiration
-        const token = generateToken(user);
-        
         // Remove sensitive data before sending response
         const { password, securityAnswer, ...userWithoutPassword } = user;
         
         log(`User ${email} logged in successfully`, "auth");
         
-        // Send token and user data
-        return res.status(200).json({
-          ...userWithoutPassword,
-          token
-        });
+        // Send only user data (no token)
+        return res.status(200).json(userWithoutPassword);
       });
     })(req, res, next);
   });
@@ -494,44 +506,14 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
     });
   });
 
-  // Add JWT auth middleware to the API routes that need protection
-  app.use("/api/user", jwtAuthMiddleware({ requireAuth: false, excludePaths: ["/api/login", "/api/register", "/api/find-account", "/api/verify-security-answer", "/api/reset-password"] }));
-  
+  // User data endpoint
   app.get("/api/user", (req, res) => {
-    // First check JWT authentication
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') 
-      ? authHeader.substring(7) 
-      : req.cookies?.token;
-    
-    if (token) {
-      const decoded = verifyToken(token);
-      if (decoded) {
-        // Find user in database
-        storageInstance.getUser(decoded.userId)
-          .then(user => {
-            if (!user) {
-              return res.status(401).json({ message: "User not found" });
-            }
-            const { password, securityAnswer, ...userWithoutPassword } = user;
-            return res.json({
-              ...userWithoutPassword,
-              token  // Return the token for auto-refresh on client
-            });
-          })
-          .catch(err => {
-            console.error("JWT user lookup error:", err);
-            return res.status(500).json({ message: "Error retrieving user data" });
-          });
-        return;
-      }
-    }
-    
-    // Fall back to session-based authentication
+    // Session-based authentication only
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
     }
     
+    // Return user data without sensitive fields
     const { password, securityAnswer, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
   });
