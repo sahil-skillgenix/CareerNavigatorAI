@@ -144,6 +144,42 @@ const extractTopSkills = (results: CareerAnalysisResult): any[] => {
   }));
 };
 
+interface SvgExportProps {
+  getSvgString?: () => string | null;
+}
+
+// Create a ref to export SVG data
+export const SkillRadarChartExport: React.FC & SvgExportProps = () => <></>;
+
+// Static method to get SVG string - can be called from outside the component
+SkillRadarChartExport.getSvgString = (): string | null => {
+  try {
+    const svgElement = document.getElementById('skillRadarChart')?.querySelector('svg');
+    if (!svgElement) {
+      console.error('Could not find SVG element for radar chart');
+      return null;
+    }
+    
+    // Clone the SVG to avoid modifying the original
+    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+    
+    // Set explicit dimensions
+    clonedSvg.setAttribute('width', '600');
+    clonedSvg.setAttribute('height', '400');
+    clonedSvg.setAttribute('viewBox', '0 0 600 400');
+    
+    // Convert to string
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(clonedSvg);
+    
+    // Return SVG as string
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+  } catch (error) {
+    console.error('Error exporting SVG:', error);
+    return null;
+  }
+};
+
 export function SkillRadarChart({ results }: SkillRadarChartProps) {
   try {
     // Check if required data properties exist
@@ -178,7 +214,13 @@ export function SkillRadarChart({ results }: SkillRadarChartProps) {
     return (
       <div className="w-full h-full skill-radar-container" id="skill-radar-chart">
         <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData} id="skillRadarChart">
+          <RadarChart 
+            cx="50%" 
+            cy="50%" 
+            outerRadius="70%" 
+            data={radarData} 
+            id="skillRadarChart"
+          >
             <PolarGrid stroke="#cccccc" />
             <PolarAngleAxis 
               dataKey="skill" 
