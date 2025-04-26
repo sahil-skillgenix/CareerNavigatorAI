@@ -475,6 +475,98 @@ export function SavedAnalyses() {
                             </div>
                           )}
                           
+                          {/* AI-Enhanced Roadmap Stages */}
+                          {latestAnalysis.result.developmentPlan.roadmapStages && 
+                           latestAnalysis.result.developmentPlan.roadmapStages.length > 0 && (
+                            <div className="mt-6 mb-6">
+                              <h5 className="text-sm font-medium mb-3">AI-Enhanced Learning Roadmap</h5>
+                              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-100">
+                                <p className="text-xs text-indigo-800 mb-4">
+                                  This AI-generated roadmap provides a structured learning path to help you progress systematically.
+                                </p>
+                                
+                                <div className="relative pt-2 pb-2">
+                                  {/* Horizontal progress line */}
+                                  <div className="absolute left-0 right-0 top-8 h-1 bg-indigo-200 rounded-full" />
+                                  
+                                  <div className="flex justify-between relative">
+                                    {latestAnalysis.result.developmentPlan.roadmapStages.map((stage: any, index: number) => (
+                                      <div key={index} className="flex flex-col items-center relative z-10" 
+                                           style={{ width: `${100/(latestAnalysis.result.developmentPlan.roadmapStages?.length || 1)}%` }}>
+                                        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold shadow-md text-xs">
+                                          {stage.stage}
+                                        </div>
+                                        <div className="mt-2 text-center">
+                                          <div className="font-medium text-indigo-800 text-xs">{stage.title}</div>
+                                          <div className="text-[10px] text-indigo-600 mt-1">{stage.timeframe}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                <div className="mt-6 space-y-4">
+                                  {latestAnalysis.result.developmentPlan.roadmapStages.slice(0, 2).map((stage: any, index: number) => (
+                                    <div key={index} className="bg-white rounded-lg p-3 border border-indigo-100 shadow-sm">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                                          {stage.stage}
+                                        </div>
+                                        <div className="font-semibold text-indigo-800 text-sm">{stage.title}</div>
+                                      </div>
+                                      
+                                      <p className="text-xs text-slate-600 mb-3">{stage.description}</p>
+                                      
+                                      {stage.focusAreas && stage.focusAreas.length > 0 && (
+                                        <div className="bg-indigo-50 rounded-md p-2 mb-2">
+                                          <div className="text-[10px] font-semibold text-indigo-700 mb-1">Focus Areas:</div>
+                                          <div className="flex flex-wrap gap-1">
+                                            {stage.focusAreas.map((area: string, idx: number) => (
+                                              <span key={idx} className="inline-flex bg-indigo-100 text-indigo-800 text-[10px] px-1.5 py-0.5 rounded-full">
+                                                {area}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                  
+                                  {latestAnalysis.result.developmentPlan.roadmapStages.length > 2 && (
+                                    <div className="text-center text-xs text-indigo-600 mt-1">
+                                      <span className="cursor-pointer hover:underline">
+                                        + {latestAnalysis.result.developmentPlan.roadmapStages.length - 2} more stages
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Micro-Learning Tips */}
+                          {latestAnalysis.result.developmentPlan.microLearningTips && 
+                           latestAnalysis.result.developmentPlan.microLearningTips.length > 0 && (
+                            <div className="mb-6">
+                              <h5 className="text-sm font-medium mb-3">Micro-Learning Tips</h5>
+                              <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
+                                <div className="space-y-3">
+                                  {latestAnalysis.result.developmentPlan.microLearningTips.slice(0, 3).map((tip: any, idx: number) => (
+                                    <div key={idx} className="flex items-start gap-2">
+                                      <div className="flex-shrink-0 w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center text-amber-800 text-xs mt-0.5">
+                                        {idx+1}
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-medium text-amber-900">{tip.skillArea}</p>
+                                        <p className="text-xs text-amber-800">{tip.tip}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           {latestAnalysis.result.developmentPlan.resources && 
                            latestAnalysis.result.developmentPlan.resources.length > 0 && (
                             <div className="mt-4">
@@ -507,6 +599,120 @@ export function SavedAnalyses() {
                                   </div>
                                 ))}
                               </div>
+                            </div>
+                          )}
+                          
+                          {/* Platform-Specific Courses */}
+                          {latestAnalysis.result.developmentPlan.platformSpecificCourses && (
+                            <div className="mt-6">
+                              <h5 className="text-sm font-medium mb-3">Platform-Specific Courses</h5>
+                              
+                              {/* Microsoft Learn */}
+                              {latestAnalysis.result.developmentPlan.platformSpecificCourses.microsoft && 
+                               latestAnalysis.result.developmentPlan.platformSpecificCourses.microsoft.length > 0 && (
+                                <div className="mb-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <svg className="h-5 w-5" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M0 0H11V11H0V0Z" fill="#F25022"/>
+                                      <path d="M12 0H23V11H12V0Z" fill="#7FBA00"/>
+                                      <path d="M0 12H11V23H0V12Z" fill="#00A4EF"/>
+                                      <path d="M12 12H23V23H12V12Z" fill="#FFB900"/>
+                                    </svg>
+                                    <h6 className="text-sm font-medium">Microsoft Learn</h6>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {latestAnalysis.result.developmentPlan.platformSpecificCourses.microsoft.slice(0, 2).map((course: any, idx: number) => (
+                                      <div key={idx} className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-900/40">
+                                        <div className="font-medium text-sm text-blue-800 dark:text-blue-200">{course.title}</div>
+                                        <div className="flex items-center justify-between mt-2 text-xs">
+                                          <span className="text-blue-600 dark:text-blue-400">Level: {course.level}</span>
+                                          <span className="text-blue-600 dark:text-blue-400">{course.duration}</span>
+                                        </div>
+                                        {course.url && (
+                                          <a 
+                                            href={course.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-700 dark:text-blue-300 hover:underline mt-2 inline-block"
+                                          >
+                                            View Course
+                                          </a>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* LinkedIn Learning */}
+                              {latestAnalysis.result.developmentPlan.platformSpecificCourses.linkedinLearning && 
+                               latestAnalysis.result.developmentPlan.platformSpecificCourses.linkedinLearning.length > 0 && (
+                                <div className="mb-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" fill="#0077B5"/>
+                                    </svg>
+                                    <h6 className="text-sm font-medium">LinkedIn Learning</h6>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {latestAnalysis.result.developmentPlan.platformSpecificCourses.linkedinLearning.slice(0, 2).map((course: any, idx: number) => (
+                                      <div key={idx} className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-900/40">
+                                        <div className="font-medium text-sm text-blue-800 dark:text-blue-200">{course.title}</div>
+                                        <div className="flex items-center justify-between mt-2 text-xs">
+                                          <span className="text-blue-600 dark:text-blue-400">By: {course.author}</span>
+                                          <span className="text-blue-600 dark:text-blue-400">{course.duration}</span>
+                                        </div>
+                                        {course.url && (
+                                          <a 
+                                            href={course.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-700 dark:text-blue-300 hover:underline mt-2 inline-block"
+                                          >
+                                            View Course
+                                          </a>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Udemy */}
+                              {latestAnalysis.result.developmentPlan.platformSpecificCourses.udemy && 
+                               latestAnalysis.result.developmentPlan.platformSpecificCourses.udemy.length > 0 && (
+                                <div className="mb-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12 0L5.81 3.573v3.574l6.189-3.574 6.191 3.574V3.573z" fill="#A435F0"/>
+                                      <path d="M5.81 7.147v6.191l6.189 3.574 6.191-3.574V7.147l-6.191 3.574z" fill="#A435F0"/>
+                                      <path d="M5.81 16.911l6.189 3.574 6.191-3.574v-3.574l-6.191 3.574-6.189-3.574z" fill="#A435F0"/>
+                                    </svg>
+                                    <h6 className="text-sm font-medium">Udemy</h6>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {latestAnalysis.result.developmentPlan.platformSpecificCourses.udemy.slice(0, 2).map((course: any, idx: number) => (
+                                      <div key={idx} className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-md border border-purple-100 dark:border-purple-900/40">
+                                        <div className="font-medium text-sm text-purple-800 dark:text-purple-200">{course.title}</div>
+                                        <div className="flex items-center justify-between mt-2 text-xs">
+                                          <span className="text-purple-600 dark:text-purple-400">Instructor: {course.instructorName}</span>
+                                          <span className="text-purple-600 dark:text-purple-400">Rating: {course.rating}</span>
+                                        </div>
+                                        {course.url && (
+                                          <a 
+                                            href={course.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-purple-700 dark:text-purple-300 hover:underline mt-2 inline-block"
+                                          >
+                                            View Course
+                                          </a>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
