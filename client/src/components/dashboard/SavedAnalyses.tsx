@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
   Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, 
-  History, CheckCircle, Eye, EyeOff, ScrollText
+  History, CheckCircle, Eye, EyeOff, ScrollText, Gauge
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -354,6 +354,74 @@ export function SavedAnalyses() {
                         <p className="text-muted-foreground">No executive summary available</p>
                       </div>
                     )}
+                  </section>
+                  
+                  {/* SECTION 2: Skill Mapping */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-5 w-5 lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>
+                        Skill Mapping
+                      </h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* 2.1 SFIA 9 Framework */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-primary/20 text-primary border-none">2.1</Badge>
+                          Skill Mapping in SFIA 9 Framework
+                        </h3>
+                        
+                        {latestAnalysis.result.skillMapping?.sfia9 && latestAnalysis.result.skillMapping.sfia9.length > 0 ? (
+                          <div className="space-y-4">
+                            {latestAnalysis.result.skillMapping.sfia9.map((skill: any, index: number) => (
+                              <div key={index} className="pb-3 border-b last:border-0">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">{skill.skill}</span>
+                                  <Badge variant="outline" className="ml-2">
+                                    Level {skill.level}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">{skill.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No SFIA 9 framework mapping available</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 2.2 DigComp 2.2 Framework */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-none">2.2</Badge>
+                          Skill Mapping in DigComp 2.2 Framework
+                        </h3>
+                        
+                        {latestAnalysis.result.skillMapping?.digcomp22 && latestAnalysis.result.skillMapping.digcomp22.length > 0 ? (
+                          <div className="space-y-4">
+                            {latestAnalysis.result.skillMapping.digcomp22.map((skill: any, index: number) => (
+                              <div key={index} className="pb-3 border-b last:border-0">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">{skill.competence}</span>
+                                  <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200">
+                                    {skill.proficiencyLevel}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">{skill.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No DigComp 2.2 framework mapping available</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </section>
                   
                   {/* Debug Panel */}
