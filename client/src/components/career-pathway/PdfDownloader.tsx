@@ -541,8 +541,8 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           size="default" 
           className={`${
             isGenerating 
-              ? 'bg-blue-700/90 text-white' 
-              : 'bg-blue-800 text-white hover:bg-blue-900'
+              ? 'bg-blue-700 text-white' 
+              : 'bg-blue-700 text-white hover:bg-blue-800'
           } font-medium gap-2 transition-all rounded-md shadow-md border-0 w-full`}
           disabled={isGenerating || !chartsReady}
         >
