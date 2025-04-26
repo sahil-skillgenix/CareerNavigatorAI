@@ -618,32 +618,76 @@ export function SavedAnalyses() {
                   size="sm"
                   className="flex items-center gap-1"
                   onClick={async () => {
-                    // Function to capture chart as base64 image
-                    const captureChartAsImage = async (element: HTMLElement | null) => {
-                      if (!element) return '';
+                    toast({
+                      title: "Preparing report...",
+                      description: "Capturing charts and generating HTML report",
+                      variant: "default",
+                    });
+                    
+                    // Ensure charts are visible to capture
+                    const ensureElementsAreRendered = () => {
+                      return new Promise<void>(resolve => {
+                        // Briefly wait to ensure DOM is updated
+                        setTimeout(() => {
+                          resolve();
+                        }, 500);
+                      });
+                    };
+                    
+                    // Function to capture chart as base64 image with retry
+                    const captureChartAsImage = async (elementId: string, retries = 3) => {
+                      const element = document.getElementById(elementId);
+                      if (!element) {
+                        console.error(`Chart element '${elementId}' not found`);
+                        return '';
+                      }
                       
                       try {
+                        // Force element to be visible if hidden
+                        const originalDisplay = element.style.display;
+                        const originalVisibility = element.style.visibility;
+                        const originalHeight = element.style.height;
+                        
+                        element.style.display = 'block';
+                        element.style.visibility = 'visible';
+                        element.style.height = 'auto';
+                        
+                        // Wait for rendering
+                        await ensureElementsAreRendered();
+                        
+                        // Capture with html2canvas
                         const canvas = await html2canvas(element, {
                           scale: 2,
                           backgroundColor: '#ffffff',
                           logging: false,
                           useCORS: true,
+                          allowTaint: true,
+                          foreignObjectRendering: true,
                         });
+                        
+                        // Restore original styles
+                        element.style.display = originalDisplay;
+                        element.style.visibility = originalVisibility;
+                        element.style.height = originalHeight;
                         
                         return canvas.toDataURL('image/png');
                       } catch (error) {
-                        console.error('Error capturing chart:', error);
+                        console.error(`Error capturing chart ${elementId}:`, error);
+                        
+                        if (retries > 0) {
+                          console.log(`Retrying capture for ${elementId}, ${retries} attempts remaining`);
+                          await new Promise(resolve => setTimeout(resolve, 500));
+                          return captureChartAsImage(elementId, retries - 1);
+                        }
+                        
                         return '';
                       }
                     };
 
-                      // Get chart elements
-                      const radarChartElement = document.getElementById('radar-chart-container');
-                      const barChartElement = document.getElementById('bar-chart-container');
-                      
                       // Capture chart images
-                      const radarChartImage = await captureChartAsImage(radarChartElement);
-                      const barChartImage = await captureChartAsImage(barChartElement);
+                      await ensureElementsAreRendered();
+                      const radarChartImage = await captureChartAsImage('radar-chart-container');
+                      const barChartImage = await captureChartAsImage('bar-chart-container');
                       
                       // Create HTML content
                       const htmlContent = `
@@ -704,50 +748,6 @@ export function SavedAnalyses() {
                             <p>${latestAnalysis.result.executiveSummary}</p>
                           </div>
                           
-                          <!-- Skill Visualizations Section -->
-                          <div class="charts-section">
-                            <h2>Skill Visualizations</h2>
-                            <div class="two-columns">
-                              <!-- Radar Chart -->
-                              <div class="chart-container">
-                                <h3>Skill Proficiency Overview</h3>
-                                ${radarChartImage ? `
-                                  <img src="${radarChartImage}" alt="Skill Radar Chart" class="chart-image" />
-                                  <div class="legend">
-                                    <div class="legend-item">
-                                      <span class="legend-color" style="background-color: #7b8cb8;"></span>
-                                      <span>Current Level</span>
-                                    </div>
-                                    <div class="legend-item">
-                                      <span class="legend-color" style="background-color: #1c3b82;"></span>
-                                      <span>Required Level</span>
-                                    </div>
-                                  </div>
-                                  <p class="chart-caption">This radar chart visualizes your skill levels compared to the desired role's requirements</p>
-                                ` : '<p>Chart visualization could not be generated.</p>'}
-                              </div>
-                              
-                              <!-- Bar Chart -->
-                              <div class="chart-container">
-                                <h3>Gap Analysis Comparison</h3>
-                                ${barChartImage ? `
-                                  <img src="${barChartImage}" alt="Skill Gap Comparison" class="chart-image" />
-                                  <div class="legend">
-                                    <div class="legend-item">
-                                      <span class="legend-color" style="background-color: #6366f1;"></span>
-                                      <span>Current Level</span>
-                                    </div>
-                                    <div class="legend-item">
-                                      <span class="legend-color" style="background-color: #be123c;"></span>
-                                      <span>Required Level</span>
-                                    </div>
-                                  </div>
-                                  <p class="chart-caption">This chart compares your current skill levels with the levels required for your target role</p>
-                                ` : '<p>Chart visualization could not be generated.</p>'}
-                              </div>
-                            </div>
-                          </div>
-                          
                           <h2>Skill Mapping</h2>
                           <div class="two-columns">
                             <!-- SFIA 9 Skills -->
@@ -781,6 +781,50 @@ export function SavedAnalyses() {
                             </div>
                           </div>
                           
+                          <!-- Skill Visualizations Section -->
+                          <div class="charts-section">
+                            <h2>Skill Visualizations</h2>
+                            <div>
+                              <!-- Radar Chart -->
+                              <div class="chart-container">
+                                <h3>Skill Proficiency Overview</h3>
+                                ${radarChartImage ? `
+                                  <img src="${radarChartImage}" alt="Skill Radar Chart" class="chart-image" style="max-width: 100%; width: 800px;" />
+                                  <div class="legend">
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #7b8cb8;"></span>
+                                      <span>Current Level</span>
+                                    </div>
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #1c3b82;"></span>
+                                      <span>Required Level</span>
+                                    </div>
+                                  </div>
+                                  <p class="chart-caption">This radar chart visualizes your skill levels compared to the desired role's requirements</p>
+                                ` : '<p>Chart visualization could not be generated.</p>'}
+                              </div>
+                              
+                              <!-- Bar Chart -->
+                              <div class="chart-container">
+                                <h3>Gap Analysis Comparison</h3>
+                                ${barChartImage ? `
+                                  <img src="${barChartImage}" alt="Skill Gap Comparison" class="chart-image" style="max-width: 100%; width: 800px;" />
+                                  <div class="legend">
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #6366f1;"></span>
+                                      <span>Current Level</span>
+                                    </div>
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #be123c;"></span>
+                                      <span>Required Level</span>
+                                    </div>
+                                  </div>
+                                  <p class="chart-caption">This chart compares your current skill levels with the levels required for your target role</p>
+                                ` : '<p>Chart visualization could not be generated.</p>'}
+                              </div>
+                            </div>
+                          </div>
+                          
                           <h2>Skill Gap Analysis</h2>
                           ${latestAnalysis.result.skillGapAnalysis?.aiAnalysis ? `
                           <div class="card">
@@ -793,7 +837,7 @@ export function SavedAnalyses() {
                           <div class="card">
                             <h3>Key Skill Gaps</h3>
                             ${latestAnalysis.result.skillGapAnalysis?.gaps ? 
-                              latestAnalysis.result.skillGapAnalysis.gaps.map(gap => `
+                              latestAnalysis.result.skillGapAnalysis.gaps.map((gap: any) => `
                                 <div class="skill-item">
                                   <div style="display: flex; align-items: center; margin-bottom: 4px;">
                                     <span class="badge badge-danger" style="margin-right: 8px;">${gap.importance}</span>
@@ -808,7 +852,7 @@ export function SavedAnalyses() {
                           <div class="card">
                             <h3>Key Strengths</h3>
                             ${latestAnalysis.result.skillGapAnalysis?.strengths ? 
-                              latestAnalysis.result.skillGapAnalysis.strengths.map(strength => `
+                              latestAnalysis.result.skillGapAnalysis.strengths.map((strength: any) => `
                                 <div class="skill-item">
                                   <div style="display: flex; align-items: center; margin-bottom: 4px;">
                                     <span class="badge badge-success" style="margin-right: 8px;">${strength.level}</span>
@@ -835,7 +879,7 @@ export function SavedAnalyses() {
                         <div class="card">
                           <h3>Career Progression Steps</h3>
                           ${latestAnalysis.result.careerPathway?.steps ? 
-                            latestAnalysis.result.careerPathway.steps.map((step, index) => `
+                            latestAnalysis.result.careerPathway.steps.map((step: any, index: number) => `
                               <div class="pathway-step">
                                 <div class="step-number">${index + 1}</div>
                                 <div>
@@ -846,7 +890,7 @@ export function SavedAnalyses() {
                                     <div>
                                       <strong>Key Skills to Develop:</strong>
                                       <div class="skills-list">
-                                        ${step.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                                        ${step.skills.map((skill: any) => `<span class="skill-tag">${skill}</span>`).join('')}
                                       </div>
                                     </div>` : ''}
                                 </div>
@@ -858,7 +902,7 @@ export function SavedAnalyses() {
                               ${latestAnalysis.result.careerPathway.withDegree ? `
                                 <div>
                                   <h4>University Pathway</h4>
-                                  ${latestAnalysis.result.careerPathway.withDegree.map((step, index) => `
+                                  ${latestAnalysis.result.careerPathway.withDegree.map((step: any, index: number) => `
                                     <div class="pathway-step">
                                       <div class="step-number">${index + 1}</div>
                                       <div>
@@ -867,7 +911,7 @@ export function SavedAnalyses() {
                                         <div>
                                           <strong>Key Skills:</strong>
                                           <div class="skills-list">
-                                            ${step.keySkillsNeeded.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                                            ${step.keySkillsNeeded.map((skill: any) => `<span class="skill-tag">${skill}</span>`).join('')}
                                           </div>
                                         </div>
                                       </div>
