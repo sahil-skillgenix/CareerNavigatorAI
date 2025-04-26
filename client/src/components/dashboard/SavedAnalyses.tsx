@@ -543,6 +543,964 @@ export function SavedAnalyses() {
                     </div>
                   </section>
                   
+                  {/* SECTION 4: Career Pathway Options */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <GanttChart className="mr-2 h-5 w-5" />
+                        Career Pathway Options
+                      </h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* 4.1 Career Transition Visualization */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-primary/20 text-primary border-none">4.1</Badge>
+                          Career Transition Visualization
+                        </h3>
+                        
+                        {latestAnalysis.result.careerPathway?.pathwayExplanation ? (
+                          <div className="rounded-lg bg-blue-50 border border-blue-100 p-4">
+                            <p className="text-sm text-blue-800 whitespace-pre-line">
+                              {latestAnalysis.result.careerPathway.pathwayExplanation}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No career transition visualization available</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 4.2 University & Vocational Pathways */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* University Pathway */}
+                        <div className="bg-card border rounded-lg p-6 shadow-sm h-full">
+                          <h3 className="text-lg font-semibold mb-4 flex items-center">
+                            <School className="h-4 w-4 mr-2 text-blue-600" />
+                            University Pathway
+                          </h3>
+                          
+                          {latestAnalysis.result.careerPathway?.withDegree && 
+                           latestAnalysis.result.careerPathway.withDegree.length > 0 ? (
+                            <div className="space-y-4">
+                              {latestAnalysis.result.careerPathway.withDegree.map((step, index) => (
+                                <div key={index} className="relative pl-8 pb-6 last:pb-0">
+                                  <div className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                                    {step.step}
+                                  </div>
+                                  
+                                  {/* Connector line */}
+                                  {index < latestAnalysis.result.careerPathway.withDegree.length - 1 && (
+                                    <div className="absolute left-3 top-6 bottom-0 w-px bg-blue-200"></div>
+                                  )}
+                                  
+                                  <div className="mb-1 font-medium">{step.role}</div>
+                                  <div className="text-xs text-muted-foreground mb-2">{step.timeframe}</div>
+                                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                                  
+                                  {step.requiredQualification && (
+                                    <div className="mt-2 bg-blue-50 p-2 rounded-md">
+                                      <p className="text-xs text-blue-700">
+                                        <span className="font-medium">Required qualification:</span> {step.requiredQualification}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-4">
+                              <p className="text-muted-foreground">No university pathway data available</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Vocational & Skills Pathway */}
+                        <div className="bg-card border rounded-lg p-6 shadow-sm h-full">
+                          <h3 className="text-lg font-semibold mb-4 flex items-center">
+                            <BadgePlus className="h-4 w-4 mr-2 text-amber-600" />
+                            Vocational & Skills Pathway
+                          </h3>
+                          
+                          {latestAnalysis.result.careerPathway?.withoutDegree && 
+                           latestAnalysis.result.careerPathway.withoutDegree.length > 0 ? (
+                            <div className="space-y-4">
+                              {latestAnalysis.result.careerPathway.withoutDegree.map((step, index) => (
+                                <div key={index} className="relative pl-8 pb-6 last:pb-0">
+                                  <div className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
+                                    {step.step}
+                                  </div>
+                                  
+                                  {/* Connector line */}
+                                  {index < latestAnalysis.result.careerPathway.withoutDegree.length - 1 && (
+                                    <div className="absolute left-3 top-6 bottom-0 w-px bg-amber-200"></div>
+                                  )}
+                                  
+                                  <div className="mb-1 font-medium">{step.role}</div>
+                                  <div className="text-xs text-muted-foreground mb-2">{step.timeframe}</div>
+                                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                                  
+                                  {step.requiredQualification && (
+                                    <div className="mt-2 bg-amber-50 p-2 rounded-md">
+                                      <p className="text-xs text-amber-700">
+                                        <span className="font-medium">Required qualification:</span> {step.requiredQualification}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-4">
+                              <p className="text-muted-foreground">No vocational pathway data available</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* 4.3 AI Pathway Enhancement Insights */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-purple-100 text-purple-800 border-none">4.3</Badge>
+                          AI Pathway Enhancement Insights
+                        </h3>
+                        
+                        {latestAnalysis.result.careerPathway?.aiInsights ? (
+                          <div className="rounded-lg bg-purple-50 border border-purple-100 p-4">
+                            <p className="text-sm text-purple-800 whitespace-pre-line">
+                              {latestAnalysis.result.careerPathway.aiInsights}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No AI pathway insights available</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                  
+                  {/* SECTION 5: Comprehensive Development Plan */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <GraduationCap className="mr-2 h-5 w-5" />
+                        Comprehensive Development Plan
+                      </h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* 5.1 Skills Assessment Overview */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-primary/20 text-primary border-none">5.1</Badge>
+                          Skills Assessment Overview
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Existing Skills */}
+                          <div className="bg-green-50 border border-green-100 rounded-lg p-4">
+                            <h4 className="text-base font-medium text-green-800 mb-3">Existing Skills</h4>
+                            
+                            {latestAnalysis.result.skillGapAnalysis?.existingSkills ? (
+                              <div className="space-y-2">
+                                {Array.isArray(latestAnalysis.result.skillGapAnalysis.existingSkills) ? (
+                                  latestAnalysis.result.skillGapAnalysis.existingSkills.map((skill, idx) => (
+                                    <div key={idx} className="flex items-center">
+                                      <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                                      <span className="text-sm text-green-700">{skill}</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-green-700 whitespace-pre-line">
+                                    {latestAnalysis.result.skillGapAnalysis.existingSkills}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-center py-2">
+                                <p className="text-muted-foreground">No existing skills data available</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Skills to Develop */}
+                          <div className="bg-amber-50 border border-amber-100 rounded-lg p-4">
+                            <h4 className="text-base font-medium text-amber-800 mb-3">Skills to Develop</h4>
+                            
+                            {latestAnalysis.result.skillGapAnalysis?.skillsToDevelop ? (
+                              <div className="space-y-2">
+                                {Array.isArray(latestAnalysis.result.skillGapAnalysis.skillsToDevelop) ? (
+                                  latestAnalysis.result.skillGapAnalysis.skillsToDevelop.map((skill, idx) => (
+                                    <div key={idx} className="flex items-center">
+                                      <PlusCircle className="h-4 w-4 text-amber-600 mr-2" />
+                                      <span className="text-sm text-amber-700">{skill}</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-amber-700 whitespace-pre-line">
+                                    {latestAnalysis.result.skillGapAnalysis.skillsToDevelop}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-center py-2">
+                                <p className="text-muted-foreground">No skills to develop data available</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* 5.2 Social & Soft Skills Development */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-blue-100 text-blue-800 border-none">5.2</Badge>
+                          Social & Soft Skills Development
+                        </h3>
+                        
+                        {(latestAnalysis.result.socialSkills || latestAnalysis.result.socialSkillsDevelopment) ? (
+                          <div className="space-y-6">
+                            {/* Interpersonal Skills */}
+                            {(latestAnalysis.result.socialSkills?.interpersonalSkills || 
+                              latestAnalysis.result.socialSkillsDevelopment?.interpersonalSkills) && (
+                              <div>
+                                <h4 className="text-base font-medium mb-3">Interpersonal Skills</h4>
+                                <div className="space-y-3">
+                                  {(latestAnalysis.result.socialSkills?.interpersonalSkills || 
+                                    latestAnalysis.result.socialSkillsDevelopment?.interpersonalSkills)
+                                    .map((skill, idx) => (
+                                    <div key={idx} className="border-b pb-3 last:border-0">
+                                      <h5 className="font-medium text-sm">{skill.skill}</h5>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {skill.importanceDescription || skill.description}
+                                      </p>
+                                      {skill.developmentTips && (
+                                        <div className="mt-2 bg-blue-50 p-2 rounded">
+                                          <p className="text-xs text-blue-700">
+                                            <span className="font-medium">Development tips:</span> {skill.developmentTips}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Leadership Skills */}
+                            {(latestAnalysis.result.socialSkills?.leadershipSkills || 
+                              latestAnalysis.result.socialSkillsDevelopment?.leadershipSkills) && (
+                              <div>
+                                <h4 className="text-base font-medium mb-3">Leadership Skills</h4>
+                                <div className="space-y-3">
+                                  {(latestAnalysis.result.socialSkills?.leadershipSkills || 
+                                    latestAnalysis.result.socialSkillsDevelopment?.leadershipSkills)
+                                    .map((skill, idx) => (
+                                    <div key={idx} className="border-b pb-3 last:border-0">
+                                      <h5 className="font-medium text-sm">{skill.skill}</h5>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {skill.importanceDescription || skill.description}
+                                      </p>
+                                      {skill.developmentTips && (
+                                        <div className="mt-2 bg-blue-50 p-2 rounded">
+                                          <p className="text-xs text-blue-700">
+                                            <span className="font-medium">Development tips:</span> {skill.developmentTips}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Communication Skills */}
+                            {(latestAnalysis.result.socialSkills?.communicationSkills || 
+                              latestAnalysis.result.socialSkillsDevelopment?.communicationSkills) && (
+                              <div>
+                                <h4 className="text-base font-medium mb-3">Communication Skills</h4>
+                                <div className="space-y-3">
+                                  {(latestAnalysis.result.socialSkills?.communicationSkills || 
+                                    latestAnalysis.result.socialSkillsDevelopment?.communicationSkills)
+                                    .map((skill, idx) => (
+                                    <div key={idx} className="border-b pb-3 last:border-0">
+                                      <h5 className="font-medium text-sm">{skill.skill}</h5>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {skill.importanceDescription || skill.description}
+                                      </p>
+                                      {skill.developmentTips && (
+                                        <div className="mt-2 bg-blue-50 p-2 rounded">
+                                          <p className="text-xs text-blue-700">
+                                            <span className="font-medium">Development tips:</span> {skill.developmentTips}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No social skills development data available</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 5.3 Skills To Acquire with Distribution & Details */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-amber-100 text-amber-800 border-none">5.3</Badge>
+                          Skills To Acquire
+                        </h3>
+                        
+                        {latestAnalysis.result.developmentPlan?.skillsToAcquire && 
+                         latestAnalysis.result.developmentPlan.skillsToAcquire.length > 0 ? (
+                          <div className="space-y-6">
+                            {/* Skill Priority Distribution (visual) */}
+                            <div className="mb-6">
+                              <h4 className="text-base font-medium mb-3">Skill Priority Distribution</h4>
+                              
+                              <div className="bg-muted/20 p-4 rounded-lg">
+                                <div className="grid grid-cols-3 gap-4">
+                                  <div className="text-center">
+                                    <div className="h-6 bg-red-500 rounded-t-md"></div>
+                                    <div className="py-2 px-3 bg-red-50 text-red-700 text-xs font-medium rounded-b-md border border-red-200">
+                                      High Priority
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="h-4 bg-amber-500 rounded-t-md"></div>
+                                    <div className="py-2 px-3 bg-amber-50 text-amber-700 text-xs font-medium rounded-b-md border border-amber-200">
+                                      Medium Priority
+                                    </div>
+                                  </div>
+                                  <div className="text-center">
+                                    <div className="h-2 bg-blue-500 rounded-t-md"></div>
+                                    <div className="py-2 px-3 bg-blue-50 text-blue-700 text-xs font-medium rounded-b-md border border-blue-200">
+                                      Normal Priority
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Skills to Acquire Details */}
+                            <div className="space-y-4">
+                              {latestAnalysis.result.developmentPlan.skillsToAcquire.map((skill, index) => (
+                                <div key={index} className="pb-4 border-b last:border-0">
+                                  <div className="flex justify-between items-start mb-1">
+                                    <h4 className="font-medium">{skill.skill}</h4>
+                                    <Badge variant="outline" className={
+                                      skill.priority?.toLowerCase() === 'high' ? 'bg-red-50 text-red-700 border-red-200' :
+                                      skill.priority?.toLowerCase() === 'medium' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                      'bg-blue-50 text-blue-700 border-blue-200'
+                                    }>
+                                      {skill.priority || 'Normal'}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {skill.resources && skill.resources.length > 0 && (
+                                    <div className="mt-2">
+                                      <h5 className="text-xs font-medium mb-1">Recommended Resources:</h5>
+                                      <ul className="text-xs text-muted-foreground list-disc list-inside">
+                                        {skill.resources.map((resource, rIdx) => (
+                                          <li key={rIdx} className="mb-1">{resource}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No skills to acquire data available</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                  
+                  {/* SECTION 6: Recommended Educational Programs */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <School className="mr-2 h-5 w-5" />
+                        Recommended Educational Programs
+                      </h2>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* 6.1 Global Educational Recommendations */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-primary/20 text-primary border-none">6.1</Badge>
+                          Educational Recommendations
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Top Universities */}
+                          {latestAnalysis.result.educationalRecommendations?.universities && 
+                           latestAnalysis.result.educationalRecommendations.universities.length > 0 ? (
+                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 h-full">
+                              <h4 className="text-base font-medium text-blue-800 mb-3 flex items-center">
+                                <School className="h-4 w-4 mr-2 text-blue-600" />
+                                Top Universities
+                              </h4>
+                              <ul className="space-y-2">
+                                {latestAnalysis.result.educationalRecommendations.universities.map((uni, idx) => (
+                                  <li key={idx} className="text-sm text-blue-700 flex items-start">
+                                    <div className="h-5 w-5 flex-shrink-0 mr-2 bg-blue-100 rounded-full text-blue-700 flex items-center justify-center text-xs font-medium">
+                                      {idx + 1}
+                                    </div>
+                                    <span>{typeof uni === 'string' ? uni : uni.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 h-full">
+                              <h4 className="text-base font-medium text-blue-800 mb-3">Top Universities</h4>
+                              <p className="text-sm text-blue-700">No university recommendations available</p>
+                            </div>
+                          )}
+                          
+                          {/* Top Institutes */}
+                          {latestAnalysis.result.educationalRecommendations?.institutes && 
+                           latestAnalysis.result.educationalRecommendations.institutes.length > 0 ? (
+                            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 h-full">
+                              <h4 className="text-base font-medium text-amber-800 mb-3 flex items-center">
+                                <BadgePlus className="h-4 w-4 mr-2 text-amber-600" />
+                                Top Institutes
+                              </h4>
+                              <ul className="space-y-2">
+                                {latestAnalysis.result.educationalRecommendations.institutes.map((inst, idx) => (
+                                  <li key={idx} className="text-sm text-amber-700 flex items-start">
+                                    <div className="h-5 w-5 flex-shrink-0 mr-2 bg-amber-100 rounded-full text-amber-700 flex items-center justify-center text-xs font-medium">
+                                      {idx + 1}
+                                    </div>
+                                    <span>{typeof inst === 'string' ? inst : inst.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 h-full">
+                              <h4 className="text-base font-medium text-amber-800 mb-3">Top Institutes</h4>
+                              <p className="text-sm text-amber-700">No institute recommendations available</p>
+                            </div>
+                          )}
+                          
+                          {/* Online Course Providers */}
+                          {latestAnalysis.result.educationalRecommendations?.onlinePlatforms && 
+                           latestAnalysis.result.educationalRecommendations.onlinePlatforms.length > 0 ? (
+                            <div className="bg-green-50 border border-green-100 rounded-lg p-4 h-full">
+                              <h4 className="text-base font-medium text-green-800 mb-3 flex items-center">
+                                <div className="h-4 w-4 mr-2 text-green-600 flex items-center justify-center">
+                                  <span className="text-xs">🌐</span>
+                                </div>
+                                Online Providers
+                              </h4>
+                              <ul className="space-y-2">
+                                {latestAnalysis.result.educationalRecommendations.onlinePlatforms.map((platform, idx) => (
+                                  <li key={idx} className="text-sm text-green-700 flex items-start">
+                                    <div className="h-5 w-5 flex-shrink-0 mr-2 bg-green-100 rounded-full text-green-700 flex items-center justify-center text-xs font-medium">
+                                      {idx + 1}
+                                    </div>
+                                    <span>{typeof platform === 'string' ? platform : platform.name}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : (
+                            <div className="bg-green-50 border border-green-100 rounded-lg p-4 h-full">
+                              <h4 className="text-base font-medium text-green-800 mb-3">Online Providers</h4>
+                              <p className="text-sm text-green-700">No online platform recommendations available</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* 6.2 Suggested Projects */}
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Badge className="mr-2 bg-blue-100 text-blue-800 border-none">6.2</Badge>
+                          Suggested Projects
+                        </h3>
+                        
+                        {latestAnalysis.result.developmentPlan?.suggestedProjects && 
+                         (Array.isArray(latestAnalysis.result.developmentPlan.suggestedProjects) && 
+                          latestAnalysis.result.developmentPlan.suggestedProjects.length > 0) ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {latestAnalysis.result.developmentPlan.suggestedProjects.map((project, idx) => (
+                              <div key={idx} className="bg-purple-50 border border-purple-100 rounded-lg p-4">
+                                {typeof project === 'string' ? (
+                                  <p className="text-sm text-purple-800">{project}</p>
+                                ) : (
+                                  <div>
+                                    <h4 className="text-base font-medium text-purple-800 mb-1">{project.name}</h4>
+                                    <p className="text-sm text-purple-700">{project.description}</p>
+                                    
+                                    {project.skillsGained && project.skillsGained.length > 0 && (
+                                      <div className="mt-2">
+                                        <h5 className="text-xs font-medium text-purple-800 mb-1">Skills Gained:</h5>
+                                        <div className="flex flex-wrap gap-1">
+                                          {project.skillsGained.map((skill, sIdx) => (
+                                            <Badge 
+                                              key={sIdx} 
+                                              variant="outline" 
+                                              className="text-xs bg-purple-100 text-purple-800 border-purple-200"
+                                            >
+                                              {skill}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="bg-muted/30 rounded-lg p-4 text-center">
+                            <p className="text-muted-foreground">No suggested projects available</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                  
+                  {/* SECTION 7: AI-Enhanced Learning Roadmap */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <GanttChart className="mr-2 h-5 w-5" />
+                        AI-Enhanced Learning Roadmap
+                      </h2>
+                    </div>
+                    
+                    {latestAnalysis.result.developmentPlan?.learningPath ? (
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <div className="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
+                          <p className="text-sm text-blue-800 whitespace-pre-line">
+                            {latestAnalysis.result.developmentPlan.learningPath}
+                          </p>
+                        </div>
+                        
+                        {latestAnalysis.result.developmentPlan.roadmapStages && 
+                         latestAnalysis.result.developmentPlan.roadmapStages.length > 0 && (
+                          <div className="space-y-6">
+                            <h3 className="text-lg font-semibold">Learning Roadmap Stages</h3>
+                            
+                            <div className="space-y-8">
+                              {latestAnalysis.result.developmentPlan.roadmapStages.map((stage, idx) => (
+                                <div key={idx} className="relative pl-10 pb-8 last:pb-0">
+                                  <div className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-medium">
+                                    {idx + 1}
+                                  </div>
+                                  
+                                  {/* Connector line */}
+                                  {idx < latestAnalysis.result.developmentPlan.roadmapStages.length - 1 && (
+                                    <div className="absolute left-4 top-8 bottom-0 w-px bg-primary/20"></div>
+                                  )}
+                                  
+                                  <div className="space-y-2">
+                                    <h4 className="text-base font-medium">{stage.title || `Stage ${idx + 1}`}</h4>
+                                    <p className="text-sm text-muted-foreground">{stage.description}</p>
+                                    
+                                    {stage.duration && (
+                                      <div className="flex items-center text-sm text-muted-foreground">
+                                        <CalendarRange className="h-4 w-4 mr-2 text-muted-foreground" />
+                                        {stage.duration}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Focus Areas */}
+                                    {stage.focusAreas && stage.focusAreas.length > 0 && (
+                                      <div className="mt-3">
+                                        <h5 className="text-sm font-medium mb-2">Focus Areas:</h5>
+                                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                          {stage.focusAreas.map((area, areaIdx) => (
+                                            <li key={areaIdx} className="flex items-start">
+                                              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                              <span className="text-sm">{area}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Milestones */}
+                                    {stage.milestones && stage.milestones.length > 0 && (
+                                      <div className="mt-3 bg-muted/10 rounded-lg p-3">
+                                        <h5 className="text-sm font-medium mb-2">Key Milestones:</h5>
+                                        <ul className="space-y-2">
+                                          {stage.milestones.map((milestone, milestoneIdx) => (
+                                            <li key={milestoneIdx} className="flex items-start">
+                                              <div className="h-5 w-5 flex-shrink-0 mr-2 bg-primary/10 rounded-full text-primary flex items-center justify-center text-xs font-medium">
+                                                {milestoneIdx + 1}
+                                              </div>
+                                              <span className="text-sm">{milestone}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-muted/30 border rounded-lg p-6 text-center">
+                        <p className="text-muted-foreground">No learning roadmap available</p>
+                      </div>
+                    )}
+                  </section>
+                  
+                  {/* SECTION 8: Similar Roles To Consider */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <Users className="mr-2 h-5 w-5" />
+                        Similar Roles To Consider
+                      </h2>
+                    </div>
+                    
+                    {(latestAnalysis.result.similarRoles || latestAnalysis.result.alternativeRoles) && 
+                     (latestAnalysis.result.similarRoles?.length > 0 || latestAnalysis.result.alternativeRoles?.length > 0) ? (
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {(latestAnalysis.result.similarRoles || latestAnalysis.result.alternativeRoles).map((role, idx) => (
+                            <div key={idx} className="bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-sm">
+                              <h3 className="text-lg font-medium text-blue-700 mb-1">{role.title || role.role}</h3>
+                              
+                              {(role.match || role.similarityScore) && (
+                                <div className="mb-2">
+                                  <Badge 
+                                    variant="outline" 
+                                    className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+                                  >
+                                    Match: {role.match || role.similarityScore}
+                                  </Badge>
+                                </div>
+                              )}
+                              
+                              <p className="text-sm text-blue-800 mb-3">{role.description}</p>
+                              
+                              {/* Key Skill Overlaps */}
+                              {(role.keySkillOverlaps || role.keySkillsOverlap) && (
+                                <div className="mb-2">
+                                  <h4 className="text-xs font-semibold text-blue-700 mb-1">Key skill overlaps:</h4>
+                                  <div className="flex flex-wrap gap-1">
+                                    {(role.keySkillOverlaps ? role.keySkillOverlaps : 
+                                      (typeof role.keySkillsOverlap === 'string' ? 
+                                        role.keySkillsOverlap.split(',').map(s => s.trim()) : 
+                                        Array.isArray(role.keySkillsOverlap) ? 
+                                          role.keySkillsOverlap : 
+                                          []
+                                      )
+                                    ).map((skill, skillIdx) => (
+                                      <Badge 
+                                        key={skillIdx} 
+                                        variant="secondary" 
+                                        className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                      >
+                                        {skill}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Key Difference */}
+                              {(role.keyDifference || role.uniqueRequirements) && (
+                                <div className="mb-2">
+                                  <h4 className="text-xs font-semibold text-amber-600 mb-1">Key difference:</h4>
+                                  <p className="text-xs text-amber-700 bg-amber-50 p-1 rounded">
+                                    {role.keyDifference || role.uniqueRequirements}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {/* Salary Range & Growth */}
+                              <div className="flex items-center justify-between mt-3 pt-2 border-t border-blue-200">
+                                {(role.salaryRange || role.potentialSalaryRange) && (
+                                  <div className="text-xs">
+                                    <span className="text-slate-500">Salary Range:</span><br />
+                                    <span className="font-semibold text-slate-700">
+                                      {role.salaryRange || role.potentialSalaryRange}
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {(role.growthOutlook || role.locationSpecificDemand) && (
+                                  <div className="text-xs">
+                                    <span className="text-slate-500">Growth Outlook:</span><br />
+                                    <span className={`font-semibold ${
+                                      (role.growthOutlook?.toLowerCase().includes('excellent') || 
+                                       role.locationSpecificDemand?.toLowerCase().includes('excellent')) ? 'text-emerald-600' :
+                                      (role.growthOutlook?.toLowerCase().includes('good') || 
+                                       role.locationSpecificDemand?.toLowerCase().includes('good')) ? 'text-blue-600' :
+                                      (role.growthOutlook?.toLowerCase().includes('strong') || 
+                                       role.locationSpecificDemand?.toLowerCase().includes('strong')) ? 'text-indigo-600' :
+                                      'text-slate-700'
+                                    }`}>
+                                      {role.growthOutlook || role.locationSpecificDemand}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/30 border rounded-lg p-6 text-center">
+                        <p className="text-muted-foreground">No similar roles data available</p>
+                      </div>
+                    )}
+                  </section>
+                  
+                  {/* SECTION 9: Micro-Learning Quick Tips by GenAI */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        Micro-Learning Quick Tips by GenAI
+                      </h2>
+                    </div>
+                    
+                    {latestAnalysis.result.developmentPlan?.microLearningTips && 
+                     latestAnalysis.result.developmentPlan.microLearningTips.length > 0 ? (
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {latestAnalysis.result.developmentPlan.microLearningTips.map((tip, idx) => (
+                            <div key={idx} className="bg-primary/5 rounded-lg p-4 border border-primary/10">
+                              <h3 className="font-medium text-primary mb-2">{tip.title || `Tip ${idx + 1}`}</h3>
+                              <p className="text-sm text-muted-foreground">{tip.description || tip.tip || tip}</p>
+                              
+                              {tip.timeline && (
+                                <div className="mt-2 flex items-center">
+                                  <CalendarRange className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
+                                  <span className="text-xs font-medium">{tip.timeline}</span>
+                                </div>
+                              )}
+                              
+                              {tip.resources && tip.resources.length > 0 && (
+                                <div className="mt-2">
+                                  <h4 className="text-xs font-medium">Resources:</h4>
+                                  <ul className="text-xs text-muted-foreground">
+                                    {tip.resources.map((res, resIdx) => (
+                                      <li key={resIdx} className="flex items-center">
+                                        <ChevronRight className="h-3 w-3 flex-shrink-0 text-primary/70" />
+                                        <span>{res}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/30 border rounded-lg p-6 text-center">
+                        <p className="text-muted-foreground">No micro-learning tips available</p>
+                      </div>
+                    )}
+                  </section>
+                  
+                  {/* SECTION 10: Personalized Skill Growth Trajectory */}
+                  <section className="py-6 border-b border-muted">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <LineChart className="mr-2 h-5 w-5" />
+                        Personalized Skill Growth Trajectory
+                      </h2>
+                    </div>
+                    
+                    {latestAnalysis.result.skillGrowthTrajectory ? (
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <div className="space-y-6">
+                          {/* Overview */}
+                          {latestAnalysis.result.skillGrowthTrajectory.overview && (
+                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                              <h3 className="text-lg font-semibold text-blue-800 mb-2">Growth Overview</h3>
+                              <p className="text-sm text-blue-700 whitespace-pre-line">
+                                {latestAnalysis.result.skillGrowthTrajectory.overview}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Milestones */}
+                          {latestAnalysis.result.skillGrowthTrajectory.milestones && 
+                           latestAnalysis.result.skillGrowthTrajectory.milestones.length > 0 && (
+                            <div>
+                              <h3 className="text-lg font-semibold mb-4">Growth Milestones</h3>
+                              
+                              <div className="space-y-6">
+                                {latestAnalysis.result.skillGrowthTrajectory.milestones.map((milestone, idx) => (
+                                  <div key={idx} className="relative pl-10 pb-8 last:pb-0">
+                                    <div className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700 font-medium">
+                                      {idx + 1}
+                                    </div>
+                                    
+                                    {/* Connector line */}
+                                    {idx < latestAnalysis.result.skillGrowthTrajectory.milestones.length - 1 && (
+                                      <div className="absolute left-4 top-8 bottom-0 w-px bg-green-200"></div>
+                                    )}
+                                    
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <h4 className="text-base font-medium">{milestone.title || milestone.stage || `Milestone ${idx + 1}`}</h4>
+                                        {milestone.timeframe && (
+                                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                            {milestone.timeframe}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      
+                                      <p className="text-sm text-muted-foreground">{milestone.description}</p>
+                                      
+                                      {/* Expected Outcomes */}
+                                      {milestone.outcomes && milestone.outcomes.length > 0 && (
+                                        <div className="mt-3">
+                                          <h5 className="text-sm font-medium mb-2">Expected Outcomes:</h5>
+                                          <ul className="space-y-2">
+                                            {milestone.outcomes.map((outcome, outcomeIdx) => (
+                                              <li key={outcomeIdx} className="flex items-start">
+                                                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                                <span className="text-sm">{outcome}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/30 border rounded-lg p-6 text-center">
+                        <p className="text-muted-foreground">No skill growth trajectory available</p>
+                      </div>
+                    )}
+                  </section>
+                  
+                  {/* SECTION 11: Learning Path Roadmap */}
+                  <section className="py-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-xl font-bold flex items-center text-primary">
+                        <GanttChart className="mr-2 h-5 w-5" />
+                        Learning Path Roadmap
+                      </h2>
+                    </div>
+                    
+                    {latestAnalysis.result.careerDevelopmentTimeline && 
+                     latestAnalysis.result.careerDevelopmentTimeline.length > 0 ? (
+                      <div className="bg-card border rounded-lg p-6 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-6">Career Development Timeline</h3>
+                        
+                        <div className="space-y-8">
+                          {latestAnalysis.result.careerDevelopmentTimeline.map((step, idx) => (
+                            <div key={idx} className="relative pl-10 pb-10 last:pb-0">
+                              <div className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white font-medium">
+                                {idx + 1}
+                              </div>
+                              
+                              {/* Connector line */}
+                              {idx < latestAnalysis.result.careerDevelopmentTimeline.length - 1 && (
+                                <div className="absolute left-4 top-8 bottom-0 w-px bg-primary/20"></div>
+                              )}
+                              
+                              <div className="space-y-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h4 className="text-base font-medium">{step.phase || step.title || `Phase ${idx + 1}`}</h4>
+                                  {step.timeframe && (
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                      {step.timeframe}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                <p className="text-sm text-muted-foreground whitespace-pre-line">{step.description}</p>
+                                
+                                {/* Goals */}
+                                {step.goals && step.goals.length > 0 && (
+                                  <div className="mt-3 bg-muted/10 rounded-lg p-3">
+                                    <h5 className="text-sm font-medium mb-2">Key Goals:</h5>
+                                    <ul className="space-y-2">
+                                      {step.goals.map((goal, goalIdx) => (
+                                        <li key={goalIdx} className="flex items-start">
+                                          <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                          <span className="text-sm">{goal}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                
+                                {/* Focus Areas */}
+                                {step.focusAreas && step.focusAreas.length > 0 && (
+                                  <div className="mt-3">
+                                    <h5 className="text-sm font-medium mb-2">Focus Areas:</h5>
+                                    <div className="flex flex-wrap gap-1">
+                                      {step.focusAreas.map((area, areaIdx) => (
+                                        <Badge 
+                                          key={areaIdx} 
+                                          variant="outline" 
+                                          className="bg-primary/5 border-primary/20 text-primary/80"
+                                        >
+                                          {area}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex justify-end mt-6">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="text-xs shadow-sm bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
+                            onClick={() => {
+                              toast({
+                                title: "Generating PDF",
+                                description: "Your analysis PDF is being prepared",
+                                variant: "default",
+                              });
+                            }}
+                          >
+                            <Download className="h-3.5 w-3.5 mr-2" />
+                            Download Complete Analysis
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/30 border rounded-lg p-6 text-center">
+                        <p className="text-muted-foreground">No learning path roadmap available</p>
+                      </div>
+                    )}
+                  </section>
+                  
                   {/* SECTION 4: Career Pathway with dual options */}
                   <section className="py-6 border-b border-muted">
                     <div className="flex justify-between items-start mb-4">
