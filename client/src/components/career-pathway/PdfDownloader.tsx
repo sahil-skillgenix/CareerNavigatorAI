@@ -543,15 +543,15 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
             size="sm" 
             className={`${
               isGenerating 
-                ? 'bg-primary/10 text-primary border border-primary/30' 
-                : 'bg-primary text-white hover:bg-primary/90 shadow-md'
-            } font-medium gap-2 transition-all rounded-md`}
+                ? 'bg-blue-600/90 text-white border-0' 
+                : 'bg-blue-700 text-white hover:bg-blue-800'
+            } font-medium gap-2 transition-all rounded-md shadow-md border-0`}
             disabled={isGenerating || !chartsReady}
           >
             {isGenerating ? (
               <>
                 <svg 
-                  className="h-4 w-4 animate-spin text-primary" 
+                  className="h-4 w-4 animate-spin text-white" 
                   xmlns="http://www.w3.org/2000/svg" 
                   fill="none" 
                   viewBox="0 0 24 24"
