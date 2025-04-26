@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, CheckCircle, PlusCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -322,6 +322,78 @@ export function SavedAnalyses() {
                           <p className="text-muted-foreground text-sm leading-relaxed">
                             {latestAnalysis.result.skillGapAnalysis.aiAnalysis}
                           </p>
+                        </div>
+                      )}
+                      
+                      {/* Skills Assessment Overview */}
+                      {(latestAnalysis.result.skillGapAnalysis.existingSkills || 
+                         latestAnalysis.result.skillGapAnalysis.skillsToAcquire) && (
+                        <div className="mb-6 bg-card border rounded-lg p-6 shadow-sm">
+                          <h4 className="text-base font-semibold mb-4">Skills Assessment Overview</h4>
+                          
+                          {/* Existing Skills */}
+                          {latestAnalysis.result.skillGapAnalysis.existingSkills && (
+                            <div className="mb-6">
+                              <div className="flex items-center mb-2">
+                                <CheckCircle className="h-4 w-4 text-primary mr-2" />
+                                <h5 className="font-medium text-sm">Existing Skills</h5>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {latestAnalysis.result.skillGapAnalysis.existingSkills.map((skill: any, idx: number) => (
+                                  <div key={idx} className="bg-primary/5 rounded-md p-3 border border-primary/10">
+                                    <div className="font-medium text-sm">{skill.name || skill.skill}</div>
+                                    <div className="flex items-center justify-between mt-1">
+                                      <span className="text-xs text-muted-foreground">
+                                        Level: {skill.level}
+                                      </span>
+                                      {skill.framework && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {skill.framework}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {skill.relevance && (
+                                      <div className="mt-1 text-xs">
+                                        Relevance: <span className="font-medium">{skill.relevance}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Skills To Develop */}
+                          {latestAnalysis.result.skillGapAnalysis.skillsToAcquire && (
+                            <div>
+                              <div className="flex items-center mb-2">
+                                <PlusCircle className="h-4 w-4 text-destructive mr-2" />
+                                <h5 className="font-medium text-sm">Skills To Develop</h5>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {latestAnalysis.result.skillGapAnalysis.skillsToAcquire.map((skill: any, idx: number) => (
+                                  <div key={idx} className="bg-destructive/5 rounded-md p-3 border border-destructive/10">
+                                    <div className="font-medium text-sm">{skill.skill || skill.name}</div>
+                                    <div className="flex items-center justify-between mt-1">
+                                      <span className="text-xs text-muted-foreground">
+                                        Priority: {skill.priority}
+                                      </span>
+                                      {skill.framework && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {skill.framework}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {skill.timeToAcquire && (
+                                      <div className="mt-1 text-xs">
+                                        Est. Time: <span className="font-medium">{skill.timeToAcquire}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       
