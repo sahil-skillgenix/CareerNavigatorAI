@@ -37,11 +37,23 @@ export function SavedAnalyses() {
     queryKey: ["/api/dashboard"],
     queryFn: async () => {
       console.log("Fetching dashboard data...");
-      const response = await fetch("/api/dashboard");
+      
+      // Get the JWT token from localStorage if available
+      const token = localStorage.getItem('auth_token');
+      
+      const response = await fetch("/api/dashboard", {
+        headers: {
+          // Add Authorization header if token exists
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        credentials: 'include', // Include cookies in the request
+      });
+      
       if (!response.ok) {
         console.error("Failed to fetch dashboard data:", response.status);
         throw new Error("Failed to fetch dashboard data");
       }
+      
       const data = await response.json();
       console.log("Dashboard data received:", data?.careerAnalyses?.length || 0, "analyses found");
       return data;

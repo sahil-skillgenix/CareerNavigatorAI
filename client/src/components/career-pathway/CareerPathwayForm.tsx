@@ -2806,11 +2806,17 @@ function CareerAnalysisResults({
                     console.log("Saving analysis with data:", formDataToSave);
                     
                     // We're saving the current analysis with the results using our dedicated endpoint
+                    // Get the JWT token from localStorage if available
+                    const token = localStorage.getItem('auth_token');
+                    
                     const response = await fetch('/api/save-career-analysis', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
+                        // Add Authorization header if token exists
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                       },
+                      credentials: 'include', // Include cookies in the request
                       body: JSON.stringify(formDataToSave),
                     });
                     
