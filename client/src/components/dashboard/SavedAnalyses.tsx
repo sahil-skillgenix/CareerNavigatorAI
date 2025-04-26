@@ -417,13 +417,10 @@ export function SavedAnalyses() {
                           Radar Chart Visualization
                         </h3>
                         
-                        {(latestAnalysis.result.radarChartData?.skills || 
-                          latestAnalysis.result.chartData?.currentSkills) ? (
+                        {latestAnalysis.result && latestAnalysis.result.skillMapping && 
+                          latestAnalysis.result.skillGapAnalysis ? (
                           <div className="h-72">
-                            {/* Temporarily render a placeholder instead of SkillRadarChart */}
-                            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                              <p className="text-center">Skill Radar Chart Visualization</p>
-                            </div>
+                            <SkillRadarChart results={latestAnalysis.result} />
                           </div>
                         ) : (
                           <div className="h-72 flex items-center justify-center bg-muted/30 rounded-lg">
@@ -439,13 +436,11 @@ export function SavedAnalyses() {
                           Bar Chart Visualization
                         </h3>
                         
-                        {(latestAnalysis.result.barChartData?.skills || 
-                          latestAnalysis.result.chartData?.skillGaps) ? (
+                        {latestAnalysis.result && 
+                         latestAnalysis.result.skillGapAnalysis && 
+                         latestAnalysis.result.skillGapAnalysis.gaps ? (
                           <div className="h-72">
-                            {/* Temporarily render a placeholder instead of ComparativeBarChart */}
-                            <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                              <p className="text-center">Comparative Bar Chart Visualization</p>
-                            </div>
+                            <ComparativeBarChart results={latestAnalysis.result} />
                           </div>
                         ) : (
                           <div className="h-72 flex items-center justify-center bg-muted/30 rounded-lg">
