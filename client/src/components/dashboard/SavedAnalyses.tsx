@@ -534,9 +534,119 @@ export function SavedAnalyses() {
                                   
                                   {latestAnalysis.result.developmentPlan.roadmapStages.length > 2 && (
                                     <div className="text-center text-xs text-indigo-600 mt-1">
-                                      <span className="cursor-pointer hover:underline">
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                          // Create a modal or expandable section with all stages
+                                          const modal = document.createElement('div');
+                                          modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+                                          
+                                          const content = document.createElement('div');
+                                          content.className = 'bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto w-full mx-4';
+                                          
+                                          // Add close button
+                                          const closeBtn = document.createElement('button');
+                                          closeBtn.className = 'absolute top-4 right-4 text-gray-600 hover:text-gray-900';
+                                          closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                                          closeBtn.onclick = () => document.body.removeChild(modal);
+                                          
+                                          // Create the content
+                                          const heading = document.createElement('h3');
+                                          heading.className = 'text-xl font-bold mb-6 pr-8';
+                                          heading.textContent = 'All Learning Roadmap Stages';
+                                          
+                                          content.appendChild(heading);
+                                          content.appendChild(closeBtn);
+                                          
+                                          // Add all stages
+                                          const stagesContainer = document.createElement('div');
+                                          stagesContainer.className = 'space-y-4';
+                                          
+                                          latestAnalysis.result.developmentPlan.roadmapStages.forEach((stage: any, index: number) => {
+                                            const stageEl = document.createElement('div');
+                                            stageEl.className = 'bg-white rounded-lg p-4 border border-indigo-100 shadow-sm';
+                                            
+                                            const header = document.createElement('div');
+                                            header.className = 'flex items-center gap-2 mb-2';
+                                            
+                                            const stageNumBadge = document.createElement('div');
+                                            stageNumBadge.className = 'w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs';
+                                            stageNumBadge.textContent = stage.stage;
+                                            
+                                            const stageTitle = document.createElement('div');
+                                            stageTitle.className = 'font-semibold text-indigo-800 text-sm';
+                                            stageTitle.textContent = stage.title;
+                                            
+                                            header.appendChild(stageNumBadge);
+                                            header.appendChild(stageTitle);
+                                            stageEl.appendChild(header);
+                                            
+                                            const timeframe = document.createElement('div');
+                                            timeframe.className = 'text-xs text-slate-500 mb-2';
+                                            timeframe.textContent = `Timeframe: ${stage.timeframe}`;
+                                            stageEl.appendChild(timeframe);
+                                            
+                                            const description = document.createElement('p');
+                                            description.className = 'text-sm text-slate-600 mb-3';
+                                            description.textContent = stage.description;
+                                            stageEl.appendChild(description);
+                                            
+                                            if (stage.focusAreas && stage.focusAreas.length > 0) {
+                                              const focusAreaSection = document.createElement('div');
+                                              focusAreaSection.className = 'bg-indigo-50 rounded-md p-2 mb-2';
+                                              
+                                              const focusLabel = document.createElement('div');
+                                              focusLabel.className = 'text-xs font-semibold text-indigo-700 mb-1';
+                                              focusLabel.textContent = 'Focus Areas:';
+                                              
+                                              const areaContainer = document.createElement('div');
+                                              areaContainer.className = 'flex flex-wrap gap-1';
+                                              
+                                              stage.focusAreas.forEach((area: string) => {
+                                                const chip = document.createElement('span');
+                                                chip.className = 'inline-flex bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full';
+                                                chip.textContent = area;
+                                                areaContainer.appendChild(chip);
+                                              });
+                                              
+                                              focusAreaSection.appendChild(focusLabel);
+                                              focusAreaSection.appendChild(areaContainer);
+                                              stageEl.appendChild(focusAreaSection);
+                                            }
+                                            
+                                            if (stage.milestones && stage.milestones.length > 0) {
+                                              const milestonesSection = document.createElement('div');
+                                              milestonesSection.className = 'bg-emerald-50 rounded-md p-2 mb-2';
+                                              
+                                              const milestonesLabel = document.createElement('div');
+                                              milestonesLabel.className = 'text-xs font-semibold text-emerald-700 mb-1';
+                                              milestonesLabel.textContent = 'Key Milestones:';
+                                              
+                                              const list = document.createElement('ul');
+                                              list.className = 'list-disc list-inside text-xs text-emerald-800 space-y-1';
+                                              
+                                              stage.milestones.forEach((milestone: string) => {
+                                                const item = document.createElement('li');
+                                                item.textContent = milestone;
+                                                list.appendChild(item);
+                                              });
+                                              
+                                              milestonesSection.appendChild(milestonesLabel);
+                                              milestonesSection.appendChild(list);
+                                              stageEl.appendChild(milestonesSection);
+                                            }
+                                            
+                                            stagesContainer.appendChild(stageEl);
+                                          });
+                                          
+                                          content.appendChild(stagesContainer);
+                                          modal.appendChild(content);
+                                          document.body.appendChild(modal);
+                                        }}
+                                        className="cursor-pointer hover:underline"
+                                      >
                                         + {latestAnalysis.result.developmentPlan.roadmapStages.length - 2} more stages
-                                      </span>
+                                      </button>
                                     </div>
                                   )}
                                 </div>
@@ -563,6 +673,117 @@ export function SavedAnalyses() {
                                     </div>
                                   ))}
                                 </div>
+                                
+                                {latestAnalysis.result.developmentPlan.microLearningTips.length > 3 && (
+                                  <div className="text-center text-xs text-amber-600 mt-3">
+                                    <button 
+                                      type="button"
+                                      onClick={() => {
+                                        // Create a modal for all microlearning tips
+                                        const modal = document.createElement('div');
+                                        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+                                        
+                                        const content = document.createElement('div');
+                                        content.className = 'bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto w-full mx-4';
+                                        
+                                        // Add close button
+                                        const closeBtn = document.createElement('button');
+                                        closeBtn.className = 'absolute top-4 right-4 text-gray-600 hover:text-gray-900';
+                                        closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                                        closeBtn.onclick = () => document.body.removeChild(modal);
+                                        
+                                        // Create the content
+                                        const heading = document.createElement('h3');
+                                        heading.className = 'text-xl font-bold mb-6 pr-8';
+                                        heading.textContent = 'All Micro-Learning Tips';
+                                        
+                                        content.appendChild(heading);
+                                        content.appendChild(closeBtn);
+                                        
+                                        // Add all tips
+                                        const tipsContainer = document.createElement('div');
+                                        tipsContainer.className = 'space-y-4';
+                                        
+                                        latestAnalysis.result.developmentPlan.microLearningTips.forEach((tip: any, index: number) => {
+                                          const tipEl = document.createElement('div');
+                                          
+                                          // Set different background colors based on impact level
+                                          let bgColor = 'bg-emerald-50';
+                                          let borderColor = 'border-emerald-100';
+                                          let textColor = 'text-emerald-800';
+                                          
+                                          if (tip.impactLevel === 'high') {
+                                            bgColor = 'bg-rose-50';
+                                            borderColor = 'border-rose-100';
+                                            textColor = 'text-rose-800';
+                                          } else if (tip.impactLevel === 'medium') {
+                                            bgColor = 'bg-amber-50';
+                                            borderColor = 'border-amber-100';
+                                            textColor = 'text-amber-800';
+                                          }
+                                          
+                                          tipEl.className = `${bgColor} rounded-lg p-4 border ${borderColor} shadow-sm`;
+                                          
+                                          const header = document.createElement('div');
+                                          header.className = 'flex items-start gap-2 mb-2';
+                                          
+                                          const numBadge = document.createElement('div');
+                                          numBadge.className = `w-6 h-6 rounded-full ${bgColor === 'bg-rose-50' ? 'bg-rose-100 text-rose-700' : 
+                                            bgColor === 'bg-amber-50' ? 'bg-amber-100 text-amber-700' : 
+                                            'bg-emerald-100 text-emerald-700'} flex items-center justify-center font-bold text-xs mt-0.5`;
+                                          numBadge.textContent = (index + 1).toString();
+                                          
+                                          const skillArea = document.createElement('p');
+                                          skillArea.className = `text-base font-medium ${textColor}`;
+                                          skillArea.textContent = tip.skillArea;
+                                          
+                                          header.appendChild(numBadge);
+                                          header.appendChild(skillArea);
+                                          tipEl.appendChild(header);
+                                          
+                                          const tipText = document.createElement('p');
+                                          tipText.className = `text-sm ${textColor} mb-2`;
+                                          tipText.textContent = tip.tip;
+                                          tipEl.appendChild(tipText);
+                                          
+                                          if (tip.estimatedTimeMinutes) {
+                                            const timeInfo = document.createElement('div');
+                                            timeInfo.className = 'text-xs text-gray-500 mt-1';
+                                            timeInfo.textContent = `Estimated time: ${tip.estimatedTimeMinutes} minutes`;
+                                            tipEl.appendChild(timeInfo);
+                                          }
+                                          
+                                          if (tip.impactLevel) {
+                                            const impactBadge = document.createElement('div');
+                                            impactBadge.className = `inline-flex text-xs px-2 py-1 rounded-full mt-2 ${
+                                              tip.impactLevel === 'high' ? 'bg-rose-100 text-rose-800' : 
+                                              tip.impactLevel === 'medium' ? 'bg-amber-100 text-amber-800' : 
+                                              'bg-emerald-100 text-emerald-800'
+                                            }`;
+                                            impactBadge.textContent = `${tip.impactLevel.charAt(0).toUpperCase() + tip.impactLevel.slice(1)} Impact`;
+                                            tipEl.appendChild(impactBadge);
+                                          }
+                                          
+                                          if (tip.source) {
+                                            const source = document.createElement('div');
+                                            source.className = 'text-xs text-gray-500 mt-2';
+                                            source.textContent = `Source: ${tip.source}`;
+                                            tipEl.appendChild(source);
+                                          }
+                                          
+                                          tipsContainer.appendChild(tipEl);
+                                        });
+                                        
+                                        content.appendChild(tipsContainer);
+                                        modal.appendChild(content);
+                                        document.body.appendChild(modal);
+                                      }}
+                                      className="cursor-pointer hover:underline"
+                                    >
+                                      + {latestAnalysis.result.developmentPlan.microLearningTips.length - 3} more tips
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
@@ -640,6 +861,107 @@ export function SavedAnalyses() {
                                         )}
                                       </div>
                                     ))}
+                                    
+                                    {latestAnalysis.result.developmentPlan.platformSpecificCourses.microsoft.length > 2 && (
+                                      <div className="text-center text-xs text-blue-600 mt-1">
+                                        <button 
+                                          type="button"
+                                          onClick={() => {
+                                            // Create a modal for Microsoft courses
+                                            const modal = document.createElement('div');
+                                            modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center';
+                                            
+                                            const content = document.createElement('div');
+                                            content.className = 'bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-y-auto w-full mx-4';
+                                            
+                                            // Add close button
+                                            const closeBtn = document.createElement('button');
+                                            closeBtn.className = 'absolute top-4 right-4 text-gray-600 hover:text-gray-900';
+                                            closeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                                            closeBtn.onclick = () => document.body.removeChild(modal);
+                                            
+                                            // Create the header with Microsoft logo
+                                            const header = document.createElement('div');
+                                            header.className = 'flex items-center gap-3 mb-6';
+                                            
+                                            const logo = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                                            logo.setAttribute('width', '30');
+                                            logo.setAttribute('height', '30');
+                                            logo.setAttribute('viewBox', '0 0 23 23');
+                                            logo.setAttribute('fill', 'none');
+                                            logo.innerHTML = `
+                                              <path d="M0 0H11V11H0V0Z" fill="#F25022"/>
+                                              <path d="M12 0H23V11H12V0Z" fill="#7FBA00"/>
+                                              <path d="M0 12H11V23H0V12Z" fill="#00A4EF"/>
+                                              <path d="M12 12H23V23H12V12Z" fill="#FFB900"/>
+                                            `;
+                                            
+                                            const heading = document.createElement('h3');
+                                            heading.className = 'text-xl font-bold pr-8';
+                                            heading.textContent = 'Microsoft Learn Courses';
+                                            
+                                            header.appendChild(logo);
+                                            header.appendChild(heading);
+                                            
+                                            content.appendChild(header);
+                                            content.appendChild(closeBtn);
+                                            
+                                            // Add all courses
+                                            const coursesContainer = document.createElement('div');
+                                            coursesContainer.className = 'space-y-4';
+                                            
+                                            latestAnalysis.result.developmentPlan.platformSpecificCourses.microsoft.forEach((course: any) => {
+                                              const courseEl = document.createElement('div');
+                                              courseEl.className = 'bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm';
+                                              
+                                              const title = document.createElement('h4');
+                                              title.className = 'font-semibold text-blue-800 text-base mb-2';
+                                              title.textContent = course.title;
+                                              courseEl.appendChild(title);
+                                              
+                                              const details = document.createElement('div');
+                                              details.className = 'flex items-center justify-between mb-3';
+                                              
+                                              const level = document.createElement('span');
+                                              level.className = 'text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded';
+                                              level.textContent = `Level: ${course.level}`;
+                                              
+                                              const duration = document.createElement('span');
+                                              duration.className = 'text-sm text-blue-600';
+                                              duration.textContent = course.duration;
+                                              
+                                              details.appendChild(level);
+                                              details.appendChild(duration);
+                                              courseEl.appendChild(details);
+                                              
+                                              if (course.url) {
+                                                const linkContainer = document.createElement('div');
+                                                linkContainer.className = 'mt-3';
+                                                
+                                                const link = document.createElement('a');
+                                                link.href = course.url;
+                                                link.target = '_blank';
+                                                link.rel = 'noopener noreferrer';
+                                                link.className = 'inline-flex items-center gap-1 text-blue-700 hover:underline text-sm';
+                                                link.innerHTML = 'View Course <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+                                                
+                                                linkContainer.appendChild(link);
+                                                courseEl.appendChild(linkContainer);
+                                              }
+                                              
+                                              coursesContainer.appendChild(courseEl);
+                                            });
+                                            
+                                            content.appendChild(coursesContainer);
+                                            modal.appendChild(content);
+                                            document.body.appendChild(modal);
+                                          }}
+                                          className="cursor-pointer hover:underline"
+                                        >
+                                          + {latestAnalysis.result.developmentPlan.platformSpecificCourses.microsoft.length - 2} more courses
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               )}
