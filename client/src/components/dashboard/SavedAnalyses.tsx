@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, CheckCircle, PlusCircle, MoveUpRight } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, History, CheckCircle, PlusCircle, MoveUpRight, Eye, EyeOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -33,6 +33,7 @@ interface SavedAnalysis {
 
 export function SavedAnalyses() {
   const [expandedAnalysis, setExpandedAnalysis] = useState<string | null>(null);
+  const [showDebugPanel, setShowDebugPanel] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -245,247 +246,271 @@ export function SavedAnalyses() {
                     </p>
                   </div>
                   
-                  {/* Debug Information Panel */}
-                  <div className="py-4 mb-4">
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-md mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h5 className="text-sm font-medium text-amber-800">Detailed Debug Information</h5>
-                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">Development Mode</Badge>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {/* Basic Analysis Information */}
-                        <div className="p-2 bg-white/60 rounded border border-amber-100">
-                          <h6 className="text-xs font-semibold text-amber-900 mb-1">Analysis Metadata</h6>
-                          <p className="text-xs text-amber-700 mb-1">
-                            ID: {latestAnalysis.id}
-                          </p>
-                          <p className="text-xs text-amber-700 mb-1">
-                            Created: {latestAnalysis.createdAt}
-                          </p>
-                          <p className="text-xs text-amber-700 mb-1">
-                            Progress: {latestAnalysis.progress}%
-                          </p>
-                          <p className="text-xs text-amber-700">
-                            Professional Level: {latestAnalysis.professionalLevel}
-                          </p>
+                  {/* Debug Toggle Button - only visible during development */}
+                  <div className="py-1 mb-2 flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs h-6 px-2 py-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowDebugPanel(!showDebugPanel)}
+                    >
+                      {showDebugPanel ? (
+                        <span className="flex items-center">
+                          <EyeOff className="h-3 w-3 mr-1" />
+                          Hide Debug
+                        </span>
+                      ) : (
+                        <span className="flex items-center">
+                          <Eye className="h-3 w-3 mr-1" />
+                          Developer Debug
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {/* Debug Information Panel - Hidden by default */}
+                  {showDebugPanel && (
+                    <div className="py-4 mb-4">
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-md mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h5 className="text-sm font-medium text-amber-800">Detailed Debug Information</h5>
+                          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">Development Mode</Badge>
                         </div>
                         
-                        {/* Result Structure */}
-                        <div className="p-2 bg-white/60 rounded border border-amber-100">
-                          <h6 className="text-xs font-semibold text-amber-900 mb-1">Result Structure</h6>
-                          <p className="text-xs text-amber-700 mb-1">
-                            Top-level sections: {Object.keys(latestAnalysis.result || {}).join(', ')}
-                          </p>
-                          <div className="mt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                              onClick={() => {
-                                console.log('Full analysis data:', latestAnalysis);
-                                toast({
-                                  title: "Debug Info",
-                                  description: "Full analysis data logged to console",
-                                  variant: "default",
-                                });
-                              }}
-                            >
-                              Log Full Data to Console
-                            </Button>
+                        <div className="space-y-3">
+                          {/* Basic Analysis Information */}
+                          <div className="p-2 bg-white/60 rounded border border-amber-100">
+                            <h6 className="text-xs font-semibold text-amber-900 mb-1">Analysis Metadata</h6>
+                            <p className="text-xs text-amber-700 mb-1">
+                              ID: {latestAnalysis.id}
+                            </p>
+                            <p className="text-xs text-amber-700 mb-1">
+                              Created: {latestAnalysis.createdAt}
+                            </p>
+                            <p className="text-xs text-amber-700 mb-1">
+                              Progress: {latestAnalysis.progress}%
+                            </p>
+                            <p className="text-xs text-amber-700">
+                              Professional Level: {latestAnalysis.professionalLevel}
+                            </p>
                           </div>
-                        </div>
-                        
-                        {/* Career Pathway Debug */}
-                        <div className="p-2 bg-white/60 rounded border border-amber-100">
-                          <h6 className="text-xs font-semibold text-amber-900 mb-1">Career Pathway</h6>
-                          <p className="text-xs text-amber-700 mb-1">
-                            Has careerPathway: {latestAnalysis.result?.careerPathway ? 'Yes' : 'No'}
-                          </p>
-                          {latestAnalysis.result?.careerPathway && (
-                            <>
-                              <p className="text-xs text-amber-700 mb-1">
-                                Pathway keys: {Object.keys(latestAnalysis.result.careerPathway).join(', ')}
-                              </p>
-                              {latestAnalysis.result.careerPathway.withDegree && (
+                          
+                          {/* Result Structure */}
+                          <div className="p-2 bg-white/60 rounded border border-amber-100">
+                            <h6 className="text-xs font-semibold text-amber-900 mb-1">Result Structure</h6>
+                            <p className="text-xs text-amber-700 mb-1">
+                              Top-level sections: {Object.keys(latestAnalysis.result || {}).join(', ')}
+                            </p>
+                            <div className="mt-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                                onClick={() => {
+                                  console.log('Full analysis data:', latestAnalysis);
+                                  toast({
+                                    title: "Debug Info",
+                                    description: "Full analysis data logged to console",
+                                    variant: "default",
+                                  });
+                                }}
+                              >
+                                Log Full Data to Console
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Career Pathway Debug */}
+                          <div className="p-2 bg-white/60 rounded border border-amber-100">
+                            <h6 className="text-xs font-semibold text-amber-900 mb-1">Career Pathway</h6>
+                            <p className="text-xs text-amber-700 mb-1">
+                              Has careerPathway: {latestAnalysis.result?.careerPathway ? 'Yes' : 'No'}
+                            </p>
+                            {latestAnalysis.result?.careerPathway && (
+                              <>
                                 <p className="text-xs text-amber-700 mb-1">
-                                  withDegree steps: {latestAnalysis.result.careerPathway.withDegree.length}
+                                  Pathway keys: {Object.keys(latestAnalysis.result.careerPathway).join(', ')}
                                 </p>
-                              )}
-                              {latestAnalysis.result.careerPathway.withoutDegree && (
+                                {latestAnalysis.result.careerPathway.withDegree && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    withDegree steps: {latestAnalysis.result.careerPathway.withDegree.length}
+                                  </p>
+                                )}
+                                {latestAnalysis.result.careerPathway.withoutDegree && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    withoutDegree steps: {latestAnalysis.result.careerPathway.withoutDegree.length}
+                                  </p>
+                                )}
+                                <div className="mt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                                    onClick={() => {
+                                      console.log('Career Pathway data:', latestAnalysis.result.careerPathway);
+                                      const jsonString = JSON.stringify(latestAnalysis.result.careerPathway, null, 2);
+                                      toast({
+                                        title: "Career Pathway Data",
+                                        description: "Pathway data logged to console",
+                                        variant: "default",
+                                      });
+                                      
+                                      // Create a downloadable file
+                                      const blob = new Blob([jsonString], { type: 'application/json' });
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `career-pathway-${latestAnalysis.id}.json`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                      URL.revokeObjectURL(url);
+                                    }}
+                                  >
+                                    Export Pathway JSON
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          
+                          {/* Skill Gap Analysis Debug */}
+                          <div className="p-2 bg-white/60 rounded border border-amber-100">
+                            <h6 className="text-xs font-semibold text-amber-900 mb-1">Skill Gap Analysis</h6>
+                            <p className="text-xs text-amber-700 mb-1">
+                              Has skillGapAnalysis: {latestAnalysis.result?.skillGapAnalysis ? 'Yes' : 'No'}
+                            </p>
+                            {latestAnalysis.result?.skillGapAnalysis && (
+                              <>
                                 <p className="text-xs text-amber-700 mb-1">
-                                  withoutDegree steps: {latestAnalysis.result.careerPathway.withoutDegree.length}
+                                  Keys: {Object.keys(latestAnalysis.result.skillGapAnalysis).join(', ')}
                                 </p>
-                              )}
-                              <div className="mt-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                                  onClick={() => {
-                                    console.log('Career Pathway data:', latestAnalysis.result.careerPathway);
-                                    const jsonString = JSON.stringify(latestAnalysis.result.careerPathway, null, 2);
-                                    toast({
-                                      title: "Career Pathway Data",
-                                      description: "Pathway data logged to console",
-                                      variant: "default",
-                                    });
-                                    
-                                    // Create a downloadable file
-                                    const blob = new Blob([jsonString], { type: 'application/json' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = `career-pathway-${latestAnalysis.id}.json`;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    URL.revokeObjectURL(url);
-                                  }}
-                                >
-                                  Export Pathway JSON
-                                </Button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        
-                        {/* Skill Gap Analysis Debug */}
-                        <div className="p-2 bg-white/60 rounded border border-amber-100">
-                          <h6 className="text-xs font-semibold text-amber-900 mb-1">Skill Gap Analysis</h6>
-                          <p className="text-xs text-amber-700 mb-1">
-                            Has skillGapAnalysis: {latestAnalysis.result?.skillGapAnalysis ? 'Yes' : 'No'}
-                          </p>
-                          {latestAnalysis.result?.skillGapAnalysis && (
-                            <>
-                              <p className="text-xs text-amber-700 mb-1">
-                                Keys: {Object.keys(latestAnalysis.result.skillGapAnalysis).join(', ')}
-                              </p>
-                              {latestAnalysis.result.skillGapAnalysis.existingSkills && (
-                                <p className="text-xs text-amber-700 mb-1">
-                                  Existing skills: {latestAnalysis.result.skillGapAnalysis.existingSkills.length}
-                                </p>
-                              )}
-                              {latestAnalysis.result.skillGapAnalysis.skillsToAcquire && (
-                                <p className="text-xs text-amber-700 mb-1">
-                                  Skills to acquire: {latestAnalysis.result.skillGapAnalysis.skillsToAcquire.length}
-                                </p>
-                              )}
-                              
-                              <div className="mt-2 flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                                  onClick={() => {
-                                    console.log('Skill Gap Analysis data:', latestAnalysis.result.skillGapAnalysis);
-                                    toast({
-                                      title: "Skill Gap Data",
-                                      description: "Skill Gap Analysis data logged to console",
-                                      variant: "default",
-                                    });
-                                  }}
-                                >
-                                  Log Skills Data
-                                </Button>
+                                {latestAnalysis.result.skillGapAnalysis.existingSkills && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    Existing skills: {latestAnalysis.result.skillGapAnalysis.existingSkills.length}
+                                  </p>
+                                )}
+                                {latestAnalysis.result.skillGapAnalysis.skillsToAcquire && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    Skills to acquire: {latestAnalysis.result.skillGapAnalysis.skillsToAcquire.length}
+                                  </p>
+                                )}
                                 
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                                  onClick={() => {
-                                    const jsonString = JSON.stringify(latestAnalysis.result.skillGapAnalysis, null, 2);
-                                    const blob = new Blob([jsonString], { type: 'application/json' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = `skill-gap-${latestAnalysis.id}.json`;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    URL.revokeObjectURL(url);
-                                  }}
-                                >
-                                  Export Skills JSON
-                                </Button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                        
-                        {/* Development Plan Debug */}
-                        <div className="p-2 bg-white/60 rounded border border-amber-100">
-                          <h6 className="text-xs font-semibold text-amber-900 mb-1">Development Plan</h6>
-                          <p className="text-xs text-amber-700 mb-1">
-                            Has developmentPlan: {latestAnalysis.result?.developmentPlan ? 'Yes' : 'No'}
-                          </p>
-                          {latestAnalysis.result?.developmentPlan && (
-                            <>
-                              <p className="text-xs text-amber-700 mb-1">
-                                Keys: {Object.keys(latestAnalysis.result.developmentPlan).join(', ')}
-                              </p>
-                              
-                              {latestAnalysis.result.developmentPlan.roadmapStages && (
+                                <div className="mt-2 flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                                    onClick={() => {
+                                      console.log('Skill Gap Analysis data:', latestAnalysis.result.skillGapAnalysis);
+                                      toast({
+                                        title: "Skill Gap Data",
+                                        description: "Skill Gap Analysis data logged to console",
+                                        variant: "default",
+                                      });
+                                    }}
+                                  >
+                                    Log Skills Data
+                                  </Button>
+                                  
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                                    onClick={() => {
+                                      const jsonString = JSON.stringify(latestAnalysis.result.skillGapAnalysis, null, 2);
+                                      const blob = new Blob([jsonString], { type: 'application/json' });
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `skill-gap-${latestAnalysis.id}.json`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                      URL.revokeObjectURL(url);
+                                    }}
+                                  >
+                                    Export Skills JSON
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          
+                          {/* Development Plan Debug */}
+                          <div className="p-2 bg-white/60 rounded border border-amber-100">
+                            <h6 className="text-xs font-semibold text-amber-900 mb-1">Development Plan</h6>
+                            <p className="text-xs text-amber-700 mb-1">
+                              Has developmentPlan: {latestAnalysis.result?.developmentPlan ? 'Yes' : 'No'}
+                            </p>
+                            {latestAnalysis.result?.developmentPlan && (
+                              <>
                                 <p className="text-xs text-amber-700 mb-1">
-                                  Roadmap stages: {latestAnalysis.result.developmentPlan.roadmapStages.length}
+                                  Keys: {Object.keys(latestAnalysis.result.developmentPlan).join(', ')}
                                 </p>
-                              )}
-                              
-                              {latestAnalysis.result.developmentPlan.microLearningTips && (
-                                <p className="text-xs text-amber-700 mb-1">
-                                  Micro-learning tips: {latestAnalysis.result.developmentPlan.microLearningTips.length}
-                                </p>
-                              )}
-                              
-                              {latestAnalysis.result.developmentPlan.platformSpecificCourses && (
-                                <p className="text-xs text-amber-700 mb-1">
-                                  Platform courses: {Object.keys(latestAnalysis.result.developmentPlan.platformSpecificCourses).join(', ')}
-                                </p>
-                              )}
-                              
-                              <div className="mt-2 flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                                  onClick={() => {
-                                    console.log('Development Plan data:', latestAnalysis.result.developmentPlan);
-                                    toast({
-                                      title: "Development Plan Data",
-                                      description: "Development Plan data logged to console",
-                                      variant: "default",
-                                    });
-                                  }}
-                                >
-                                  Log Plan Data
-                                </Button>
                                 
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
-                                  onClick={() => {
-                                    const jsonString = JSON.stringify(latestAnalysis.result.developmentPlan, null, 2);
-                                    const blob = new Blob([jsonString], { type: 'application/json' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url;
-                                    a.download = `development-plan-${latestAnalysis.id}.json`;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    URL.revokeObjectURL(url);
-                                  }}
-                                >
-                                  Export Plan JSON
-                                </Button>
-                              </div>
-                            </>
-                          )}
+                                {latestAnalysis.result.developmentPlan.roadmapStages && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    Roadmap stages: {latestAnalysis.result.developmentPlan.roadmapStages.length}
+                                  </p>
+                                )}
+                                
+                                {latestAnalysis.result.developmentPlan.microLearningTips && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    Micro-learning tips: {latestAnalysis.result.developmentPlan.microLearningTips.length}
+                                  </p>
+                                )}
+                                
+                                {latestAnalysis.result.developmentPlan.platformSpecificCourses && (
+                                  <p className="text-xs text-amber-700 mb-1">
+                                    Platform courses: {Object.keys(latestAnalysis.result.developmentPlan.platformSpecificCourses).join(', ')}
+                                  </p>
+                                )}
+                                
+                                <div className="mt-2 flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                                    onClick={() => {
+                                      console.log('Development Plan data:', latestAnalysis.result.developmentPlan);
+                                      toast({
+                                        title: "Development Plan Data",
+                                        description: "Development Plan data logged to console",
+                                        variant: "default",
+                                      });
+                                    }}
+                                  >
+                                    Log Plan Data
+                                  </Button>
+                                  
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-6 px-2 py-0 bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 hover:text-amber-900"
+                                    onClick={() => {
+                                      const jsonString = JSON.stringify(latestAnalysis.result.developmentPlan, null, 2);
+                                      const blob = new Blob([jsonString], { type: 'application/json' });
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `development-plan-${latestAnalysis.id}.json`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                      URL.revokeObjectURL(url);
+                                    }}
+                                  >
+                                    Export Plan JSON
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
                   {/* Executive Summary Section */}
                   {latestAnalysis.result.executiveSummary && (
