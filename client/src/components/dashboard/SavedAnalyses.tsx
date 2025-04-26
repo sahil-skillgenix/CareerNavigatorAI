@@ -14,6 +14,7 @@ import { Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw,
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import html2canvas from "html2canvas";
 import { SkillRadarChart } from "@/components/career-pathway/SkillRadarChart";
 import { ComparativeBarChart } from "@/components/career-pathway/ComparativeBarChart";
 import { AIRecommendationsPanel } from "@/components/career-pathway/AIRecommendationsPanel";
@@ -392,18 +393,18 @@ export function SavedAnalyses() {
                       <div className="grid grid-cols-1 gap-10 mb-10">
                         <div className="bg-card border rounded-lg p-6 shadow-sm">
                           <h4 className="text-base font-semibold mb-4 text-center">Skill Proficiency Overview</h4>
-                          <div className="w-full h-96 mx-auto flex items-center justify-center border-b pb-2">
+                          <div className="w-full h-96 mx-auto flex items-center justify-center border-b pb-2" id="radar-chart-container">
                             <div className="max-w-md w-full mx-auto">
                               <SkillRadarChart results={latestAnalysis.result} />
                             </div>
                           </div>
                           <div className="flex justify-center mt-6 gap-4">
                             <div className="flex items-center">
-                              <div className="w-4 h-4 bg-gray-400 mr-2"></div>
+                              <div className="w-4 h-4 bg-[#7b8cb8] mr-2"></div>
                               <span className="text-sm">Current Skill Level</span>
                             </div>
                             <div className="flex items-center">
-                              <div className="w-4 h-4 bg-primary mr-2"></div>
+                              <div className="w-4 h-4 bg-[#1c3b82] mr-2"></div>
                               <span className="text-sm">Required Skill Level</span>
                             </div>
                           </div>
@@ -414,16 +415,16 @@ export function SavedAnalyses() {
                         
                         <div className="bg-card border rounded-lg p-6 shadow-sm">
                           <h4 className="text-base font-semibold mb-4 text-center">Gap Analysis Comparison</h4>
-                          <div className="w-full h-96 mx-auto">
+                          <div className="w-full h-96 mx-auto" id="bar-chart-container">
                             <ComparativeBarChart results={latestAnalysis.result} />
                           </div>
                           <div className="flex justify-center mt-6 gap-4">
                             <div className="flex items-center">
-                              <div className="w-4 h-4 bg-blue-400 mr-2"></div>
+                              <div className="w-4 h-4 bg-[#6366f1] mr-2"></div>
                               <span className="text-sm">Current Skill Level</span>
                             </div>
                             <div className="flex items-center">
-                              <div className="w-4 h-4 bg-red-600 mr-2"></div>
+                              <div className="w-4 h-4 bg-[#be123c] mr-2"></div>
                               <span className="text-sm">Required Skill Level</span>
                             </div>
                           </div>
@@ -616,98 +617,176 @@ export function SavedAnalyses() {
                   variant="outline" 
                   size="sm"
                   className="flex items-center gap-1"
-                  onClick={() => {
-                    // Create HTML content for download
-                    const htmlContent = `
-                      <!DOCTYPE html>
-                      <html lang="en">
-                      <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Skillgenix Career Analysis - ${latestAnalysis.desiredRole}</title>
-                        <style>
-                          body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
-                          h1, h2, h3, h4 { color: #1c3b82; }
-                          h1 { font-size: 28px; text-align: center; margin-bottom: 30px; }
-                          h2 { font-size: 24px; margin-top: 40px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-                          h3 { font-size: 20px; }
-                          p { margin-bottom: 16px; }
-                          .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-                          .header { text-align: center; margin-bottom: 40px; }
-                          .badge { display: inline-block; border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 600; }
-                          .badge-primary { background: rgba(28,59,130,0.1); color: #1c3b82; }
-                          .badge-success { background: rgba(34,197,94,0.1); color: #166534; }
-                          .badge-danger { background: rgba(239,68,68,0.1); color: #b91c1c; }
-                          .badge-info { background: rgba(6,182,212,0.1); color: #155e75; }
-                          .skill-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-                          .skill-item:last-child { border-bottom: none; }
-                          .two-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 20px; }
-                          .pathway-step { display: flex; margin-bottom: 20px; }
-                          .step-number { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(28,59,130,0.1); color: #1c3b82; border-radius: 50%; font-weight: bold; margin-right: 15px; flex-shrink: 0; }
-                          .skills-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-                          .skill-tag { background: #f5f5f5; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
-                          .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #666; }
-                          @media print {
-                            body { font-size: 12pt; }
-                            .no-print { display: none; }
-                            h2 { font-size: 18pt; }
-                            h3 { font-size: 16pt; }
-                            .card { border: none; box-shadow: none; padding: 0; margin-bottom: 30px; }
-                            .two-columns { grid-template-columns: 1fr 1fr; }
-                          }
-                        </style>
-                      </head>
-                      <body>
-                        <div class="header">
-                          <h1>Career Pathway Analysis</h1>
-                          <p>From <strong>${latestAnalysis.careerHistory || "Current Position"}</strong> to <strong>${latestAnalysis.desiredRole}</strong></p>
-                          <p>Professional Level: <strong>${latestAnalysis.professionalLevel}</strong></p>
-                        </div>
+                  onClick={async () => {
+                    // Function to capture chart as base64 image
+                    const captureChartAsImage = async (element: HTMLElement | null) => {
+                      if (!element) return '';
+                      
+                      try {
+                        const canvas = await html2canvas(element, {
+                          scale: 2,
+                          backgroundColor: '#ffffff',
+                          logging: false,
+                          useCORS: true,
+                        });
                         
-                        <h2>Executive Summary</h2>
-                        <div class="card">
-                          <p>${latestAnalysis.result.executiveSummary}</p>
-                        </div>
-                        
-                        <h2>Skill Mapping</h2>
-                        <div class="two-columns">
-                          <!-- SFIA 9 Skills -->
-                          <div class="card">
-                            <h3><span class="badge badge-primary">SFIA 9</span> Framework Skills</h3>
-                            ${latestAnalysis.result.skillMapping?.sfia9 ? 
-                              latestAnalysis.result.skillMapping.sfia9.map(skill => `
-                                <div class="skill-item">
-                                  <div style="display: flex; justify-content: space-between;">
-                                    <span style="font-weight: 600;">${skill.skill}</span>
-                                    <span class="badge badge-primary">Level ${skill.level}</span>
-                                  </div>
-                                  <p style="font-size: 14px; color: #666;">${skill.description}</p>
-                                </div>
-                              `).join('') : '<p>No SFIA 9 skills mapped.</p>'}
+                        return canvas.toDataURL('image/png');
+                      } catch (error) {
+                        console.error('Error capturing chart:', error);
+                        return '';
+                      }
+                    };
+
+                      // Get chart elements
+                      const radarChartElement = document.getElementById('radar-chart-container');
+                      const barChartElement = document.getElementById('bar-chart-container');
+                      
+                      // Capture chart images
+                      const radarChartImage = await captureChartAsImage(radarChartElement);
+                      const barChartImage = await captureChartAsImage(barChartElement);
+                      
+                      // Create HTML content
+                      const htmlContent = `
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                          <meta charset="UTF-8">
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <title>Skillgenix Career Analysis - ${latestAnalysis.desiredRole}</title>
+                          <style>
+                            body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
+                            h1, h2, h3, h4 { color: #1c3b82; }
+                            h1 { font-size: 28px; text-align: center; margin-bottom: 30px; }
+                            h2 { font-size: 24px; margin-top: 40px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                            h3 { font-size: 20px; }
+                            p { margin-bottom: 16px; }
+                            .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+                            .header { text-align: center; margin-bottom: 40px; }
+                            .badge { display: inline-block; border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 600; }
+                            .badge-primary { background: rgba(28,59,130,0.1); color: #1c3b82; }
+                            .badge-success { background: rgba(34,197,94,0.1); color: #166534; }
+                            .badge-danger { background: rgba(239,68,68,0.1); color: #b91c1c; }
+                            .badge-info { background: rgba(6,182,212,0.1); color: #155e75; }
+                            .skill-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+                            .skill-item:last-child { border-bottom: none; }
+                            .two-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 20px; }
+                            .charts-section { margin-top: 40px; margin-bottom: 40px; }
+                            .chart-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center; }
+                            .chart-image { max-width: 100%; height: auto; margin: 0 auto; display: block; }
+                            .chart-caption { margin-top: 15px; font-size: 14px; color: #666; text-align: center; }
+                            .pathway-step { display: flex; margin-bottom: 20px; }
+                            .step-number { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(28,59,130,0.1); color: #1c3b82; border-radius: 50%; font-weight: bold; margin-right: 15px; flex-shrink: 0; }
+                            .skills-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+                            .skill-tag { background: #f5f5f5; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+                            .legend { display: flex; gap: 15px; justify-content: center; margin: 10px 0; }
+                            .legend-item { display: flex; align-items: center; font-size: 13px; }
+                            .legend-color { width: 12px; height: 12px; margin-right: 5px; display: inline-block; }
+                            .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #666; }
+                            @media print {
+                              body { font-size: 12pt; }
+                              .no-print { display: none; }
+                              h2 { font-size: 18pt; }
+                              h3 { font-size: 16pt; }
+                              .card { border: none; box-shadow: none; padding: 0; margin-bottom: 30px; }
+                              .two-columns { grid-template-columns: 1fr 1fr; }
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          <div class="header">
+                            <h1>Career Pathway Analysis</h1>
+                            <p>From <strong>${latestAnalysis.careerHistory || "Current Position"}</strong> to <strong>${latestAnalysis.desiredRole}</strong></p>
+                            <p>Professional Level: <strong>${latestAnalysis.professionalLevel}</strong></p>
                           </div>
                           
-                          <!-- DigComp 2.2 Skills -->
+                          <h2>Executive Summary</h2>
                           <div class="card">
-                            <h3><span class="badge badge-info">DigComp 2.2</span> Framework Competencies</h3>
-                            ${latestAnalysis.result.skillMapping?.digcomp22 ? 
-                              latestAnalysis.result.skillMapping.digcomp22.map(comp => `
-                                <div class="skill-item">
-                                  <div style="display: flex; justify-content: space-between;">
-                                    <span style="font-weight: 600;">${comp.competency}</span>
-                                    <span class="badge badge-info">Level ${comp.level}</span>
-                                  </div>
-                                  <p style="font-size: 14px; color: #666;">${comp.description}</p>
-                                </div>
-                              `).join('') : '<p>No DigComp 2.2 competencies mapped.</p>'}
+                            <p>${latestAnalysis.result.executiveSummary}</p>
                           </div>
-                        </div>
-                        
-                        <h2>Skill Gap Analysis</h2>
-                        ${latestAnalysis.result.skillGapAnalysis?.aiAnalysis ? `
-                        <div class="card">
-                          <h3>Analysis Overview</h3>
-                          <p>${latestAnalysis.result.skillGapAnalysis.aiAnalysis}</p>
-                        </div>` : ''}
+                          
+                          <!-- Skill Visualizations Section -->
+                          <div class="charts-section">
+                            <h2>Skill Visualizations</h2>
+                            <div class="two-columns">
+                              <!-- Radar Chart -->
+                              <div class="chart-container">
+                                <h3>Skill Proficiency Overview</h3>
+                                ${radarChartImage ? `
+                                  <img src="${radarChartImage}" alt="Skill Radar Chart" class="chart-image" />
+                                  <div class="legend">
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #7b8cb8;"></span>
+                                      <span>Current Level</span>
+                                    </div>
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #1c3b82;"></span>
+                                      <span>Required Level</span>
+                                    </div>
+                                  </div>
+                                  <p class="chart-caption">This radar chart visualizes your skill levels compared to the desired role's requirements</p>
+                                ` : '<p>Chart visualization could not be generated.</p>'}
+                              </div>
+                              
+                              <!-- Bar Chart -->
+                              <div class="chart-container">
+                                <h3>Gap Analysis Comparison</h3>
+                                ${barChartImage ? `
+                                  <img src="${barChartImage}" alt="Skill Gap Comparison" class="chart-image" />
+                                  <div class="legend">
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #6366f1;"></span>
+                                      <span>Current Level</span>
+                                    </div>
+                                    <div class="legend-item">
+                                      <span class="legend-color" style="background-color: #be123c;"></span>
+                                      <span>Required Level</span>
+                                    </div>
+                                  </div>
+                                  <p class="chart-caption">This chart compares your current skill levels with the levels required for your target role</p>
+                                ` : '<p>Chart visualization could not be generated.</p>'}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <h2>Skill Mapping</h2>
+                          <div class="two-columns">
+                            <!-- SFIA 9 Skills -->
+                            <div class="card">
+                              <h3><span class="badge badge-primary">SFIA 9</span> Framework Skills</h3>
+                              ${latestAnalysis.result.skillMapping?.sfia9 ? 
+                                latestAnalysis.result.skillMapping.sfia9.map((skill: any) => `
+                                  <div class="skill-item">
+                                    <div style="display: flex; justify-content: space-between;">
+                                      <span style="font-weight: 600;">${skill.skill}</span>
+                                      <span class="badge badge-primary">Level ${skill.level}</span>
+                                    </div>
+                                    <p style="font-size: 14px; color: #666;">${skill.description}</p>
+                                  </div>
+                                `).join('') : '<p>No SFIA 9 skills mapped.</p>'}
+                            </div>
+                            
+                            <!-- DigComp 2.2 Skills -->
+                            <div class="card">
+                              <h3><span class="badge badge-info">DigComp 2.2</span> Framework Competencies</h3>
+                              ${latestAnalysis.result.skillMapping?.digcomp22 ? 
+                                latestAnalysis.result.skillMapping.digcomp22.map((comp: any) => `
+                                  <div class="skill-item">
+                                    <div style="display: flex; justify-content: space-between;">
+                                      <span style="font-weight: 600;">${comp.competency}</span>
+                                      <span class="badge badge-info">Level ${comp.level}</span>
+                                    </div>
+                                    <p style="font-size: 14px; color: #666;">${comp.description}</p>
+                                  </div>
+                                `).join('') : '<p>No DigComp 2.2 competencies mapped.</p>'}
+                            </div>
+                          </div>
+                          
+                          <h2>Skill Gap Analysis</h2>
+                          ${latestAnalysis.result.skillGapAnalysis?.aiAnalysis ? `
+                          <div class="card">
+                            <h3>Analysis Overview</h3>
+                            <p>${latestAnalysis.result.skillGapAnalysis.aiAnalysis}</p>
+                          </div>` : ''}
                         
                         <div class="two-columns">
                           <!-- Skill Gaps -->
@@ -855,20 +934,29 @@ export function SavedAnalyses() {
                       </html>
                     `;
                   
-                    // Create a blob and download link
-                    const blob = new Blob([htmlContent], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `Skillgenix_Career_Analysis_${latestAnalysis.desiredRole.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // Clean up
-                    setTimeout(() => {
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }, 0);
+                    try {
+                      // Create a blob and download link
+                      const blob = new Blob([htmlContent], { type: 'text/html' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `Skillgenix_Career_Analysis_${latestAnalysis.desiredRole.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+                      document.body.appendChild(a);
+                      a.click();
+                      
+                      // Clean up
+                      setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }, 0);
+                    } catch (error) {
+                      console.error('Error generating HTML report:', error);
+                      toast({
+                        title: "Error",
+                        description: "Could not generate HTML report. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }}
                 >
                   <Download className="h-4 w-4" /> HTML Report
