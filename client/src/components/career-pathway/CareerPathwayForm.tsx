@@ -2765,7 +2765,33 @@ function CareerAnalysisResults({
         >
           {/* Save to Dashboard and PDF Download buttons */}
           <div className="flex justify-center w-full gap-4">
-            <div className="bg-gradient-to-r from-green-600 to-teal-600 p-0.5 rounded-lg">
+            <div className="border rounded-lg p-4 bg-green-600 shadow-sm relative">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white mr-2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-white">Save Analysis</h3>
+                </div>
+                
+                <div className="group relative">
+                  <button className="text-white hover:text-green-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  </button>
+                  <div className="absolute right-0 mt-2 w-64 bg-white p-2 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <p className="text-xs text-gray-700">
+                      Save this analysis to your dashboard for future reference and to track your career development progress.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <Button 
                 onClick={async () => {
                   try {
@@ -2833,8 +2859,8 @@ function CareerAnalysisResults({
                     });
                   }
                 }}
-                size="lg" 
-                className="bg-green-600 text-white hover:bg-green-700 shadow-md text-base font-medium gap-2 border-0 transition-colors duration-200"
+                size="default" 
+                className="bg-green-700 text-white hover:bg-green-800 shadow-md font-medium gap-2 border-0 transition-colors duration-200 w-full rounded-md"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
