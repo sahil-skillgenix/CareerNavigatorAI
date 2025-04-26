@@ -1337,6 +1337,62 @@ export function SavedAnalyses() {
                             </div>
                           )}
                           
+                          {/* Visual Timeline */}
+                          {latestAnalysis.result.skillGrowthTrajectory.milestones && 
+                           latestAnalysis.result.skillGrowthTrajectory.milestones.length > 0 && (
+                            <div className="bg-white border rounded-lg p-5 mb-6">
+                              <h3 className="text-lg font-semibold mb-8">Skill Growth Visualization</h3>
+                              
+                              <div className="relative py-10">
+                                {/* Horizontal timeline track */}
+                                <div className="absolute left-10 right-10 top-1/2 h-1 bg-muted rounded-full"></div>
+                                
+                                {/* Timeline milestones */}
+                                {latestAnalysis.result.skillGrowthTrajectory.milestones.map((milestone, idx) => {
+                                  // Calculate positions to spread evenly
+                                  const totalItems = latestAnalysis.result.skillGrowthTrajectory.milestones.length;
+                                  const stepWidth = 100 / (totalItems > 1 ? totalItems - 1 : 1);
+                                  const leftPosition = idx * stepWidth;
+                                  
+                                  return (
+                                    <div 
+                                      key={idx} 
+                                      className="absolute flex flex-col items-center"
+                                      style={{ 
+                                        left: `calc(${leftPosition}% + 10px)`, 
+                                        top: idx % 2 === 0 ? '0' : '60%',
+                                        transform: 'translateX(-50%)'
+                                      }}
+                                    >
+                                      {/* Milestone dot */}
+                                      <div className={`
+                                        w-8 h-8 rounded-full flex items-center justify-center z-10 
+                                        ${idx === 0 ? 'bg-primary text-white' : 
+                                          idx === totalItems - 1 ? 'bg-emerald-600 text-white' : 
+                                          'bg-primary/20 text-primary'}
+                                      `}>
+                                        {idx + 1}
+                                      </div>
+                                      
+                                      {/* Vertical connector */}
+                                      <div className="w-0.5 h-4 bg-muted"></div>
+                                      
+                                      {/* Label */}
+                                      <div className="mt-1 text-center max-w-[120px]">
+                                        <p className="text-xs font-medium truncate">
+                                          {milestone.title || milestone.stage || `Stage ${idx + 1}`}
+                                        </p>
+                                        {milestone.timeframe && (
+                                          <p className="text-xs text-muted-foreground">{milestone.timeframe}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Milestones */}
                           {latestAnalysis.result.skillGrowthTrajectory.milestones && 
                            latestAnalysis.result.skillGrowthTrajectory.milestones.length > 0 && (
@@ -1410,10 +1466,76 @@ export function SavedAnalyses() {
                       <div className="bg-card border rounded-lg p-6 shadow-sm">
                         <h3 className="text-lg font-semibold mb-6">Career Development Timeline</h3>
                         
+                        {/* Roadmap Visualization */}
+                        <div className="mb-8 overflow-x-auto">
+                          <div className="min-w-[800px]">
+                            <div className="relative">
+                              {/* Main roadmap line */}
+                              <div className="absolute left-0 right-0 top-10 h-2 bg-gradient-to-r from-blue-500 via-blue-400 to-emerald-500 rounded-full"></div>
+                              
+                              <div className="pt-4 pb-8 flex justify-between">
+                                {latestAnalysis.result.careerDevelopmentTimeline.map((step, idx) => {
+                                  const totalSteps = latestAnalysis.result.careerDevelopmentTimeline.length;
+                                  
+                                  return (
+                                    <div key={idx} className="flex flex-col items-center relative">
+                                      {/* Phase label */}
+                                      <div className="mb-4 text-center max-w-[150px]">
+                                        <p className="text-sm font-medium">
+                                          {step.phase || step.title || `Phase ${idx + 1}`}
+                                        </p>
+                                        {step.timeframe && (
+                                          <p className="text-xs text-muted-foreground mt-1">{step.timeframe}</p>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Phase marker */}
+                                      <div className={`
+                                        w-8 h-8 rounded-full z-10 flex items-center justify-center
+                                        ${idx === 0 ? 'bg-blue-600' : 
+                                          idx === totalSteps - 1 ? 'bg-emerald-600' : 
+                                          'bg-blue-500'} text-white font-medium
+                                      `}>
+                                        {idx + 1}
+                                      </div>
+                                      
+                                      {/* Focus areas (if exists, display below the marker) */}
+                                      {step.focusAreas && step.focusAreas.length > 0 && (
+                                        <div className="mt-4 flex flex-col items-center">
+                                          <div className="w-0.5 h-3 bg-muted"></div>
+                                          <div className="max-w-[150px] flex flex-wrap justify-center gap-1 mt-1">
+                                            {step.focusAreas.slice(0, 2).map((area, areaIdx) => (
+                                              <Badge 
+                                                key={areaIdx} 
+                                                variant="outline" 
+                                                className="text-xs bg-primary/5 border-primary/10 text-primary/80"
+                                              >
+                                                {area}
+                                              </Badge>
+                                            ))}
+                                            {step.focusAreas.length > 2 && (
+                                              <Badge variant="outline" className="text-xs">+{step.focusAreas.length - 2}</Badge>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
                         <div className="space-y-8">
                           {latestAnalysis.result.careerDevelopmentTimeline.map((step, idx) => (
                             <div key={idx} className="relative pl-10 pb-10 last:pb-0">
-                              <div className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white font-medium">
+                              <div className={`
+                                absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full 
+                                ${idx === 0 ? 'bg-blue-600' : 
+                                  idx === latestAnalysis.result.careerDevelopmentTimeline.length - 1 ? 
+                                  'bg-emerald-600' : 'bg-blue-500'} text-white font-medium
+                              `}>
                                 {idx + 1}
                               </div>
                               
