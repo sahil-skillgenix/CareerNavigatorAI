@@ -308,6 +308,13 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
       }
       
       const userId = req.user.id;
+      if (!userId) {
+        return res.status(400).json({
+          error: 'Invalid user ID',
+          message: 'Could not determine user ID from authentication'
+        });
+      }
+      
       console.log(`Saving career analysis for user: ${userId}`);
       
       // Extract data from the request body
@@ -317,8 +324,8 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         educationalBackground, 
         careerHistory, 
         desiredRole, 
-        state, 
-        country, 
+        state = '', 
+        country = '', 
         result 
       } = req.body;
       
@@ -338,14 +345,14 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         educationalBackground,
         careerHistory,
         desiredRole,
-        state,
-        country,
+        state: state || '',  // Ensure we have a string value
+        country: country || '',  // Ensure we have a string value
         result,
         progress: 0
       });
       
       // Log the activity
-      await logUserActivity(userId, 'save_career_analysis', 'FEATURE', 'saved a career analysis', {
+      await logUserActivity(userId.toString(), 'save_career_analysis', 'success', 'saved a career analysis', {
         analysisId: analysis.id,
         desiredRole
       });
