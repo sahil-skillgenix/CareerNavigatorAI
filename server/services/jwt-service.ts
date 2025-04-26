@@ -197,11 +197,14 @@ export function jwtAuthMiddleware(options: {
     
     // Get token from Authorization header or cookies
     const authHeader = req.headers.authorization;
+    console.log(`JWT Middleware - Path: ${req.path} - Auth header: ${authHeader ? 'Present' : 'Missing'}`);
+    
     const token = authHeader?.startsWith('Bearer ') 
       ? authHeader.substring(7) 
       : req.cookies?.token;
     
     if (!token) {
+      console.log(`JWT Middleware - No token found for path: ${req.path}`);
       if (options.requireAuth) {
         return res.status(401).json({ message: 'No token provided' });
       } else {
@@ -209,15 +212,22 @@ export function jwtAuthMiddleware(options: {
       }
     }
     
+    console.log(`JWT Middleware - Token found for path: ${req.path} (first 10 chars): ${token.substring(0, 10)}...`);
+    
     // Verify the token
     const decoded = verifyToken(token);
+    
     if (!decoded) {
+      console.log(`JWT Middleware - Invalid token for path: ${req.path}`);
       if (options.requireAuth) {
         return res.status(401).json({ message: 'Invalid or expired token' });
       } else {
         return next();
       }
     }
+    
+    console.log(`JWT Middleware - Valid token for user: ${decoded.email} (${decoded.userId})`);
+    
     
     // Attach user info to request
     req.jwtUser = decoded;

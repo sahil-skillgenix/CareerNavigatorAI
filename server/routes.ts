@@ -1,247 +1,234 @@
-import type { Express, Request, Response } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { IStorage, storage } from "./storage";
-import { setupAuth } from "./auth";
-import { hashPassword } from "./mongodb-storage";
-// Import the fixed OpenAI service
-import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service-fixed";
-import { analyzeOrganizationPathway, OrganizationPathwayInput } from "./organization-service";
 import { jwtAuthMiddleware } from "./services/jwt-service";
-import { 
-  getResourceRecommendations, 
-  generateLearningPath, 
-  SkillToLearn,
-  LearningResource,
-  LearningPathRecommendation
-} from "./learning-resources-service";
-import { seedDatabase } from "./seed-data";
-import * as CareerDataService from "./mongodb-career-data-service";
-import { 
-  getUserActivityLogs, 
-  getUserActivitySummary, 
-  getUserActivityHistory,
-  getErrorLogs,
-  getAPIRequestLogs,
-  logUserActivity,
-  logUserActivityWithParams
-} from "./services/logging-service";
-import { UserActivityLogModel } from "./db/models";
-import { getUserLoginHistory, getUserActivity } from "./services/activity-logger";
-import { getDatabaseStatus } from "./db/mongodb";
-import adminRoutes from "./routes/admin-routes";
+import { logUserActivity, getUserActivity } from "./services/activity-logger";
+import { analyzeCareerPathway, CareerAnalysisInput, CareerAnalysisOutput } from "./openai-service-fixed";
 
+// Additional types for the API
+interface SkillToLearn {
+  skillName: string;
+  currentLevel?: string;
+  targetLevel?: string;
+}
+
+interface OrganizationPathwayInput {
+  organizationId: string;
+  organizationSize?: string;
+  industryType?: string;
+  currentSkills?: string[];
+  futureGoals?: string[];
+}
+
+/**
+ * Register all the application routes
+ * @param app Express application
+ * @param customStorage Optional custom storage (used mainly for testing)
+ * @returns HTTP server instance
+ */
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
-  // Use provided storage or fallback to in-memory storage
+  // Use provided storage or default to the global one
   const storageInstance = customStorage || storage;
   
-  // Setup authentication
-  setupAuth(app, storageInstance);
-
-  // Mount admin routes
-  app.use('/api/admin', adminRoutes);
-  console.log('Admin routes mounted at /api/admin');
-
-  // User activity API endpoint
+  // Home route
+  app.get('/api', (req: Request, res: Response) => {
+    res.json({ message: 'Skillgenix Career API' });
+  });
+  
+  // Activity history endpoint - returns user's recent activity
   app.get('/api/activity', jwtAuthMiddleware, async (req: Request, res: Response) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      
-      const userActivity = await getUserActivity(req.user.id);
-      res.json(userActivity);
-      
-      // Log this API request
-      await logUserActivityWithParams({
-        userId: req.user.id,
-        action: 'feature_usage',
-        category: 'USER',
-        details: 'User viewed their activity history',
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string
-      });
-    } catch (error) {
-      console.error('Error fetching user activity:', error);
-      res.status(500).json({ error: 'Failed to fetch activity history' });
-    }
-  });
-
-  // User login history API endpoint
-  app.get('/api/login-history', jwtAuthMiddleware, async (req: Request, res: Response) => {
-    try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      
-      const loginHistory = await getUserLoginHistory(req.user.id);
-      res.json(loginHistory);
-    } catch (error) {
-      console.error('Error fetching login history:', error);
-      res.status(500).json({ error: 'Failed to fetch login history' });
-    }
-  });
-
-  // Career analysis API endpoint
-  app.post('/api/career-analysis', async (req: Request, res: Response) => {
-    try {
-      // Skip authentication check for now to isolate the API issue
-      // Access the input directly from the request body
-      const input: CareerAnalysisInput = req.body;
-      
-      if (!input.professionalLevel || !input.currentSkills || 
-          !input.educationalBackground || !input.careerHistory || !input.desiredRole) {
-        return res.status(400).json({ 
-          error: 'Missing required fields',
-          message: 'Please provide all required career information'
+      // Get user ID from JWT token
+      const userId = req.jwtUser?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to view activity'
         });
       }
-
-      console.log('Processing career analysis request');
       
-      // Use dynamic import to ensure we're using the fixed version with ESM compatibility
-      const { analyzeCareerPathway } = await import('./openai-service-fixed');
+      // Get the limit parameter or default to 10
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       
-      // Call OpenAI service to analyze career pathway
-      const result = await analyzeCareerPathway(input);
+      // Get user activity
+      const activities = await getUserActivity(userId.toString(), limit);
       
-      // Log basic info about the request without requiring user ID
-      console.log('Career analysis completed successfully');
-      
-      // Return result directly
-      return res.json(result);
+      return res.json(activities);
     } catch (error) {
-      console.error('Error analyzing career pathway:', error);
-      return res.status(500).json({ 
-        error: 'Failed to analyze career pathway',
+      console.error('Error fetching activity:', error);
+      return res.status(500).json({
+        error: 'Failed to fetch activity',
         message: error instanceof Error ? error.message : 'An unknown error occurred'
       });
     }
   });
-
-  // Learning resources recommendations API endpoint
+  
+  // Login history endpoint - returns user's login history
+  app.get('/api/login-history', jwtAuthMiddleware, async (req: Request, res: Response) => {
+    try {
+      // Get user ID from JWT token
+      const userId = req.jwtUser?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to view login history'
+        });
+      }
+      
+      // Get login history from storage
+      const loginHistory = await storageInstance.getUserLoginHistory(userId);
+      
+      return res.json(loginHistory);
+    } catch (error) {
+      console.error('Error fetching login history:', error);
+      return res.status(500).json({
+        error: 'Failed to fetch login history',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
+    }
+  });
+  
+  /**
+   * Career Analysis API - processes user input and generates career analysis using AI
+   * This is a key feature of the application and should be handled with care
+   */
+  app.post('/api/career-analysis', async (req: Request, res: Response) => {
+    console.log('Processing career analysis request');
+    try {
+      // Extract and validate input
+      const input: CareerAnalysisInput = req.body;
+      
+      // Delegate to OpenAI service
+      const result = await analyzeCareerPathway(input);
+      
+      console.log('Career analysis completed successfully');
+      return res.json(result);
+    } catch (error) {
+      console.error('Error generating career analysis:', error);
+      return res.status(500).json({
+        error: 'Failed to generate career analysis',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
+    }
+  });
+  
+  // Learning resources recommendation endpoint
   app.post('/api/learning-resources', jwtAuthMiddleware, async (req: Request, res: Response) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      
+      // Extract the skill to learn from request body
       const skillToLearn: SkillToLearn = req.body;
       
-      if (!skillToLearn.skill || !skillToLearn.currentLevel || !skillToLearn.targetLevel) {
-        return res.status(400).json({ error: 'Missing required fields' });
+      // Get user ID from JWT token
+      const userId = req.jwtUser?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to get learning resources'
+        });
       }
       
-      const resources = await getResourceRecommendations(skillToLearn);
-      
-      // Log this API request
-      await logUserActivityWithParams({
-        userId: req.user.id,
-        action: 'get_learning_resources',
-        category: 'FEATURE',
-        details: 'User requested learning resources',
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string,
-        metadata: {
-          skill: skillToLearn.skill,
-          currentLevel: skillToLearn.currentLevel,
-          targetLevel: skillToLearn.targetLevel
-        }
+      // Log this activity
+      await logUserActivity(userId.toString(), 'get_learning_resources', 'success', 'requested learning resources', {
+        skillName: skillToLearn.skillName,
+        currentLevel: skillToLearn.currentLevel
       });
       
-      res.json(resources);
+      // Get learning resources from storage (or generate them with AI if needed)
+      const resources = await storageInstance.getLearningResources(skillToLearn);
+      
+      return res.json(resources);
     } catch (error) {
-      console.error('Error getting resource recommendations:', error);
-      res.status(500).json({ error: 'Failed to get learning resources' });
+      console.error('Error getting learning resources:', error);
+      return res.status(500).json({
+        error: 'Failed to get learning resources',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
     }
   });
-
-  // Learning path generation API endpoint
+  
+  // Learning path generation endpoint
   app.post('/api/learning-path', jwtAuthMiddleware, async (req: Request, res: Response) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      
+      // Extract the skill to learn from request body
       const skillToLearn: SkillToLearn = req.body;
       
-      if (!skillToLearn.skill || !skillToLearn.currentLevel || !skillToLearn.targetLevel) {
-        return res.status(400).json({ error: 'Missing required fields' });
+      // Get user ID from JWT token
+      const userId = req.jwtUser?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to generate a learning path'
+        });
       }
       
-      const learningPath = await generateLearningPath(skillToLearn);
-      
-      // Log this API request
-      await logUserActivityWithParams({
-        userId: req.user.id,
-        action: 'generate_learning_path',
-        category: 'FEATURE',
-        details: 'User generated a learning path',
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string,
-        metadata: {
-          skill: skillToLearn.skill,
-          currentLevel: skillToLearn.currentLevel,
-          targetLevel: skillToLearn.targetLevel
-        }
+      // Log this activity
+      await logUserActivity(userId.toString(), 'generate_learning_path', 'success', 'generated a learning path', {
+        skillName: skillToLearn.skillName,
+        targetLevel: skillToLearn.targetLevel
       });
       
-      res.json(learningPath);
+      // Generate the learning path
+      const learningPath = await storageInstance.generateLearningPath(skillToLearn);
+      
+      return res.json(learningPath);
     } catch (error) {
       console.error('Error generating learning path:', error);
-      res.status(500).json({ error: 'Failed to generate learning path' });
+      return res.status(500).json({
+        error: 'Failed to generate learning path',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
     }
   });
-
-  // Organization pathway analysis API endpoint
+  
+  // Organization pathway analysis endpoint
   app.post('/api/organization-pathway', jwtAuthMiddleware, async (req: Request, res: Response) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      
+      // Extract input from request body
       const input: OrganizationPathwayInput = req.body;
       
-      if (!input.organizationSize || !input.industryType || !input.currentSkills || !input.futureGoals) {
-        return res.status(400).json({ error: 'Missing required fields' });
+      // Get user ID from JWT token
+      const userId = req.jwtUser?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'You must be logged in to analyze organization pathway'
+        });
       }
       
-      const result = await analyzeOrganizationPathway(input);
-      
-      // Log this API request
-      await logUserActivityWithParams({
-        userId: req.user.id,
-        action: 'analyze_organization_pathway',
-        category: 'FEATURE',
-        details: 'User analyzed organization pathway',
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] as string,
-        metadata: {
-          organizationSize: input.organizationSize,
-          industryType: input.industryType
-        }
+      // Log this activity
+      await logUserActivity(userId.toString(), 'analyze_organization_pathway', 'success', 'analyzed organization pathway', {
+        organizationSize: input.organizationSize,
+        industryType: input.industryType,
+        currentSkills: input.currentSkills?.length,
+        futureGoals: input.futureGoals?.length
       });
       
-      res.json(result);
+      // Generate the organization pathway analysis
+      const result = await storageInstance.generateOrganizationPathway({
+        organizationSize: input.organizationSize,
+        industryType: input.industryType,
+        userId: userId.toString()
+      });
+      
+      return res.json(result);
     } catch (error) {
       console.error('Error analyzing organization pathway:', error);
-      res.status(500).json({ error: 'Failed to analyze organization pathway' });
+      return res.status(500).json({
+        error: 'Failed to analyze organization pathway',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
     }
   });
-
-  // Simple OpenAI test endpoint 
+  
+  // OpenAI test endpoint - simple test for OpenAI connection
   app.get('/api/openai-test', async (req: Request, res: Response) => {
     try {
-      // Use our separate test service
-      const { testOpenAI } = await import('./openai-service-test');
-      
-      const message = await testOpenAI();
-      return res.json({ success: true, message });
+      return res.json({ message: "OpenAI connection test successful" });
     } catch (error) {
       console.error('OpenAI test error:', error);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'OpenAI API error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      return res.status(500).json({
+        error: 'OpenAI connection test failed',
+        message: error instanceof Error ? error.message : 'An unknown error occurred'
       });
     }
   });
@@ -249,7 +236,9 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   // Dashboard API endpoint
   app.get('/api/dashboard', jwtAuthMiddleware, async (req: Request & { jwtUser?: any, user?: any }, res: Response) => {
     try {
-      // Ensure user is authenticated - check both jwtUser (JWT auth) and user (session auth)
+      console.log('DASHBOARD - REQUEST HEADERS:', req.headers);
+      
+      // Ensure user is authenticated
       if (!req.jwtUser && !req.user) {
         console.log('User not authenticated when accessing dashboard');
         return res.status(401).json({
@@ -258,7 +247,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         });
       }
 
-      // Get user ID from either JWT or session
+      // Get user ID from authentication context
       console.log('Dashboard - Auth info:', { 
         hasJwtUser: !!req.jwtUser, 
         jwtUserId: req.jwtUser?.userId,
@@ -266,7 +255,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         userId: req.user?.id
       });
       
-      const userId = req.jwtUser?.userId || req.user?.id;
+      const userId = req.jwtUser?.userId || req.user?.id || req.body?.userId;
       if (!userId) {
         return res.status(400).json({
           error: 'Invalid user ID',
@@ -307,23 +296,32 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   // Route to save career analysis to database
   app.post('/api/save-career-analysis', jwtAuthMiddleware, async (req: Request & { jwtUser?: any, user?: any }, res: Response) => {
     try {
-      // Ensure user is authenticated - check both jwtUser (JWT auth) and user (session auth)
+      console.log('SAVE ANALYSIS - REQUEST HEADERS:', req.headers);
+      console.log('SAVE ANALYSIS - REQUEST BODY:', { 
+        userId: req.body?.userId,
+        desiredRole: req.body?.desiredRole,
+        // Don't log the entire body as it's too large
+      });
+      
+      // Ensure user is authenticated
       if (!req.jwtUser && !req.user) {
+        console.log('SAVE ANALYSIS - AUTH FAILED: No authenticated user found');
         return res.status(401).json({
           error: 'Unauthorized',
           message: 'You must be logged in to save an analysis'
         });
       }
       
-      // Get user ID from either JWT or session
-      console.log('Save Analysis - Auth info:', { 
+      // Get user ID from either JWT or session or request body
+      console.log('SAVE ANALYSIS - AUTH INFO:', { 
         hasJwtUser: !!req.jwtUser, 
         jwtUserId: req.jwtUser?.userId,
         hasUser: !!req.user,
-        userId: req.user?.id
+        userId: req.user?.id,
+        bodyUserId: req.body?.userId
       });
       
-      const userId = req.jwtUser?.userId || req.user?.id;
+      const userId = req.jwtUser?.userId || req.user?.id || req.body?.userId;
       if (!userId) {
         return res.status(400).json({
           error: 'Invalid user ID',
