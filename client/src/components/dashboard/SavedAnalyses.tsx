@@ -908,7 +908,8 @@ export function SavedAnalyses() {
                       </div>
                       
                       {/* Similar Roles To Consider */}
-                      {latestAnalysis.result.alternativeRoles && latestAnalysis.result.alternativeRoles.length > 0 && (
+                      {(latestAnalysis.result.alternativeRoles || latestAnalysis.result.similarRoles) && 
+                       (latestAnalysis.result.alternativeRoles?.length > 0 || latestAnalysis.result.similarRoles?.length > 0) && (
                         <div className="py-6">
                           <h3 className="text-xl font-bold mb-4">Similar Roles To Consider</h3>
                           
@@ -918,9 +919,9 @@ export function SavedAnalyses() {
                             </p>
                             
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {latestAnalysis.result.alternativeRoles.map((role: any, idx: number) => (
+                              {(latestAnalysis.result.alternativeRoles || latestAnalysis.result.similarRoles).map((role: any, idx: number) => (
                                 <div key={idx} className="bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-sm">
-                                  <h4 className="text-lg font-medium text-blue-700 mb-1">{role.title}</h4>
+                                  <h4 className="text-lg font-medium text-blue-700 mb-1">{role.title || role.role}</h4>
                                   
                                   {role.match && (
                                     <div className="mb-2">
@@ -930,14 +931,29 @@ export function SavedAnalyses() {
                                     </div>
                                   )}
                                   
+                                  {role.similarityScore && (
+                                    <div className="mb-2">
+                                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">
+                                        Match: {role.similarityScore}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                  
                                   <p className="text-sm text-blue-800 mb-3">{role.description}</p>
                                   
                                   {/* Key Skill Overlaps */}
-                                  {role.keySkillOverlaps && role.keySkillOverlaps.length > 0 && (
+                                  {(role.keySkillOverlaps || role.keySkillsOverlap) && (
                                     <div className="mb-2">
                                       <h5 className="text-xs font-semibold text-blue-700 mb-1">Key skill overlaps:</h5>
                                       <div className="flex flex-wrap gap-1">
-                                        {role.keySkillOverlaps.map((skill: string, skillIdx: number) => (
+                                        {(role.keySkillOverlaps ? role.keySkillOverlaps : 
+                                          (typeof role.keySkillsOverlap === 'string' ? 
+                                            role.keySkillsOverlap.split(',').map(s => s.trim()) : 
+                                            Array.isArray(role.keySkillsOverlap) ? 
+                                              role.keySkillsOverlap : 
+                                              []
+                                          )
+                                        ).map((skill: string, skillIdx: number) => (
                                           <Badge key={skillIdx} variant="secondary" className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200">
                                             {skill}
                                           </Badge>
@@ -947,34 +963,37 @@ export function SavedAnalyses() {
                                   )}
                                   
                                   {/* Key Difference */}
-                                  {role.keyDifference && (
+                                  {(role.keyDifference || role.uniqueRequirements) && (
                                     <div className="mb-2">
                                       <h5 className="text-xs font-semibold text-amber-600 mb-1">Key difference:</h5>
                                       <p className="text-xs text-amber-700 bg-amber-50 p-1 rounded">
-                                        {role.keyDifference}
+                                        {role.keyDifference || role.uniqueRequirements}
                                       </p>
                                     </div>
                                   )}
                                   
                                   {/* Salary Range & Growth */}
                                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-blue-200">
-                                    {role.salaryRange && (
+                                    {(role.salaryRange || role.potentialSalaryRange) && (
                                       <div className="text-xs">
                                         <span className="text-slate-500">Salary Range:</span><br />
-                                        <span className="font-semibold text-slate-700">{role.salaryRange}</span>
+                                        <span className="font-semibold text-slate-700">{role.salaryRange || role.potentialSalaryRange}</span>
                                       </div>
                                     )}
                                     
-                                    {role.growthOutlook && (
+                                    {(role.growthOutlook || role.locationSpecificDemand) && (
                                       <div className="text-xs">
                                         <span className="text-slate-500">Growth Outlook:</span><br />
                                         <span className={`font-semibold ${
-                                          role.growthOutlook.toLowerCase().includes('excellent') ? 'text-emerald-600' :
-                                          role.growthOutlook.toLowerCase().includes('good') ? 'text-blue-600' :
-                                          role.growthOutlook.toLowerCase().includes('strong') ? 'text-indigo-600' :
+                                          (role.growthOutlook?.toLowerCase().includes('excellent') || 
+                                           role.locationSpecificDemand?.toLowerCase().includes('excellent')) ? 'text-emerald-600' :
+                                          (role.growthOutlook?.toLowerCase().includes('good') || 
+                                           role.locationSpecificDemand?.toLowerCase().includes('good')) ? 'text-blue-600' :
+                                          (role.growthOutlook?.toLowerCase().includes('strong') || 
+                                           role.locationSpecificDemand?.toLowerCase().includes('strong')) ? 'text-indigo-600' :
                                           'text-slate-700'
                                         }`}>
-                                          {role.growthOutlook}
+                                          {role.growthOutlook || role.locationSpecificDemand}
                                         </span>
                                       </div>
                                     )}
