@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { IStorage, storage } from "./storage";
 import { logUserActivity, getUserActivity } from "./services/activity-logger";
 import { analyzeCareerPathway, CareerAnalysisInput, CareerAnalysisOutput } from "./openai-service-fixed";
+import { setupAuth } from "./auth";
 
 // Additional types for the API
 interface SkillToLearn {
@@ -28,6 +29,9 @@ interface OrganizationPathwayInput {
 export async function registerRoutes(app: Express, customStorage?: IStorage): Promise<Server> {
   // Use provided storage or default to the global one
   const storageInstance = customStorage || storage;
+  
+  // Set up authentication routes first (login, register, etc.)
+  setupAuth(app, storageInstance);
   
   // Home route
   app.get('/api', (req: Request, res: Response) => {
