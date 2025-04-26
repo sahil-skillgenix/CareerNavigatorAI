@@ -145,58 +145,101 @@ const extractTopSkills = (results: CareerAnalysisResult): any[] => {
 };
 
 export function SkillRadarChart({ results }: SkillRadarChartProps) {
-  const radarData = extractTopSkills(results);
-  
-  return (
-    <div className="w-full h-full" id="skill-radar-chart">
-      <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-          <PolarGrid stroke="#cccccc" />
-          <PolarAngleAxis 
-            dataKey="skill" 
-            tick={{ 
-              fill: '#555555', 
-              fontSize: 12,
-              fontWeight: 'bold',
-            }} 
-            axisLineType="polygon"
-            stroke="#aaaaaa"
-          />
-          <PolarRadiusAxis 
-            angle={30} 
-            domain={[0, 5]} 
-            tick={{ fill: '#888888', fontSize: 11 }}
-            stroke="#bbbbbb"
-          />
-          
-          <Radar
-            name="Current Skill Level"
-            dataKey="currentLevel"
-            stroke="#7b8cb8"
-            fill="#a4b4d5"
-            fillOpacity={0.6}
-          />
-          
-          <Radar
-            name="Required Skill Level"
-            dataKey="requiredLevel"
-            stroke="#1c3b82"
-            fill="#1c3b82"
-            fillOpacity={0.4}
-          />
-          
-          <Legend 
-            align="center" 
-            verticalAlign="bottom" 
-            layout="horizontal" 
-            wrapperStyle={{ paddingTop: '10px' }}
-            iconSize={10}
-            iconType="circle"
-          />
-          
-          <Tooltip formatter={(value) => [`Level ${value}`, '']} />
-        </RadarChart>
-      </ResponsiveContainer>
-    </div>
-  );
+  try {
+    // Check if required data properties exist
+    if (!results || !results.skillMapping || !results.skillGapAnalysis) {
+      console.error('SkillRadarChart: Missing required data structure', { 
+        hasResults: !!results,
+        hasSkillMapping: results && !!results.skillMapping,
+        hasSkillGapAnalysis: results && !!results.skillGapAnalysis
+      });
+      
+      return (
+        <div className="w-full h-full flex items-center justify-center border rounded p-4 bg-gray-50">
+          <div className="text-center text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>Chart data is incomplete</p>
+            <p className="text-xs mt-1">Skills data is missing or invalid</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Extract data for the chart
+    const radarData = extractTopSkills(results);
+    
+    console.log('SkillRadarChart: Data prepared successfully', { 
+      dataPoints: radarData.length,
+      firstPoint: radarData[0]
+    });
+    
+    return (
+      <div className="w-full h-full" id="skill-radar-chart">
+        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+            <PolarGrid stroke="#cccccc" />
+            <PolarAngleAxis 
+              dataKey="skill" 
+              tick={{ 
+                fill: '#555555', 
+                fontSize: 12,
+                fontWeight: 'bold',
+              }} 
+              axisLineType="polygon"
+              stroke="#aaaaaa"
+            />
+            <PolarRadiusAxis 
+              angle={30} 
+              domain={[0, 5]} 
+              tick={{ fill: '#888888', fontSize: 11 }}
+              stroke="#bbbbbb"
+            />
+            
+            <Radar
+              name="Current Skill Level"
+              dataKey="currentLevel"
+              stroke="#7b8cb8"
+              fill="#a4b4d5"
+              fillOpacity={0.6}
+            />
+            
+            <Radar
+              name="Required Skill Level"
+              dataKey="requiredLevel"
+              stroke="#1c3b82"
+              fill="#1c3b82"
+              fillOpacity={0.4}
+            />
+            
+            <Legend 
+              align="center" 
+              verticalAlign="bottom" 
+              layout="horizontal" 
+              wrapperStyle={{ paddingTop: '10px' }}
+              iconSize={10}
+              iconType="circle"
+            />
+            
+            <Tooltip formatter={(value) => [`Level ${value}`, '']} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  } catch (error) {
+    console.error('SkillRadarChart: Error rendering chart', error);
+    
+    return (
+      <div className="w-full h-full flex items-center justify-center border rounded p-4 bg-gray-50">
+        <div className="text-center text-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p>Error rendering chart</p>
+          <p className="text-xs mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+        </div>
+      </div>
+    );
+  }
 }
