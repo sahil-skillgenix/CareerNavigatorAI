@@ -923,7 +923,7 @@ export function SavedAnalyses() {
                               ${latestAnalysis.result.careerPathway.withoutDegree ? `
                                 <div style="margin-top: 20px;">
                                   <h4>Vocational Pathway</h4>
-                                  ${latestAnalysis.result.careerPathway.withoutDegree.map((step, index) => `
+                                  ${latestAnalysis.result.careerPathway.withoutDegree.map((step: any, index: number) => `
                                     <div class="pathway-step">
                                       <div class="step-number" style="background: rgba(16,185,129,0.1); color: #047857;">${index + 1}</div>
                                       <div>
@@ -932,7 +932,7 @@ export function SavedAnalyses() {
                                         <div>
                                           <strong>Key Skills:</strong>
                                           <div class="skills-list">
-                                            ${step.keySkillsNeeded.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                                            ${step.keySkillsNeeded.map((skill: any) => `<span class="skill-tag">${skill}</span>`).join('')}
                                           </div>
                                         </div>
                                       </div>
@@ -947,7 +947,7 @@ export function SavedAnalyses() {
                         <h2>Learning Recommendations</h2>
                         <div class="card">
                           <h3>Recommended Resources</h3>
-                          ${latestAnalysis.result.learningRecommendations.resources.map(resource => `
+                          ${latestAnalysis.result.learningRecommendations.resources.map((resource: any) => `
                             <div class="skill-item">
                               <h4>${resource.title}</h4>
                               <p>${resource.description}</p>
@@ -962,7 +962,7 @@ export function SavedAnalyses() {
                         ${latestAnalysis.result.aiRecommendations ? `
                         <h2>AI Recommendations</h2>
                         <div class="card">
-                          ${latestAnalysis.result.aiRecommendations.map(rec => `
+                          ${latestAnalysis.result.aiRecommendations.map((rec: any) => `
                             <div class="skill-item">
                               <h4>${rec.title}</h4>
                               <p>${rec.description}</p>
