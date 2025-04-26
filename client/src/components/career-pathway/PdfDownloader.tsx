@@ -38,10 +38,28 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
 
   // Render the charts but hide them so we can capture them
   useEffect(() => {
-    // Set charts as ready after a small delay to ensure they're properly rendered
+    // Reset state when results change
+    setChartsReady(false);
+    
+    // Validate the results to ensure we have the necessary data
+    const hasRequiredData = 
+      results && 
+      results.skillMapping && 
+      results.skillGapAnalysis &&
+      results.skillGapAnalysis.gaps && 
+      results.skillGapAnalysis.gaps.length > 0;
+    
+    console.log('PdfDownloader: Results changed, validating data structure', {
+      hasRequiredData,
+      skillMappingPresent: !!results.skillMapping,
+      gapAnalysisPresent: !!results.skillGapAnalysis,
+      gapsCount: results.skillGapAnalysis?.gaps?.length || 0
+    });
+    
+    // Set charts as ready after a delay to ensure they're properly rendered
     const timer = setTimeout(() => {
-      setChartsReady(true);
-    }, 500);
+      setChartsReady(hasRequiredData);
+    }, 1000); // Longer delay for better rendering
     
     return () => clearTimeout(timer);
   }, [results]);
@@ -55,10 +73,21 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
     
     try {
       // Wait to ensure chart is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay to ensure rendering
       
       // Ensure element dimensions are set
       const element = ref.current;
+      console.log('CHART DEBUG - Attempting to capture chart:', {
+        id: element.id || 'unnamed-element',
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        childElements: element.children.length,
+        childElementIds: Array.from(element.querySelectorAll('[id]')).map(el => (el as HTMLElement).id),
+        svgElements: element.querySelectorAll('svg').length,
+        hasSvgContent: !!element.querySelector('svg > g'),
+        rechartComponents: element.querySelectorAll('.recharts-wrapper').length
+      });
+      
       if (element.offsetWidth === 0 || element.offsetHeight === 0) {
         console.warn('Chart capture failed: element has zero width or height', {
           width: element.offsetWidth,
@@ -67,11 +96,17 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         return null;
       }
       
-      console.log('Capturing chart from element:', {
-        id: element.id || 'unnamed-element',
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        childElements: element.children.length
+      // Force dimensions on SVG elements
+      const svgElements = element.querySelectorAll('svg');
+      svgElements.forEach((svg, index) => {
+        const svgElement = svg as SVGElement;
+        svgElement.setAttribute('width', '100%');
+        svgElement.setAttribute('height', '100%');
+        svgElement.style.display = 'block';
+        console.log(`Prepared SVG element ${index}:`, {
+          width: svgElement.getAttribute('width'),
+          height: svgElement.getAttribute('height')
+        });
       });
       
       const canvas = await html2canvas(element, {
@@ -80,6 +115,10 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         logging: true, // Enable logging for debugging
         useCORS: true,
         allowTaint: true,
+        ignoreElements: (element) => {
+          // Don't ignore anything that might be part of the chart
+          return false;
+        },
         onclone: (clonedDoc) => {
           // Force charts to be visible in the clone
           const elementId = element.id || element.className;
@@ -96,11 +135,32 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
             htmlElement.style.overflow = 'visible';
             htmlElement.style.opacity = '1';
             htmlElement.style.visibility = 'visible';
+            
+            // Apply styles to all SVG elements in the clone
+            const svgElements = clonedElement.querySelectorAll('svg');
+            svgElements.forEach((svg, index) => {
+              const svgElement = svg as SVGElement;
+              svgElement.setAttribute('width', '100%');
+              svgElement.setAttribute('height', '100%');
+              svgElement.style.display = 'block';
+            });
+            
+            // Ensure recharts components are visible
+            const rechartsWrappers = clonedElement.querySelectorAll('.recharts-wrapper');
+            rechartsWrappers.forEach((wrapper, index) => {
+              const wrapperElement = wrapper as HTMLElement;
+              wrapperElement.style.width = '100%';
+              wrapperElement.style.height = '100%';
+              wrapperElement.style.position = 'relative';
+              wrapperElement.style.overflow = 'visible';
+            });
           }
         }
       });
       
-      return canvas.toDataURL('image/png');
+      const imageUrl = canvas.toDataURL('image/png');
+      console.log('Chart capture successful, image size:', imageUrl.length);
+      return imageUrl;
     } catch (error) {
       console.error('Error capturing chart:', error);
       return null;
