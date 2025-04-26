@@ -1,3 +1,13 @@
+/**
+ * ⚠️ PROTECTED COMPONENT - DO NOT MODIFY ⚠️
+ * 
+ * This component is part of the Career Pathway Analysis feature which is
+ * considered stable and production-ready. Any changes to this file could
+ * disrupt critical functionality. See PROTECTED_FEATURES.md at project root.
+ * 
+ * Last modified: April 26, 2025
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
