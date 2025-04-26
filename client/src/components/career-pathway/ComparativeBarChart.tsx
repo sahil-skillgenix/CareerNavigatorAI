@@ -150,9 +150,10 @@ export function ComparativeBarChart({ results }: ComparativeBarChartProps) {
     });
     
     return (
-      <div className="w-full h-full" id="comparative-bar-chart">
+      <div className="w-full h-full comparative-bar-container" id="comparative-bar-chart">
         <ResponsiveContainer width="100%" height="100%" minHeight={300}>
           <BarChart
+            id="skillComparisonBarChart"
             data={limitedData}
             layout="vertical"
             margin={{ top: 20, right: 60, left: 100, bottom: 10 }}

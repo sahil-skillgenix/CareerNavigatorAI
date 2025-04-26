@@ -46,16 +46,58 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
     return () => clearTimeout(timer);
   }, [results]);
 
-  // Function to capture a chart as an image
+  // Function to capture a chart as an image with enhanced reliability
   const captureChart = async (ref: React.RefObject<HTMLDivElement>): Promise<string | null> => {
-    if (!ref.current) return null;
+    if (!ref || !ref.current) {
+      console.warn('Chart capture failed: reference is null or not rendered');
+      return null;
+    }
     
     try {
-      const canvas = await html2canvas(ref.current, {
+      // Wait to ensure chart is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Ensure element dimensions are set
+      const element = ref.current;
+      if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+        console.warn('Chart capture failed: element has zero width or height', {
+          width: element.offsetWidth,
+          height: element.offsetHeight
+        });
+        return null;
+      }
+      
+      console.log('Capturing chart from element:', {
+        id: element.id || 'unnamed-element',
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        childElements: element.children.length
+      });
+      
+      const canvas = await html2canvas(element, {
         scale: 2, // Higher scale for better resolution
         backgroundColor: '#ffffff',
-        logging: false,
+        logging: true, // Enable logging for debugging
         useCORS: true,
+        allowTaint: true,
+        onclone: (clonedDoc) => {
+          // Force charts to be visible in the clone
+          const elementId = element.id || element.className;
+          const clonedElement = elementId ? 
+            (element.id ? clonedDoc.getElementById(element.id) : clonedDoc.querySelector(`.${element.className}`)) : 
+            null;
+            
+          if (clonedElement) {
+            // Cast to HTMLElement to avoid TypeScript errors
+            const htmlElement = clonedElement as HTMLElement;
+            htmlElement.style.height = `${element.offsetHeight}px`;
+            htmlElement.style.width = `${element.offsetWidth}px`;
+            htmlElement.style.position = 'relative';
+            htmlElement.style.overflow = 'visible';
+            htmlElement.style.opacity = '1';
+            htmlElement.style.visibility = 'visible';
+          }
+        }
       });
       
       return canvas.toDataURL('image/png');
@@ -600,12 +642,31 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
       </Button>
       
       {/* Hidden divs for chart rendering - these will be captured for the PDF */}
-      <div style={{ position: 'absolute', left: '-9999px', width: '800px' }}>
-        <div ref={radarChartRef} style={{ backgroundColor: '#fff', padding: '20px' }}>
-          <SkillRadarChart results={results} />
+      <div style={{ position: 'absolute', left: '-9999px', width: '800px', height: '1000px', overflow: 'visible' }}>
+        <div ref={radarChartRef} style={{ 
+          backgroundColor: '#fff', 
+          padding: '20px', 
+          width: '600px', 
+          height: '400px', 
+          position: 'relative',
+          overflow: 'visible',
+          marginBottom: '50px'
+        }}>
+          <div style={{ width: '100%', height: '100%' }} id="radar-chart-container">
+            <SkillRadarChart results={results} />
+          </div>
         </div>
-        <div ref={barChartRef} style={{ backgroundColor: '#fff', padding: '20px' }}>
-          <ComparativeBarChart results={results} />
+        <div ref={barChartRef} style={{ 
+          backgroundColor: '#fff', 
+          padding: '20px', 
+          width: '600px', 
+          height: '400px', 
+          position: 'relative',
+          overflow: 'visible'
+        }}>
+          <div style={{ width: '100%', height: '100%' }} id="bar-chart-container">
+            <ComparativeBarChart results={results} />
+          </div>
         </div>
       </div>
     </div>

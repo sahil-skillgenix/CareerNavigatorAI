@@ -176,9 +176,9 @@ export function SkillRadarChart({ results }: SkillRadarChartProps) {
     });
     
     return (
-      <div className="w-full h-full" id="skill-radar-chart">
+      <div className="w-full h-full skill-radar-container" id="skill-radar-chart">
         <ResponsiveContainer width="100%" height="100%" minHeight={300}>
-          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData} id="skillRadarChart">
             <PolarGrid stroke="#cccccc" />
             <PolarAngleAxis 
               dataKey="skill" 
