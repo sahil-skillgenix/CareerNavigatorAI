@@ -93,7 +93,7 @@ async function migrateCollections() {
     const db = client.db();
     const collectionNames = (await db.listCollections().toArray()).map(c => c.name);
     
-    console.log(`Found ${collectionNames.length} collections in the database`);
+    console.log('Found ' + collectionNames.length + ' collections in the database');
     
     // Perform migrations
     console.log('\n=== STARTING MIGRATION ===');
@@ -107,11 +107,11 @@ async function migrateCollections() {
     };
     
     for (const [targetCollection, sourceCollections] of Object.entries(MIGRATION_MAP)) {
-      console.log(`\n== Processing migration to ${targetCollection} ==`);
+      console.log('\n== Processing migration to ' + targetCollection + ' ==');
       
       // Ensure target collection exists
       if (!collectionNames.includes(targetCollection)) {
-        console.log(`Creating target collection: ${targetCollection}`);
+        console.log('Creating target collection: ' + targetCollection);
         await db.createCollection(targetCollection);
       }
       
@@ -128,7 +128,7 @@ async function migrateCollections() {
           try {
             // Count documents in source
             const sourceCount = await db.collection(sourceCollection).countDocuments();
-            console.log(`Migrating from ${sourceCollection} (${sourceCount} documents)...`);
+            console.log('Migrating from ' + sourceCollection + ' (' + sourceCount + ' documents)...');
             
             if (sourceCount > 0) {
               // Get all documents from source
@@ -156,20 +156,20 @@ async function migrateCollections() {
               // Insert transformed documents into target collection
               if (transformedDocuments.length > 0) {
                 await db.collection(targetCollection).insertMany(transformedDocuments);
-                console.log(`✅ Migrated ${transformedDocuments.length} documents from ${sourceCollection}`);
+                console.log('✅ Migrated ' + transformedDocuments.length + ' documents from ' + sourceCollection);
                 totalDocumentsMigrated += transformedDocuments.length;
               }
             }
             
             sourceCollectionsProcessed++;
           } catch (err) {
-            console.error(`Error migrating from ${sourceCollection}: ${err.message}`);
-            migrationResults.errors.push(`${sourceCollection}: ${err.message}`);
+            console.error('Error migrating from ' + sourceCollection + ': ' + err.message);
+            migrationResults.errors.push(sourceCollection + ': ' + err.message);
           }
         }
       }
       
-      console.log(`Total documents migrated to ${targetCollection}: ${totalDocumentsMigrated}`);
+      console.log('Total documents migrated to ' + targetCollection + ': ' + totalDocumentsMigrated);
       migrationResults.totalMigrated += totalDocumentsMigrated;
       migrationResults.collectionsProcessed++;
       migrationResults.sourceCollections += sourceCollectionsProcessed;
@@ -177,13 +177,13 @@ async function migrateCollections() {
     
     // Print migration summary
     console.log('\n=== MIGRATION SUMMARY ===');
-    console.log(`Target collections processed: ${migrationResults.collectionsProcessed}`);
-    console.log(`Source collections processed: ${migrationResults.sourceCollections}`);
-    console.log(`Total documents migrated: ${migrationResults.totalMigrated}`);
+    console.log('Target collections processed: ' + migrationResults.collectionsProcessed);
+    console.log('Source collections processed: ' + migrationResults.sourceCollections);
+    console.log('Total documents migrated: ' + migrationResults.totalMigrated);
     
     if (migrationResults.errors.length > 0) {
-      console.log(`\nErrors encountered: ${migrationResults.errors.length}`);
-      migrationResults.errors.forEach(err => console.log(`- ${err}`));
+      console.log('\nErrors encountered: ' + migrationResults.errors.length);
+      migrationResults.errors.forEach(err => console.log('- ' + err));
     } else {
       console.log('\nNo errors encountered during migration');
     }
@@ -203,16 +203,16 @@ async function migrateCollections() {
         if (collectionNames.includes(collection)) {
           try {
             await db.collection(collection).drop();
-            console.log(`✅ Dropped: ${collection}`);
+            console.log('✅ Dropped: ' + collection);
             droppedCount++;
           } catch (err) {
-            console.error(`❌ Error dropping ${collection}: ${err.message}`);
+            console.error('❌ Error dropping ' + collection + ': ' + err.message);
             errorCount++;
           }
         }
       }
       
-      console.log(`\nCleanup completed: ${droppedCount} collections dropped, ${errorCount} errors`);
+      console.log('\nCleanup completed: ' + droppedCount + ' collections dropped, ' + errorCount + ' errors');
     } else {
       console.log('\nCleanup not performed (PERFORM_CLEANUP flag is false)');
       console.log('To perform cleanup, set PERFORM_CLEANUP to true and run again');
