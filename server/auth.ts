@@ -11,11 +11,7 @@ import {
   registerRateLimiter, 
   passwordResetRateLimiter 
 } from "./middleware/rate-limiter";
-import { 
-  generateToken, 
-  verifyToken, 
-  jwtAuthMiddleware 
-} from "./services/jwt-service";
+// No longer using JWT authentication
 import { encryptFields, decryptFields } from "./services/encryption-service";
 import { log } from "./vite";
 import { logUserActivity, authEventLogger } from "./services/activity-logger";
@@ -177,17 +173,11 @@ export function setupAuth(app: Express, storageInstance: IStorage = storage) {
           return next(err);
         }
         
-        // Generate JWT token with 2 hour expiration
-        const token = generateToken(user);
-        
         // Remove sensitive data before sending response
         const { password, securityAnswer, ...userWithoutPassword } = user;
         
-        // Send token and user data
-        res.status(201).json({
-          ...userWithoutPassword,
-          token
-        });
+        // Send just the user data without a token
+        res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
       log(`Registration error: ${error}`, "auth");

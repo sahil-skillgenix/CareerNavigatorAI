@@ -7,18 +7,14 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Function to get the stored token
+// Session-based auth no longer uses tokens
 export function getAuthToken(): string | null {
-  return localStorage.getItem('auth_token');
+  return null;
 }
 
-// Function to set the auth token
+// Function to set the auth token (kept for compatibility, but does nothing now)
 export function setAuthToken(token: string | null): void {
-  if (token) {
-    localStorage.setItem('auth_token', token);
-  } else {
-    localStorage.removeItem('auth_token');
-  }
+  // Do nothing - we're using session cookies now
 }
 
 export async function apiRequest(
@@ -31,41 +27,13 @@ export async function apiRequest(
     ...(data ? { "Content-Type": "application/json" } : {})
   };
   
-  // Add authorization header if token exists
-  const token = getAuthToken();
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  
-  // Make the request
+  // Make the request with credentials included for session cookies
   const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // This ensures cookies are sent with the request
   });
-
-  // Check for token refresh in response headers
-  const newToken = res.headers.get('X-New-Token');
-  if (newToken) {
-    console.log('Received refreshed token from server');
-    setAuthToken(newToken);
-  }
-  
-  // Check if we got a token in the response body for login/register
-  if (res.ok && (url === '/api/login' || url === '/api/register')) {
-    try {
-      // Clone the response before reading it
-      const clonedRes = res.clone();
-      const data = await clonedRes.json();
-      if (data.token) {
-        console.log('Received auth token from login/register');
-        setAuthToken(data.token);
-      }
-    } catch (error) {
-      console.error('Error extracting token from response:', error);
-    }
-  }
 
   await throwIfResNotOk(res);
   return res;
@@ -77,24 +45,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Prepare headers with auth token if available
-    const headers: Record<string, string> = {};
-    const token = getAuthToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    
+    // Simple fetch with credentials for session cookies
     const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-      headers
+      credentials: "include" // This ensures cookies are sent with the request
     });
-
-    // Check for token refresh in response headers
-    const newToken = res.headers.get('X-New-Token');
-    if (newToken) {
-      console.log('Received refreshed token from server during query');
-      setAuthToken(newToken);
-    }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;

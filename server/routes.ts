@@ -1,7 +1,6 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { IStorage, storage } from "./storage";
-import { jwtAuthMiddleware } from "./services/jwt-service";
 import { logUserActivity, getUserActivity } from "./services/activity-logger";
 import { analyzeCareerPathway, CareerAnalysisInput, CareerAnalysisOutput } from "./openai-service-fixed";
 
@@ -36,10 +35,10 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Activity history endpoint - returns user's recent activity
-  app.get('/api/activity', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.get('/api/activity', async (req: Request & { user?: any }, res: Response) => {
     try {
-      // Get user ID from JWT token
-      const userId = req.jwtUser?.userId;
+      // Get user ID from session
+      const userId = req.user?.id || req.body?.userId;
       if (!userId) {
         return res.status(401).json({
           error: 'Unauthorized',
@@ -64,10 +63,10 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Login history endpoint - returns user's login history
-  app.get('/api/login-history', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.get('/api/login-history', async (req: Request & { user?: any }, res: Response) => {
     try {
-      // Get user ID from JWT token
-      const userId = req.jwtUser?.userId;
+      // Get user ID from session
+      const userId = req.user?.id || req.query.userId || req.body?.userId;
       if (!userId) {
         return res.status(401).json({
           error: 'Unauthorized',
@@ -113,13 +112,13 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Learning resources recommendation endpoint
-  app.post('/api/learning-resources', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.post('/api/learning-resources', async (req: Request & { user?: any }, res: Response) => {
     try {
       // Extract the skill to learn from request body
       const skillToLearn: SkillToLearn = req.body;
       
-      // Get user ID from JWT token
-      const userId = req.jwtUser?.userId;
+      // Get user ID from session
+      const userId = req.user?.id || req.body?.userId;
       if (!userId) {
         return res.status(401).json({
           error: 'Unauthorized',
@@ -147,13 +146,13 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Learning path generation endpoint
-  app.post('/api/learning-path', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.post('/api/learning-path', async (req: Request & { user?: any }, res: Response) => {
     try {
       // Extract the skill to learn from request body
       const skillToLearn: SkillToLearn = req.body;
       
-      // Get user ID from JWT token
-      const userId = req.jwtUser?.userId;
+      // Get user ID from session
+      const userId = req.user?.id || req.body?.userId;
       if (!userId) {
         return res.status(401).json({
           error: 'Unauthorized',
@@ -181,13 +180,13 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Organization pathway analysis endpoint
-  app.post('/api/organization-pathway', jwtAuthMiddleware, async (req: Request, res: Response) => {
+  app.post('/api/organization-pathway', async (req: Request & { user?: any }, res: Response) => {
     try {
       // Extract input from request body
       const input: OrganizationPathwayInput = req.body;
       
-      // Get user ID from JWT token
-      const userId = req.jwtUser?.userId;
+      // Get user ID from session
+      const userId = req.user?.id || req.body?.userId;
       if (!userId) {
         return res.status(401).json({
           error: 'Unauthorized',
@@ -234,32 +233,20 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
 
   // Dashboard API endpoint
-  app.get('/api/dashboard', jwtAuthMiddleware, async (req: Request & { jwtUser?: any, user?: any }, res: Response) => {
+  app.get('/api/dashboard', async (req: Request & { user?: any }, res: Response) => {
     try {
       console.log('DASHBOARD - REQUEST HEADERS:', req.headers);
       
-      // Ensure user is authenticated
-      if (!req.jwtUser && !req.user) {
+      // Get user ID from session or request body
+      const userId = req.user?.id || req.query.userId || req.body?.userId;
+      console.log('Dashboard - User ID:', userId);
+      
+      // If no userId, return unauthorized
+      if (!userId) {
         console.log('User not authenticated when accessing dashboard');
         return res.status(401).json({
           error: 'Unauthorized',
           message: 'You must be logged in to access dashboard data'
-        });
-      }
-
-      // Get user ID from authentication context
-      console.log('Dashboard - Auth info:', { 
-        hasJwtUser: !!req.jwtUser, 
-        jwtUserId: req.jwtUser?.userId,
-        hasUser: !!req.user,
-        userId: req.user?.id
-      });
-      
-      const userId = req.jwtUser?.userId || req.user?.id || req.body?.userId;
-      if (!userId) {
-        return res.status(400).json({
-          error: 'Invalid user ID',
-          message: 'Could not determine user ID from authentication'
         });
       }
       
@@ -294,7 +281,7 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
   });
   
   // Route to save career analysis to database
-  app.post('/api/save-career-analysis', jwtAuthMiddleware, async (req: Request & { jwtUser?: any, user?: any }, res: Response) => {
+  app.post('/api/save-career-analysis', async (req: Request & { user?: any }, res: Response) => {
     try {
       console.log('SAVE ANALYSIS - REQUEST HEADERS:', req.headers);
       console.log('SAVE ANALYSIS - REQUEST BODY:', { 
@@ -303,25 +290,9 @@ export async function registerRoutes(app: Express, customStorage?: IStorage): Pr
         // Don't log the entire body as it's too large
       });
       
-      // Ensure user is authenticated
-      if (!req.jwtUser && !req.user) {
-        console.log('SAVE ANALYSIS - AUTH FAILED: No authenticated user found');
-        return res.status(401).json({
-          error: 'Unauthorized',
-          message: 'You must be logged in to save an analysis'
-        });
-      }
-      
-      // Get user ID from either JWT or session or request body
-      console.log('SAVE ANALYSIS - AUTH INFO:', { 
-        hasJwtUser: !!req.jwtUser, 
-        jwtUserId: req.jwtUser?.userId,
-        hasUser: !!req.user,
-        userId: req.user?.id,
-        bodyUserId: req.body?.userId
-      });
-      
-      const userId = req.jwtUser?.userId || req.user?.id || req.body?.userId;
+      // Get user ID from session or body
+      const userId = req.user?.id || req.body?.userId;
+      console.log('SAVE ANALYSIS - USER ID:', userId);
       if (!userId) {
         return res.status(400).json({
           error: 'Invalid user ID',
