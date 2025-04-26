@@ -343,7 +343,32 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
           results.skillGapAnalysis?.gaps ? `Has ${results.skillGapAnalysis.gaps.length} gaps` : 'Missing gaps array');
       }
       
-      // Create HTML content for download
+      // Create HTML content for download - Break into sections to handle large base64 data
+      let chartSections = '';
+      
+      // Add radar chart if available
+      if (radarChartImage) {
+        chartSections += `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h4>Skill Radar Chart</h4>
+          <img src="${radarChartImage}" alt="Skill Radar Chart" style="max-width: 100%; height: auto;" />
+        </div>`;
+      } else {
+        chartSections += `<p>Skill radar chart visualization could not be generated.</p>`;
+      }
+      
+      // Add bar chart if available
+      if (barChartImage) {
+        chartSections += `
+        <div style="text-align: center;">
+          <h4>Skill Gap Comparison</h4>
+          <img src="${barChartImage}" alt="Skill Gap Comparison Chart" style="max-width: 100%; height: auto;" />
+        </div>`;
+      } else {
+        chartSections += `<p>Skill gap comparison chart could not be generated.</p>`;
+      }
+      
+      // Main HTML content
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="en">
@@ -589,20 +614,115 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         </html>
       `;
     
-      // Create a blob and download link
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 0);
+      // Create separate files for charts to better handle large base64 data
+      if (radarChartImage && barChartImage) {
+        try {
+          console.log('Creating separate chart HTML files to avoid data truncation');
+          
+          // Create chart-optimized HTML content
+          const radarHtml = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Radar Chart - Skill Proficiency</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #333; text-align: center; }
+              img { max-width: 100%; height: auto; }
+            </style>
+          </head>
+          <body>
+            <h2>Skill Proficiency Radar Chart</h2>
+            <img src="${radarChartImage}" alt="Skill Radar Chart" />
+          </body>
+          </html>`;
+          
+          const barHtml = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bar Chart - Skill Gap Analysis</title>
+            <style>
+              body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color: #333; text-align: center; }
+              img { max-width: 100%; height: auto; }
+            </style>
+          </head>
+          <body>
+            <h2>Skill Gap Comparison Chart</h2>
+            <img src="${barChartImage}" alt="Skill Gap Chart" />
+          </body>
+          </html>`;
+          
+          // Download function for chart files
+          const downloadHtmlFile = (content: string, filename: string) => {
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          };
+          
+          // Download radar chart
+          downloadHtmlFile(
+            radarHtml, 
+            `Skillgenix_Radar_Chart_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`
+          );
+          
+          // Download bar chart
+          downloadHtmlFile(
+            barHtml, 
+            `Skillgenix_Bar_Chart_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`
+          );
+          
+          // Replace the large base64 data in the main HTML with links
+          const mainHtmlWithLinks = htmlContent.replace(
+            /<img src="data:image\/png;base64,[^"]+"/g, 
+            '<p>Chart images have been downloaded as separate files for better quality.</p>'
+          );
+          
+          // Download the main HTML file
+          downloadHtmlFile(
+            mainHtmlWithLinks,
+            `Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`
+          );
+          
+        } catch (error) {
+          console.error('Error creating chart files:', error);
+          
+          // Fallback - download original HTML
+          const blob = new Blob([htmlContent], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 0);
+        }
+      } else {
+        // Standard download if no chart images
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Skillgenix_Career_Analysis_${userName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      }
       
       toast({
         title: 'HTML Report Created',
