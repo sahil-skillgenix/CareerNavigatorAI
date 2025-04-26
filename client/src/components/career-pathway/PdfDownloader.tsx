@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, FileText } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -131,356 +131,6 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
         pdf.addImage(barChartImage, 'PNG', 15, 160, imgWidth, imgHeight);
       }
       
-      // Skill Analysis Page
-      pdf.addPage();
-      
-      // Section: Skill Analysis
-      pdf.setFontSize(14);
-      pdf.setTextColor(163, 29, 82);
-      pdf.text("3. Framework-Based Skill Analysis", 15, 20);
-      
-      // SFIA 9 Skills
-      pdf.setFontSize(12);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("SFIA 9 Skills:", 15, 30);
-      
-      // List SFIA skills
-      let yPos = 38;
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      results.skillMapping.sfia9.forEach((skill, index) => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("3. Framework-Based Skill Analysis (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        pdf.text(`• ${skill.skill} (${skill.level})`, 20, yPos);
-        yPos += 7;
-      });
-      
-      // DigComp Skills
-      yPos += 5;
-      pdf.setFontSize(12);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("DigComp 2.2 Framework:", 15, yPos);
-      yPos += 8;
-      
-      // List DigComp skills
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      results.skillMapping.digcomp22.forEach((comp, index) => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("3. Framework-Based Skill Analysis (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        pdf.text(`• ${comp.competency} (${comp.level})`, 20, yPos);
-        yPos += 7;
-      });
-      
-      // Add page for Skill Gap Analysis
-      pdf.addPage();
-      
-      // Skill Gap Analysis
-      pdf.setFontSize(14);
-      pdf.setTextColor(163, 29, 82);
-      pdf.text("4. Skill Gap Analysis", 15, 20);
-      
-      // Skill Gaps
-      pdf.setFontSize(12);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("Skill Gaps to Address:", 15, 30);
-      
-      // List skill gaps
-      yPos = 38;
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      results.skillGapAnalysis.gaps.forEach((gap, index) => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("4. Skill Gap Analysis (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        pdf.text(`• ${gap.skill} (Importance: ${gap.importance})`, 20, yPos);
-        const descText = pdf.splitTextToSize(`   ${gap.description}`, 170);
-        yPos += 6;
-        pdf.text(descText, 20, yPos);
-        yPos += (descText.length * 5) + 2;
-      });
-      
-      // Strengths on same page if space allows
-      if (yPos < 200) {
-        yPos += 10;
-        pdf.setFontSize(12);
-        pdf.setTextColor(80, 80, 80);
-        pdf.text("Your Current Strengths:", 15, yPos);
-        yPos += 8;
-      } else {
-        pdf.addPage();
-        pdf.setFontSize(14);
-        pdf.setTextColor(163, 29, 82);
-        pdf.text("4. Skill Gap Analysis (continued)", 15, 20);
-        yPos = 30;
-        pdf.setFontSize(12);
-        pdf.setTextColor(80, 80, 80);
-        pdf.text("Your Current Strengths:", 15, yPos);
-        yPos += 8;
-      }
-      
-      // List strengths
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      results.skillGapAnalysis.strengths.forEach((strength, index) => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("4. Skill Gap Analysis (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        pdf.text(`• ${strength.skill} (Level: ${strength.level}, Relevance: ${strength.relevance})`, 20, yPos);
-        const descText = pdf.splitTextToSize(`   ${strength.description}`, 170);
-        yPos += 6;
-        pdf.text(descText, 20, yPos);
-        yPos += (descText.length * 5) + 2;
-      });
-      
-      // Add page for University Pathway
-      pdf.addPage();
-      
-      // University Pathway
-      pdf.setFontSize(14);
-      pdf.setTextColor(163, 29, 82);
-      pdf.text("5. University Pathway", 15, 20);
-      
-      // List university pathway steps
-      yPos = 30;
-      pdf.setFontSize(10);
-      results.careerPathway.withDegree.forEach((step, index) => {
-        if (yPos > 240) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("5. University Pathway (continued)", 15, 20);
-          yPos = 30;
-        }
-        
-        pdf.setTextColor(163, 29, 82);
-        pdf.setFontSize(12);
-        pdf.text(`Step ${step.step}: ${step.role}`, 15, yPos);
-        yPos += 7;
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(10);
-        pdf.text(`Timeframe: ${step.timeframe}`, 20, yPos);
-        yPos += 6;
-        
-        if (step.requiredQualification) {
-          pdf.text(`Qualification: ${step.requiredQualification}`, 20, yPos);
-          yPos += 6;
-        }
-        
-        const descText = pdf.splitTextToSize(step.description, 170);
-        pdf.text(descText, 20, yPos);
-        yPos += (descText.length * 5) + 2;
-        
-        pdf.text("Key Skills:", 20, yPos);
-        yPos += 6;
-        
-        step.keySkillsNeeded.forEach(skill => {
-          pdf.text(`- ${skill}`, 25, yPos);
-          yPos += 6;
-        });
-        
-        yPos += 10;
-      });
-      
-      // Add page for Vocational Pathway
-      pdf.addPage();
-      
-      // Vocational Pathway
-      pdf.setFontSize(14);
-      pdf.setTextColor(46, 139, 87); // Green for vocational
-      pdf.text("6. Vocational Pathway", 15, 20);
-      
-      // List vocational pathway steps
-      yPos = 30;
-      pdf.setFontSize(10);
-      results.careerPathway.withoutDegree.forEach((step, index) => {
-        if (yPos > 240) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(46, 139, 87);
-          pdf.text("6. Vocational Pathway (continued)", 15, 20);
-          yPos = 30;
-        }
-        
-        pdf.setTextColor(46, 139, 87);
-        pdf.setFontSize(12);
-        pdf.text(`Step ${step.step}: ${step.role}`, 15, yPos);
-        yPos += 7;
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(10);
-        pdf.text(`Timeframe: ${step.timeframe}`, 20, yPos);
-        yPos += 6;
-        
-        if (step.alternativeQualification) {
-          pdf.text(`Qualification: ${step.alternativeQualification}`, 20, yPos);
-          yPos += 6;
-        }
-        
-        const descText = pdf.splitTextToSize(step.description, 170);
-        pdf.text(descText, 20, yPos);
-        yPos += (descText.length * 5) + 2;
-        
-        pdf.text("Key Skills:", 20, yPos);
-        yPos += 6;
-        
-        step.keySkillsNeeded.forEach(skill => {
-          pdf.text(`- ${skill}`, 25, yPos);
-          yPos += 6;
-        });
-        
-        yPos += 10;
-      });
-      
-      // Add page for Development Plan
-      pdf.addPage();
-      
-      // Development Plan
-      pdf.setFontSize(14);
-      pdf.setTextColor(163, 29, 82);
-      pdf.text("7. Development Plan", 15, 20);
-      
-      // Skills to Acquire
-      pdf.setFontSize(12);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("Skills to Acquire:", 15, 30);
-      
-      // List skills to acquire
-      yPos = 38;
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      results.developmentPlan.skillsToAcquire.forEach((skill, index) => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("7. Development Plan (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        pdf.text(`• ${skill.skill} (Priority: ${skill.priority})`, 20, yPos);
-        
-        if (Array.isArray(skill.resources) && skill.resources.length > 0) {
-          yPos += 5;
-          pdf.text("  Resources:", 25, yPos);
-          yPos += 5;
-          
-          skill.resources.forEach(resource => {
-            const resourceText = pdf.splitTextToSize(`  - ${resource}`, 165);
-            pdf.text(resourceText, 25, yPos);
-            yPos += (resourceText.length * 5);
-          });
-        }
-        
-        yPos += 5;
-      });
-      
-      // Recommended Certifications
-      yPos += 5;
-      pdf.setFontSize(12);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text("Recommended Certifications:", 15, yPos);
-      yPos += 8;
-      
-      // University Programs
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-      pdf.text("University Programs:", 15, yPos);
-      yPos += 6;
-      
-      results.developmentPlan.recommendedCertifications.university.forEach(cert => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("7. Development Plan (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        const certText = pdf.splitTextToSize(`• ${cert}`, 175);
-        pdf.text(certText, 20, yPos);
-        yPos += (certText.length * 5) + 2;
-      });
-      
-      // Vocational Programs
-      yPos += 5;
-      pdf.setFontSize(10);
-      pdf.text("Vocational Programs:", 15, yPos);
-      yPos += 6;
-      
-      results.developmentPlan.recommendedCertifications.vocational.forEach(cert => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("7. Development Plan (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        const certText = pdf.splitTextToSize(`• ${cert}`, 175);
-        pdf.text(certText, 20, yPos);
-        yPos += (certText.length * 5) + 2;
-      });
-      
-      // Online Programs
-      yPos += 5;
-      pdf.setFontSize(10);
-      pdf.text("Online Programs:", 15, yPos);
-      yPos += 6;
-      
-      results.developmentPlan.recommendedCertifications.online.forEach(cert => {
-        if (yPos > 270) {
-          pdf.addPage();
-          pdf.setFontSize(14);
-          pdf.setTextColor(163, 29, 82);
-          pdf.text("7. Development Plan (continued)", 15, 20);
-          yPos = 30;
-          pdf.setFontSize(10);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        const certText = pdf.splitTextToSize(`• ${cert}`, 175);
-        pdf.text(certText, 20, yPos);
-        yPos += (certText.length * 5) + 2;
-      });
-      
       // Add page numbers to each page
       const pageCount = pdf.internal.pages.length - 1;
       for (let i = 1; i <= pageCount; i++) {
@@ -513,71 +163,43 @@ export function PdfDownloader({ results, userName = 'User' }: PdfDownloaderProps
 
   return (
     <div className="w-full">
-      <div className="border rounded-lg p-4 bg-blue-600 shadow-sm relative">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center">
-            <FileText className="h-5 w-5 mr-2 text-white" />
-            <h3 className="text-lg font-semibold text-white">Download Report</h3>
-          </div>
-          
-          <div className="group relative">
-            <button className="text-white hover:text-blue-100">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-              </svg>
-            </button>
-            <div className="absolute right-0 mt-2 w-64 bg-white p-2 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-              <p className="text-xs text-gray-700">
-                Complete career analysis with executive summary, skill mapping, gap analysis, career pathways, and development plan in a professionally designed PDF.
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <Button 
-          onClick={generatePDF} 
-          size="default" 
-          className={`${
-            isGenerating 
-              ? 'bg-blue-700 text-white' 
-              : 'bg-blue-700 text-white hover:bg-blue-800'
-          } font-medium gap-2 transition-all rounded-md shadow-md border-0 w-full`}
-          disabled={isGenerating || !chartsReady}
-        >
-          {isGenerating ? (
-            <>
-              <svg 
-                className="h-4 w-4 animate-spin text-white" 
-                xmlns="http://www.w3.org/2000/svg" 
-                fill="none" 
-                viewBox="0 0 24 24"
-              >
-                <circle 
-                  className="opacity-25" 
-                  cx="12" 
-                  cy="12" 
-                  r="10" 
-                  stroke="currentColor" 
-                  strokeWidth="4"
-                />
-                <path 
-                  className="opacity-75" 
-                  fill="currentColor" 
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              <span>Generating...</span>
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4" />
-              <span>Download PDF Report</span>
-            </>
-          )}
-        </Button>
-      </div>
+      <Button 
+        onClick={generatePDF} 
+        size="lg" 
+        className="bg-white text-gray-800 hover:bg-opacity-95 hover:text-gray-900 shadow-lg text-base gap-2 border-2 border-gray-200 w-full"
+        disabled={isGenerating || !chartsReady}
+      >
+        {isGenerating ? (
+          <>
+            <svg 
+              className="h-5 w-5 animate-spin text-primary" 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24"
+            >
+              <circle 
+                className="opacity-25" 
+                cx="12" 
+                cy="12" 
+                r="10" 
+                stroke="currentColor" 
+                strokeWidth="4"
+              />
+              <path 
+                className="opacity-75" 
+                fill="currentColor" 
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <span className="font-medium">Generating PDF...</span>
+          </>
+        ) : (
+          <>
+            <Download className="h-5 w-5 text-primary" />
+            <span className="font-medium">Download PDF Report</span>
+          </>
+        )}
+      </Button>
       
       {/* Hidden divs for chart rendering - these will be captured for the PDF */}
       <div style={{ position: 'absolute', left: '-9999px', width: '800px' }}>
