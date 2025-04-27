@@ -2,7 +2,7 @@
  * Structured Career Pathway Routes
  * 
  * This file contains the routes for career pathway analysis
- * using the structured report format, including the new X-Gen AI Career Analysis.
+ * using the structured report format.
  */
 
 import { Express, Request, Response } from "express";
@@ -10,7 +10,6 @@ import { createServer, Server } from "http";
 import { storage } from "./storage";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service-structured";
 import { CareerAnalysisReport } from "../shared/reportSchema";
-import xgenRoutes from "./routes/xgenRoutes";
 
 /**
  * Register structured API routes for career pathway analysis
@@ -18,9 +17,6 @@ import xgenRoutes from "./routes/xgenRoutes";
  * @returns HTTP server instance
  */
 export function registerStructuredRoutes(app: Express): Server {
-  // Register X-Gen AI Career Analysis routes
-  app.use('/api/xgen', xgenRoutes);
-  
   // Career Pathway Analysis endpoint with structured report format
   app.post('/api/career-pathway-analysis-structured', async (req: Request & { user?: any }, res: Response) => {
     console.log('Career analysis request received with structured output format');

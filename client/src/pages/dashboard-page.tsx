@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import {
   RecommendedCourses,
   CareerProgressTracker,
-  LatestCareerAnalysis,
+  SavedAnalyses,
   BadgeCard,
   SkillJourneyTracker
 } from "@/components/dashboard";
@@ -32,32 +32,43 @@ export default function DashboardPage() {
     <AuthenticatedLayout title="Dashboard">
       {/* Welcome Message */}
       <motion.section 
-        className="mb-12 max-w-7xl mx-auto relative overflow-hidden"
+        className="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl py-8 px-6 max-w-7xl mx-auto shadow-sm"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="rounded-xl bg-gradient-to-r from-blue-600/10 via-indigo-500/10 to-purple-500/10 p-0.5">
-          <div className="bg-white rounded-[calc(0.75rem-1px)] p-8 relative overflow-hidden">
-            {/* Decorative elements */}
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-100 rounded-full opacity-70 blur-xl"></div>
-            <div className="absolute top-12 -left-12 w-32 h-32 bg-indigo-100 rounded-full opacity-60 blur-xl"></div>
-            
-            <div className="relative z-10">
-              <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-700 bg-clip-text text-transparent">
-                Welcome, {user?.fullName || 'Skillgenix User'}!
-              </h1>
-              
-              <p className="text-gray-600 max-w-3xl text-base md:text-lg">
-                This is your personalized dashboard where you can track your career progress, 
-                review your saved analyses, and discover recommended learning resources.
-              </p>
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-4">Welcome, {user?.fullName || 'Skillgenix User'}!</h1>
+            <p className="mb-4 text-gray-700">
+              This is your personalized dashboard where you can track your career progress, 
+              review your saved analyses, and discover recommended learning resources.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <Button className="shadow-sm bg-primary hover:bg-primary/90" asChild>
+                <Link href="/career-pathway">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Analysis
+                </Link>
+              </Button>
+              <Button variant="outline" className="shadow-sm" asChild>
+                <Link href="/my-details">
+                  My Details
+                </Link>
+              </Button>
             </div>
+          </div>
+          <div className="flex justify-center">
+            <img 
+              src="/src/assets/images/career-growth-ai.svg" 
+              alt="Career Growth" 
+              className="max-w-full h-48"
+            />
           </div>
         </div>
       </motion.section>
       
-      {/* Latest Career Analysis Section */}
+      {/* Career History Section */}
       <motion.section 
         className="mb-16"
         initial={{ opacity: 0 }}
@@ -66,10 +77,10 @@ export default function DashboardPage() {
       >
         <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
           <BarChart3 className="mr-2 h-6 w-6 text-primary" />
-          Your Career Analysis
+          Your Career Analyses
         </h2>
         <div className="max-w-7xl mx-auto">
-          <LatestCareerAnalysis />
+          <SavedAnalyses />
         </div>
       </motion.section>
       
