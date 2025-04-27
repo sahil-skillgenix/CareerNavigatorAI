@@ -1,0 +1,1008 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Skillgenix Career Analysis - Data Scientist</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f8f9fa;
+        }
+        .header {
+          background: linear-gradient(to right, rgb(28, 59, 130), rgb(41, 82, 173));
+          color: white;
+          padding: 30px;
+          border-radius: 8px;
+          margin-bottom: 30px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 32px;
+        }
+        .header p {
+          margin: 10px 0 0;
+          opacity: 0.9;
+        }
+        .section {
+          background: white;
+          border-radius: 8px;
+          padding: 25px;
+          margin-bottom: 30px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          border-left: 5px solid #ddd;
+        }
+        .section-title {
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+          font-size: 24px;
+          color: rgb(28, 59, 130);
+        }
+        .section-icon {
+          width: 32px;
+          height: 32px;
+          margin-right: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          background-color: rgb(28, 59, 130);
+          border-radius: 50%;
+        }
+        .executive-summary {
+          border-left-color: rgb(28, 59, 130);
+        }
+        .skill-mapping {
+          border-left-color: rgb(56, 128, 255);
+        }
+        .gap-analysis {
+          border-left-color: rgb(255, 153, 0);
+        }
+        .career-pathway {
+          border-left-color: rgb(79, 70, 229);
+        }
+        .development-plan {
+          border-left-color: rgb(34, 197, 94);
+        }
+        .educational-programs {
+          border-left-color: rgb(56, 128, 255);
+        }
+        .learning-roadmap {
+          border-left-color: rgb(168, 85, 247);
+        }
+        .similar-roles {
+          border-left-color: rgb(245, 158, 11);
+        }
+        .quick-tips {
+          border-left-color: rgb(250, 204, 21);
+        }
+        .growth-trajectory {
+          border-left-color: rgb(20, 184, 166);
+        }
+        .learning-path {
+          border-left-color: rgb(236, 72, 153);
+        }
+        .summary-box {
+          background-color: rgba(28, 59, 130, 0.05);
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 20px;
+          margin-bottom: 20px;
+        }
+        .info-card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 15px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .info-card-title {
+          font-size: 14px;
+          color: #6b7280;
+          margin-bottom: 8px;
+        }
+        .info-card-content {
+          font-size: 18px;
+          font-weight: 600;
+          color: rgb(28, 59, 130);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .badge {
+          display: inline-block;
+          padding: 5px 10px;
+          border-radius: 9999px;
+          font-size: 12px;
+          font-weight: 500;
+          background-color: rgba(28, 59, 130, 0.1);
+          color: rgb(28, 59, 130);
+          margin-right: 5px;
+          margin-bottom: 5px;
+        }
+        .findings-list {
+          padding-left: 24px;
+        }
+        .findings-list li {
+          margin-bottom: 8px;
+          position: relative;
+        }
+        .findings-list li::before {
+          content: "✓";
+          color: rgb(34, 197, 94);
+          font-weight: bold;
+          display: inline-block;
+          position: absolute;
+          left: -20px;
+        }
+        .step-container {
+          position: relative;
+          padding-left: 30px;
+          margin-bottom: 25px;
+        }
+        .step-number {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 24px;
+          height: 24px;
+          background-color: rgb(79, 70, 229);
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 14px;
+        }
+        .step-content {
+          background: rgba(79, 70, 229, 0.05);
+          border-radius: 8px;
+          padding: 15px;
+        }
+        .step-title {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        .step-name {
+          font-weight: 600;
+        }
+        .step-time {
+          font-size: 12px;
+          background: white;
+          padding: 3px 8px;
+          border-radius: 9999px;
+          color: rgb(79, 70, 229);
+          border: 1px solid rgba(79, 70, 229, 0.3);
+        }
+        .chart-container {
+          margin: 25px 0;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 15px;
+          background: white;
+          width: 100%;
+          overflow: hidden;
+          min-height: 350px;
+        }
+        .chart-placeholder {
+          height: 300px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #f8fafc;
+          border-radius: 4px;
+          color: #94a3b8;
+          font-style: italic;
+        }
+        svg {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 0 auto;
+        }
+        .footer {
+          text-align: center;
+          padding: 20px;
+          margin-top: 50px;
+          border-top: 1px solid #e2e8f0;
+          color: #6b7280;
+          font-size: 14px;
+        }
+        .two-columns {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+        @media (max-width: 768px) {
+          .two-columns {
+            grid-template-columns: 1fr;
+          }
+        }
+        /* SVG specific styles */
+        .radar-chart-title { font-size: 16px; font-weight: bold; fill: #1c3b82; text-anchor: middle; }
+        .axis-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+        .axis-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+        .level-circle { fill: none; stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+        .skill-polygon { fill: rgba(28,59,130,0.5); stroke: rgb(28,59,130); stroke-width: 2; }
+        .level-label { font-size: 8px; fill: #64748b; text-anchor: middle; }
+        .chart-title { font-size: 16px; font-weight: bold; fill: #ff9900; text-anchor: middle; }
+        .grid-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; stroke-dasharray: 3,3; }
+        .bar-current { fill: rgba(28,59,130,0.8); }
+        .bar-required { fill: rgba(163,29,82,0.8); }
+        .legend-text { font-size: 10px; fill: #64748b; }
+        .legend-rect { stroke: none; }
+        .pathway-title { font-size: 16px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
+        .step-circle { fill: rgba(79,70,229,0.2); stroke: #4f46e5; stroke-width: 2; }
+        .step-line { stroke: #4f46e5; stroke-width: 2; stroke-dasharray: 5,5; }
+        .step-number { font-size: 14px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
+        .step-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
+        .timeframe-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+        .current-role { font-size: 12px; fill: #64748b; text-anchor: start; }
+        .target-role { font-size: 12px; fill: #64748b; text-anchor: end; }
+        .roadmap-title { font-size: 16px; font-weight: bold; fill: #a855f7; text-anchor: middle; }
+        .timeline-line { stroke: #a855f7; stroke-width: 3; }
+        .milestone { fill: white; stroke: #a855f7; stroke-width: 2; }
+        .milestone-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
+        .timeline-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>Skillgenix Career Analysis - Data Scientist</h1>
+        <p>Generated on April 27, 2025 for Mid-Level professional</p>
+      </div>
+      
+      <!-- Executive Summary (Section 1) -->
+      <div class="section executive-summary">
+        <div class="section-title">
+          <div class="section-icon">1</div>
+          Executive Summary
+        </div>
+        <div class="summary-box">
+          <p>This analysis provides a comprehensive transition plan for moving from a Product Manager role in retail to a Data Scientist role. It highlights the strengths in management and communication while identifying gaps in technical data skills.</p>
+        </div>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-card-title">Career Goal</div>
+            <div class="info-card-content">
+              <span>Data Scientist</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-title">Fit Score</div>
+            <div class="info-card-content">
+              <span>
+                7/10
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3>Key Findings</h3>
+          <ul class="findings-list">
+            <li>Strong leadership and management skills from current role.</li><li>Lacks technical proficiency in data analysis and programming.</li><li>Advanced education in business provides a solid foundation for data-driven decision making.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Skill Mapping (Section 2) -->
+      <div class="section skill-mapping">
+        <div class="section-title">
+          <div class="section-icon">2</div>
+          Skill Mapping
+        </div>
+        <div class="summary-box">
+          <p>undefined</p>
+        </div>
+        
+        
+        <div>
+          <h3>SFIA Skills</h3>
+          <div>
+            
+              <div class="info-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <div style="font-weight: 600;">Data Analysis</div>
+                  <div class="badge">2/7</div>
+                </div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">Basic understanding of data concepts but limited practical experience.</div>
+              </div>
+              <div class="info-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <div style="font-weight: 600;">Project Management</div>
+                  <div class="badge">5/7</div>
+                </div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">Strong ability to manage complex projects and deliver on time.</div>
+              </div>
+              <div class="info-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <div style="font-weight: 600;">Business Analysis</div>
+                  <div class="badge">4/7</div>
+                </div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">Good capacity for understanding business needs and translating to technical requirements.</div>
+              </div>
+          </div>
+        </div>
+        
+        
+        
+        <div>
+          <h3>Digital Competency Skills</h3>
+          <div>
+            
+              <div class="info-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <div style="font-weight: 600;">Data Literacy</div>
+                  <div class="badge">3/8</div>
+                </div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">Moderate ability to read, understand, create, and communicate data as information.</div>
+              </div>
+              <div class="info-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <div style="font-weight: 600;">Digital Content Creation</div>
+                  <div class="badge">4/8</div>
+                </div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">Strong ability to create and edit digital content for various purposes.</div>
+              </div>
+          </div>
+        </div>
+        
+        
+        <div class="chart-container">
+          <h3>Skills Radar Chart</h3>
+          
+    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <style>
+        .radar-chart-title { font-size: 16px; font-weight: bold; fill: #1c3b82; text-anchor: middle; }
+        .axis-label { font-size: 12px; fill: #64748b; text-anchor: middle; }
+        .axis-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+        .level-circle { fill: none; stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+        .skill-polygon { fill: rgba(28,59,130,0.5); stroke: rgb(28,59,130); stroke-width: 2; }
+        .level-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+      </style>
+      
+      <text x="200" y="40" class="radar-chart-title">Skills Proficiency Radar</text>
+      
+      <!-- Level circles -->
+      <circle cx="200" cy="200" r="150" class="level-circle" />
+      <circle cx="200" cy="200" r="125" class="level-circle" />
+      <circle cx="200" cy="200" r="100" class="level-circle" />
+      <circle cx="200" cy="200" r="75" class="level-circle" />
+      <circle cx="200" cy="200" r="50" class="level-circle" />
+      <circle cx="200" cy="200" r="25" class="level-circle" />
+      
+      <!-- Level labels -->
+      <text x="240" y="60" class="level-label">7</text>
+      <text x="240" y="85" class="level-label">6</text>
+      <text x="240" y="110" class="level-label">5</text>
+      <text x="240" y="135" class="level-label">4</text>
+      <text x="240" y="160" class="level-label">3</text>
+      <text x="240" y="185" class="level-label">2</text>
+      <text x="240" y="210" class="level-label">1</text>
+      
+      
+          <line x1="200" y1="200" x2="200" y2="25" class="axis-line" />
+          <text x="200" y="25" dy="-5" class="axis-label">Data Analysis</text>
+        
+          <line x1="200" y1="200" x2="351.55444566227675" y2="287.49999999999994" class="axis-line" />
+          <text x="351.55444566227675" y="287.49999999999994" dy="-5" class="axis-label">Project Management</text>
+        
+          <line x1="200" y1="200" x2="48.44555433772328" y2="287.50000000000006" class="axis-line" />
+          <text x="48.44555433772328" y="287.50000000000006" dy="15" class="axis-label">Business Analysis</text>
+        
+      
+      <!-- Skill level polygon -->
+      <polygon 
+        points="200,157.14285714285714 292.7884361197613,253.57142857142856 125.769251104191,242.8571428571429"
+        class="skill-polygon" 
+      />
+    </svg>
+  
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Skill Gap Analysis (Section 3) -->
+      <div class="section gap-analysis">
+        <div class="section-title">
+          <div class="section-icon">3</div>
+          Skill Gap Analysis
+        </div>
+        <div class="summary-box">
+          <p>undefined</p>
+        </div>
+        
+        <div class="chart-container">
+          <h3>Comparative Gap Analysis</h3>
+          
+    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <style>
+        .chart-title { font-size: 16px; font-weight: bold; fill: #ff9900; text-anchor: middle; }
+        .axis-label { font-size: 12px; fill: #64748b; }
+        .grid-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; stroke-dasharray: 3,3; }
+        .bar-current { fill: rgba(28,59,130,0.8); }
+        .bar-required { fill: rgba(163,29,82,0.8); }
+        .legend-text { font-size: 12px; fill: #64748b; }
+        .legend-rect { stroke: none; }
+      </style>
+      
+      <text x="200" y="40" text-anchor="middle" class="chart-title">Skill Gap Analysis</text>
+      
+      <!-- Legend -->
+      <rect x="240" y="60" width="15" height="15" class="legend-rect bar-current" />
+      <text x="260" y="72" class="legend-text">Current</text>
+      <rect x="310" y="60" width="15" height="15" class="legend-rect bar-required" />
+      <text x="330" y="72" class="legend-text">Required</text>
+      
+      <!-- Horizontal grid lines and y-axis labels -->
+      
+          <line x1="50" y1="330" x2="350" y2="330" class="grid-line" />
+          <text x="40" y="335" text-anchor="end" class="axis-label">0</text>
+        
+          <line x1="50" y1="300" x2="350" y2="300" class="grid-line" />
+          <text x="40" y="305" text-anchor="end" class="axis-label">1</text>
+        
+          <line x1="50" y1="270" x2="350" y2="270" class="grid-line" />
+          <text x="40" y="275" text-anchor="end" class="axis-label">2</text>
+        
+          <line x1="50" y1="240" x2="350" y2="240" class="grid-line" />
+          <text x="40" y="245" text-anchor="end" class="axis-label">3</text>
+        
+          <line x1="50" y1="210" x2="350" y2="210" class="grid-line" />
+          <text x="40" y="215" text-anchor="end" class="axis-label">4</text>
+        
+          <line x1="50" y1="180" x2="350" y2="180" class="grid-line" />
+          <text x="40" y="185" text-anchor="end" class="axis-label">5</text>
+        
+          <line x1="50" y1="150" x2="350" y2="150" class="grid-line" />
+          <text x="40" y="155" text-anchor="end" class="axis-label">6</text>
+        
+          <line x1="50" y1="120" x2="350" y2="120" class="grid-line" />
+          <text x="40" y="125" text-anchor="end" class="axis-label">7</text>
+        
+      
+      <!-- Bars for skills -->
+      
+          <!-- Current level bar -->
+          <rect x="70" y="300" width="25" height="30" class="bar-current" />
+          
+          <!-- Required level bar -->
+          <rect x="100" y="210" width="25" height="120" class="bar-required" />
+          
+          <!-- Skill label -->
+          <text x="95" y="355" text-anchor="middle" class="axis-label">Machine Learning</text>
+        
+          <!-- Current level bar -->
+          <rect x="135" y="270" width="25" height="60" class="bar-current" />
+          
+          <!-- Required level bar -->
+          <rect x="165" y="180" width="25" height="150" class="bar-required" />
+          
+          <!-- Skill label -->
+          <text x="160" y="355" text-anchor="middle" class="axis-label">Programming (Python)</text>
+        
+          <!-- Current level bar -->
+          <rect x="200" y="270" width="25" height="60" class="bar-current" />
+          
+          <!-- Required level bar -->
+          <rect x="230" y="180" width="25" height="150" class="bar-required" />
+          
+          <!-- Skill label -->
+          <text x="225" y="355" text-anchor="middle" class="axis-label">Statistics</text>
+        
+    </svg>
+  
+        </div>
+        
+        <div class="two-columns">
+          <div>
+            <h3>Key Gaps</h3>
+            <div>
+              
+                  <div class="info-card" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="font-weight: 600;">Machine Learning</div>
+                      
+                        <div style="color: #ef4444; font-size: 12px;">
+                          1 → 4
+                        </div>
+                      
+                    </div>
+                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                      This skill requires significant development to meet the target role requirements.
+                    </div>
+                  </div>
+                
+                  <div class="info-card" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="font-weight: 600;">Programming (Python)</div>
+                      
+                        <div style="color: #ef4444; font-size: 12px;">
+                          2 → 5
+                        </div>
+                      
+                    </div>
+                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                      This skill requires significant development to meet the target role requirements.
+                    </div>
+                  </div>
+                
+                  <div class="info-card" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="font-weight: 600;">Statistics</div>
+                      
+                        <div style="color: #ef4444; font-size: 12px;">
+                          2 → 5
+                        </div>
+                      
+                    </div>
+                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                      This skill requires significant development to meet the target role requirements.
+                    </div>
+                  </div>
+                
+            </div>
+          </div>
+          
+          <div>
+            <h3>Transferable Strengths</h3>
+            <div>
+              <p>No transferable strengths identified.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Career Pathway (Section 4) -->
+      <div class="section career-pathway">
+        <div class="section-title">
+          <div class="section-icon">4</div>
+          Career Pathway
+        </div>
+        <div class="summary-box">
+          <p>undefined</p>
+        </div>
+        
+        <div class="chart-container">
+          <h3>Career Pathway Visualization</h3>
+          
+    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <style>
+        .pathway-title { font-size: 16px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
+        .step-circle { fill: rgba(79,70,229,0.2); stroke: #4f46e5; stroke-width: 2; }
+        .step-line { stroke: #4f46e5; stroke-width: 2; stroke-dasharray: 5,5; }
+        .step-number { font-size: 14px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
+        .step-label { font-size: 14px; fill: #1e293b; text-anchor: middle; }
+        .timeframe-label { font-size: 12px; fill: #64748b; text-anchor: middle; }
+        .current-role { font-size: 14px; fill: #64748b; text-anchor: start; }
+        .target-role { font-size: 14px; fill: #64748b; text-anchor: end; }
+      </style>
+      
+      <text x="200" y="40" text-anchor="middle" class="pathway-title">Career Pathway Steps</text>
+      
+      <!-- Career path line -->
+      <line x1="50" y1="200" x2="350" y2="200" class="step-line" />
+      
+      <!-- Current & Target roles -->
+      <text x="50" y="180" class="current-role">Current: Product Manager for a retail tech company (3 years), UX Designer (2 years), Marketing Specialist (2 years)</text>
+      <text x="350" y="180" class="target-role">Target: Data Scientist</text>
+      
+      
+          <!-- Step 1 circle -->
+          <circle cx="110" cy="200" r="30" class="step-circle" />
+          <text x="110" y="205" class="step-number">1</text>
+          
+          <!-- Step labels -->
+          <text x="110" y="250" class="step-label">Build Technical Foundation</text>
+          <text x="110" y="270" class="timeframe-label">0-6 months</text>
+        
+          <!-- Step 2 circle -->
+          <circle cx="170" cy="200" r="30" class="step-circle" />
+          <text x="170" y="205" class="step-number">2</text>
+          
+          <!-- Step labels -->
+          <text x="170" y="250" class="step-label">Develop Advanced Skills</text>
+          <text x="170" y="270" class="timeframe-label">6-12 months</text>
+        
+          <!-- Step 3 circle -->
+          <circle cx="230" cy="200" r="30" class="step-circle" />
+          <text x="230" y="205" class="step-number">3</text>
+          
+          <!-- Step labels -->
+          <text x="230" y="250" class="step-label">Applied Experience</text>
+          <text x="230" y="270" class="timeframe-label">12-18 months</text>
+        
+          <!-- Step 4 circle -->
+          <circle cx="290" cy="200" r="30" class="step-circle" />
+          <text x="290" y="205" class="step-number">4</text>
+          
+          <!-- Step labels -->
+          <text x="290" y="250" class="step-label">Full Transition</text>
+          <text x="290" y="270" class="timeframe-label">18-24 months</text>
+        
+    </svg>
+  
+        </div>
+        
+        
+        <div>
+          <h3>Pathway Steps</h3>
+          
+            <div class="step-container">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Build Technical Foundation</div>
+                  <div class="step-time">0-6 months</div>
+                </div>
+                <p>Focus on core programming and data manipulation skills through online courses and small projects.</p>
+              </div>
+            </div>
+          
+            <div class="step-container">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Develop Advanced Skills</div>
+                  <div class="step-time">6-12 months</div>
+                </div>
+                <p>Learn machine learning, statistics, and specialized techniques through coursework and increasingly complex projects.</p>
+              </div>
+            </div>
+          
+            <div class="step-container">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Applied Experience</div>
+                  <div class="step-time">12-18 months</div>
+                </div>
+                <p>Complete capstone projects, contribute to open source, or secure an internship/junior role to build practical experience.</p>
+              </div>
+            </div>
+          
+            <div class="step-container">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Full Transition</div>
+                  <div class="step-time">18-24 months</div>
+                </div>
+                <p>Apply for entry or mid-level data scientist positions that value your combined product and data skills.</p>
+              </div>
+            </div>
+          
+        </div>
+        
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Learning Roadmap (Section 5) -->
+      <div class="section learning-roadmap">
+        <div class="section-title">
+          <div class="section-icon">5</div>
+          Learning Roadmap
+        </div>
+        <div class="summary-box">
+          <p>This roadmap divides your learning journey into distinct phases, each building on previous knowledge to systematically develop the skills needed for a Data Scientist role.</p>
+        </div>
+        
+        <div class="chart-container">
+          <h3>Learning Timeline</h3>
+          
+    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <style>
+        .roadmap-title { font-size: 16px; font-weight: bold; fill: #a855f7; text-anchor: middle; }
+        .timeline-line { stroke: #a855f7; stroke-width: 3; }
+        .milestone { fill: white; stroke: #a855f7; stroke-width: 2; }
+        .milestone-label { font-size: 14px; fill: #1e293b; text-anchor: middle; }
+        .timeline-label { font-size: 12px; fill: #64748b; text-anchor: middle; }
+      </style>
+      
+      <text x="200" y="40" text-anchor="middle" class="roadmap-title">Learning Roadmap Timeline</text>
+      
+      <!-- Main timeline line -->
+      <line x1="50" y1="200" x2="350" y2="200" class="timeline-line" />
+      
+      <!-- Month markers -->
+      <line x1="50" y1="190" x2="50" y2="210" class="timeline-line" />
+      <text x="50" y="230" class="timeline-label">Month 1</text>
+      
+      <line x1="150" y1="190" x2="150" y2="210" class="timeline-line" />
+      <text x="150" y="230" class="timeline-label">Month 3</text>
+      
+      <line x1="250" y1="190" x2="250" y2="210" class="timeline-line" />
+      <text x="250" y="230" class="timeline-label">Month 6</text>
+      
+      <line x1="350" y1="190" x2="350" y2="210" class="timeline-line" />
+      <text x="350" y="230" class="timeline-label">Month 12</text>
+      
+      <!-- Milestones -->
+      <circle cx="90" cy="200" r="10" class="milestone" />
+      <text x="90" y="170" class="milestone-label">Foundation Skills</text>
+      
+      <circle cx="180" cy="200" r="10" class="milestone" />
+      <text x="180" y="170" class="milestone-label">Intermediate Learning</text>
+      
+      <circle cx="280" cy="200" r="10" class="milestone" />
+      <text x="280" y="170" class="milestone-label">Advanced Skills</text>
+      
+      <circle cx="350" cy="200" r="10" class="milestone" />
+      <text x="350" y="170" class="milestone-label">Career Ready</text>
+    </svg>
+  
+        </div>
+        
+        <div>
+          <h3>Foundational Skills (First 3 months)</h3>
+          <ul class="findings-list">
+            <li>Basic industry concepts</li><li>Fundamental technical skills</li><li>Entry-level certifications</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3>Intermediate Skills (Months 3-6)</h3>
+          <ul class="findings-list">
+            <li>Applied techniques</li><li>Practical project experience</li><li>More specialized knowledge</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3>Advanced Skills (Months 6+)</h3>
+          <ul class="findings-list">
+            <li>Leadership and strategic thinking</li><li>Advanced industry knowledge</li><li>Expert-level technical skills</li>
+          </ul>
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Similar Roles (Section 6) -->
+      <div class="section similar-roles">
+        <div class="section-title">
+          <div class="section-icon">6</div>
+          Similar Roles
+        </div>
+        <div class="summary-box">
+          <p>These alternative roles leverage your existing product management skills while incorporating aspects of data science, providing multiple potential career paths.</p>
+        </div>
+        
+        <div>
+          
+            
+              <div class="info-card" style="margin-bottom: 15px;">
+                <div style="font-weight: 600;">Related Role</div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                  This role shares similar responsibilities and skill requirements with your target role.
+                </div>
+                
+              </div>
+            
+              <div class="info-card" style="margin-bottom: 15px;">
+                <div style="font-weight: 600;">Related Role</div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                  This role shares similar responsibilities and skill requirements with your target role.
+                </div>
+                
+              </div>
+            
+              <div class="info-card" style="margin-bottom: 15px;">
+                <div style="font-weight: 600;">Related Role</div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                  This role shares similar responsibilities and skill requirements with your target role.
+                </div>
+                
+              </div>
+            
+          
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Quick Tips (Section 7) -->
+      <div class="section quick-tips">
+        <div class="section-title">
+          <div class="section-icon">7</div>
+          Quick Tips
+        </div>
+        <div class="summary-box">
+          <p>These actionable tips can help you make immediate progress toward your goal of becoming a Data Scientist, even before completing comprehensive training.</p>
+        </div>
+        
+        <div class="two-columns">
+          <div>
+            <h3>Career Tips</h3>
+            <ul class="findings-list">
+              <li>Develop a personal brand focused on your target role</li><li>Network with professionals in your field</li><li>Create a portfolio showcasing relevant projects</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Learning Tips</h3>
+            <ul class="findings-list">
+              <li>Schedule regular learning time</li><li>Join communities of practice</li><li>Apply new skills to real-world problems</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Growth Trajectory (Section 8) -->
+      <div class="section growth-trajectory">
+        <div class="section-title">
+          <div class="section-icon">8</div>
+          Growth Trajectory
+        </div>
+        <div class="summary-box">
+          <p>undefined</p>
+        </div>
+        
+        <div>
+          <h3>Career Progression</h3>
+          <div class="info-card" style="margin-bottom: 15px;">
+            <div style="font-weight: 600;">Entry Level</div>
+            <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+              Initial role focusing on foundational skills and learning core competencies.
+            </div>
+          </div>
+          <div class="info-card" style="margin-bottom: 15px;">
+            <div style="font-weight: 600;">Mid Level</div>
+            <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+              More responsibilities and autonomy, leading smaller projects and initiatives.
+            </div>
+          </div>
+          <div class="info-card">
+            <div style="font-weight: 600;">Senior Level</div>
+            <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+              Strategic leadership roles with extensive experience and expert knowledge.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Learning Path Roadmap (Section 9) -->
+      <div class="section learning-path">
+        <div class="section-title">
+          <div class="section-icon">9</div>
+          Learning Path Roadmap
+        </div>
+        <div class="summary-box">
+          <p>This roadmap visualizes your career progression from Product Manager to Data Scientist, highlighting key milestones, skills to acquire, and potential roles along the journey.</p>
+        </div>
+        
+        <div>
+          <h3>Key Learning Milestones</h3>
+          
+            <div class="step-container">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Core Fundamentals</div>
+                  <div class="step-time">Month 3</div>
+                </div>
+                <p>Master foundational concepts and tools required for the role.</p>
+              </div>
+            </div>
+            <div class="step-container">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Project Experience</div>
+                  <div class="step-time">Month 6</div>
+                </div>
+                <p>Complete practical projects to build a professional portfolio.</p>
+              </div>
+            </div>
+            <div class="step-container">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Advanced Specialization</div>
+                  <div class="step-time">Month 9</div>
+                </div>
+                <p>Develop expertise in specialized areas within your field.</p>
+              </div>
+            </div>
+            
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Development Plan (Section 10) -->
+      <div class="section development-plan">
+        <div class="section-title">
+          <div class="section-icon">10</div>
+          Development Plan
+        </div>
+        <div class="summary-box">
+          <p>This development plan outlines a structured approach to gain the necessary skills for a successful transition to Data Science, leveraging your existing product management expertise.</p>
+        </div>
+        
+        <div class="two-columns">
+          <div>
+            <h3>Priority Skills to Develop</h3>
+            <ul class="findings-list">
+              <li>Technical competencies</li><li>Communication skills</li><li>Problem-solving abilities</li>
+            </ul>
+            
+            <h3>Action Items</h3>
+            <ul class="findings-list">
+              <li>Enroll in relevant courses</li><li>Join professional associations</li><li>Seek mentorship opportunities</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Resources</h3>
+            <ul class="findings-list">
+              <li>Online learning platforms</li><li>Industry-specific books</li><li>Professional networking events</li>
+            </ul>
+            
+            <h3>Timeline</h3>
+            <ul class="findings-list">
+              <li>First 3 months: Build foundation</li><li>Months 4-6: Practice application</li><li>Months 7-12: Specialize and network</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <!-- Educational Programs (Section 11) -->
+      <div class="section educational-programs">
+        <div class="section-title">
+          <div class="section-icon">11</div>
+          Educational Programs
+        </div>
+        <div class="summary-box">
+          <p>undefined</p>
+        </div>
+        
+        <div>
+          <h3>Recommended Courses</h3>
+          
+            <div class="info-card" style="margin-bottom: 15px;">
+              <div style="font-weight: 600;">Fundamentals of Data Scientist</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Comprehensive introduction to essential concepts and practices.
+              </div>
+            </div>
+            <div class="info-card" style="margin-bottom: 15px;">
+              <div style="font-weight: 600;">Advanced Data Scientist Skills</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Specialized techniques and methodologies for professional growth.
+              </div>
+            </div>
+            <div class="info-card">
+              <div style="font-weight: 600;">Data Scientist Certification Program</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Recognized certification to validate your expertise and enhance credibility.
+              </div>
+            </div>
+            
+        </div>
+      </div>
+      <div style="height: 30px; clear: both;"></div>
+      
+      <div class="footer">
+        <p>© 2025 Skillgenix - Career Pathway Analysis Report</p>
+        <p>Generated on April 27, 2025</p>
+      </div>
+    </body>
+    </html>
+  

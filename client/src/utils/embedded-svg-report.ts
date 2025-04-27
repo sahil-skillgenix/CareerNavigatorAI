@@ -390,8 +390,9 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
           padding: 15px;
           background: white;
           width: 100%;
-          overflow: hidden;
+          overflow: visible;
           min-height: 350px;
+          box-sizing: border-box;
         }
         .chart-placeholder {
           height: 300px;
@@ -406,8 +407,10 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
         svg {
           max-width: 100%;
           height: auto;
+          max-height: 350px;
           display: block;
           margin: 0 auto;
+          overflow: visible;
         }
         .footer {
           text-align: center;
@@ -1014,7 +1017,7 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
 // Helper functions to generate SVG components
 function generateRadarChartSVG(skillData: ChartData[]): string {
   return `
-    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
       <style>
         .radar-chart-title { font-size: 16px; font-weight: bold; fill: #1c3b82; text-anchor: middle; }
         .axis-label { font-size: 12px; fill: #64748b; text-anchor: middle; }
@@ -1024,34 +1027,34 @@ function generateRadarChartSVG(skillData: ChartData[]): string {
         .level-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
       </style>
       
-      <text x="200" y="40" class="radar-chart-title">Skills Proficiency Radar</text>
+      <text x="200" y="30" class="radar-chart-title">Skills Proficiency Radar</text>
       
       <!-- Level circles -->
-      <circle cx="200" cy="200" r="150" class="level-circle" />
-      <circle cx="200" cy="200" r="125" class="level-circle" />
-      <circle cx="200" cy="200" r="100" class="level-circle" />
-      <circle cx="200" cy="200" r="75" class="level-circle" />
-      <circle cx="200" cy="200" r="50" class="level-circle" />
-      <circle cx="200" cy="200" r="25" class="level-circle" />
+      <circle cx="200" cy="160" r="120" class="level-circle" />
+      <circle cx="200" cy="160" r="100" class="level-circle" />
+      <circle cx="200" cy="160" r="80" class="level-circle" />
+      <circle cx="200" cy="160" r="60" class="level-circle" />
+      <circle cx="200" cy="160" r="40" class="level-circle" />
+      <circle cx="200" cy="160" r="20" class="level-circle" />
       
       <!-- Level labels -->
-      <text x="240" y="60" class="level-label">7</text>
-      <text x="240" y="85" class="level-label">6</text>
-      <text x="240" y="110" class="level-label">5</text>
-      <text x="240" y="135" class="level-label">4</text>
-      <text x="240" y="160" class="level-label">3</text>
-      <text x="240" y="185" class="level-label">2</text>
-      <text x="240" y="210" class="level-label">1</text>
+      <text x="230" y="60" class="level-label">7</text>
+      <text x="230" y="80" class="level-label">6</text>
+      <text x="230" y="100" class="level-label">5</text>
+      <text x="230" y="120" class="level-label">4</text>
+      <text x="230" y="140" class="level-label">3</text>
+      <text x="230" y="160" class="level-label">2</text>
+      <text x="230" y="180" class="level-label">1</text>
       
       ${skillData.map((skill, index) => {
         // Calculate position on the radar chart for each skill label
         const angle = (Math.PI * 2 * index) / skillData.length;
-        const labelX = 200 + 175 * Math.sin(angle);
-        const labelY = 200 - 175 * Math.cos(angle);
+        const labelX = 200 + 145 * Math.sin(angle);
+        const labelY = 160 - 145 * Math.cos(angle);
         
         // Draw axis line
         return `
-          <line x1="200" y1="200" x2="${labelX}" y2="${labelY}" class="axis-line" />
+          <line x1="200" y1="160" x2="${labelX}" y2="${labelY}" class="axis-line" />
           <text x="${labelX}" y="${labelY}" dy="${angle > Math.PI ? 15 : -5}" class="axis-label">${skill.name}</text>
         `;
       }).join('')}
@@ -1060,8 +1063,8 @@ function generateRadarChartSVG(skillData: ChartData[]): string {
       <polygon 
         points="${skillData.map((skill, index) => {
           const angle = (Math.PI * 2 * index) / skillData.length;
-          const radius = (skill.value / 7) * 150; // Scale based on max level of 7
-          return `${200 + radius * Math.sin(angle)},${200 - radius * Math.cos(angle)}`;
+          const radius = (skill.value / 7) * 120; // Scale based on max level of 7
+          return `${200 + radius * Math.sin(angle)},${160 - radius * Math.cos(angle)}`;
         }).join(' ')}"
         class="skill-polygon" 
       />
@@ -1071,7 +1074,7 @@ function generateRadarChartSVG(skillData: ChartData[]): string {
 
 function generateGapAnalysisChartSVG(gapData: GapData[]): string {
   return `
-    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
       <style>
         .chart-title { font-size: 16px; font-weight: bold; fill: #ff9900; text-anchor: middle; }
         .axis-label { font-size: 12px; fill: #64748b; }
@@ -1082,17 +1085,17 @@ function generateGapAnalysisChartSVG(gapData: GapData[]): string {
         .legend-rect { stroke: none; }
       </style>
       
-      <text x="200" y="40" text-anchor="middle" class="chart-title">Skill Gap Analysis</text>
+      <text x="200" y="30" text-anchor="middle" class="chart-title">Skill Gap Analysis</text>
       
       <!-- Legend -->
-      <rect x="240" y="60" width="15" height="15" class="legend-rect bar-current" />
-      <text x="260" y="72" class="legend-text">Current</text>
-      <rect x="310" y="60" width="15" height="15" class="legend-rect bar-required" />
-      <text x="330" y="72" class="legend-text">Required</text>
+      <rect x="240" y="45" width="15" height="15" class="legend-rect bar-current" />
+      <text x="260" y="57" class="legend-text">Current</text>
+      <rect x="310" y="45" width="15" height="15" class="legend-rect bar-required" />
+      <text x="330" y="57" class="legend-text">Required</text>
       
       <!-- Horizontal grid lines and y-axis labels -->
       ${[0, 1, 2, 3, 4, 5, 6, 7].map(level => {
-        const y = 330 - level * 30;
+        const y = 250 - level * 25;
         return `
           <line x1="50" y1="${y}" x2="350" y2="${y}" class="grid-line" />
           <text x="40" y="${y + 5}" text-anchor="end" class="axis-label">${level}</text>
@@ -1101,19 +1104,23 @@ function generateGapAnalysisChartSVG(gapData: GapData[]): string {
       
       <!-- Bars for skills -->
       ${gapData.map((item, index) => {
-        const x = 70 + index * 65;
-        const currentHeight = item.current * 30;
-        const requiredHeight = item.required * 30;
+        // Calculate position based on number of items to ensure they fit
+        const maxItems = 5;
+        const itemWidth = Math.min(55, 250 / Math.min(maxItems, gapData.length));
+        const x = 75 + index * (itemWidth + 15);
+        const currentHeight = item.current * 25;
+        const requiredHeight = item.required * 25;
+        const barWidth = Math.max(15, itemWidth / 2 - 5);
         
         return `
           <!-- Current level bar -->
-          <rect x="${x}" y="${330 - currentHeight}" width="25" height="${currentHeight}" class="bar-current" />
+          <rect x="${x}" y="${250 - currentHeight}" width="${barWidth}" height="${currentHeight}" class="bar-current" />
           
           <!-- Required level bar -->
-          <rect x="${x + 30}" y="${330 - requiredHeight}" width="25" height="${requiredHeight}" class="bar-required" />
+          <rect x="${x + barWidth + 5}" y="${250 - requiredHeight}" width="${barWidth}" height="${requiredHeight}" class="bar-required" />
           
           <!-- Skill label -->
-          <text x="${x + 25}" y="355" text-anchor="middle" class="axis-label">${item.skill}</text>
+          <text x="${x + (barWidth * 2 + 5) / 2}" y="275" text-anchor="middle" class="axis-label" transform="rotate(-45 ${x + (barWidth * 2 + 5) / 2}, 275)">${item.skill}</text>
         `;
       }).join('')}
     </svg>
@@ -1122,26 +1129,26 @@ function generateGapAnalysisChartSVG(gapData: GapData[]): string {
 
 function generateCareerPathwaySVG(pathwaySteps: PathwayStep[], metadata: AnalysisMetadata): string {
   return `
-    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
       <style>
         .pathway-title { font-size: 16px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
         .step-circle { fill: rgba(79,70,229,0.2); stroke: #4f46e5; stroke-width: 2; }
         .step-line { stroke: #4f46e5; stroke-width: 2; stroke-dasharray: 5,5; }
         .step-number { font-size: 14px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
-        .step-label { font-size: 14px; fill: #1e293b; text-anchor: middle; }
-        .timeframe-label { font-size: 12px; fill: #64748b; text-anchor: middle; }
-        .current-role { font-size: 14px; fill: #64748b; text-anchor: start; }
-        .target-role { font-size: 14px; fill: #64748b; text-anchor: end; }
+        .step-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
+        .timeframe-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+        .current-role { font-size: 12px; fill: #64748b; text-anchor: start; }
+        .target-role { font-size: 12px; fill: #64748b; text-anchor: end; }
       </style>
       
-      <text x="200" y="40" text-anchor="middle" class="pathway-title">Career Pathway Steps</text>
+      <text x="200" y="30" text-anchor="middle" class="pathway-title">Career Pathway Steps</text>
       
       <!-- Career path line -->
-      <line x1="50" y1="200" x2="350" y2="200" class="step-line" />
+      <line x1="50" y1="120" x2="350" y2="120" class="step-line" />
       
       <!-- Current & Target roles -->
-      <text x="50" y="180" class="current-role">Current: ${metadata.currentRole || metadata.careerHistory || 'Current Role'}</text>
-      <text x="350" y="180" class="target-role">Target: ${metadata.targetRole || 'Target Role'}</text>
+      <text x="50" y="100" class="current-role">Current: ${metadata.currentRole || metadata.careerHistory || 'Current Role'}</text>
+      <text x="350" y="100" class="target-role">Target: ${metadata.targetRole || 'Target Role'}</text>
       
       ${pathwaySteps.map((step, index) => {
         const stepCount = pathwaySteps.length;
@@ -1149,12 +1156,12 @@ function generateCareerPathwaySVG(pathwaySteps: PathwayStep[], metadata: Analysi
         
         return `
           <!-- Step ${index + 1} circle -->
-          <circle cx="${x}" cy="200" r="30" class="step-circle" />
-          <text x="${x}" y="205" class="step-number">${index + 1}</text>
+          <circle cx="${x}" cy="120" r="25" class="step-circle" />
+          <text x="${x}" y="125" class="step-number">${index + 1}</text>
           
           <!-- Step labels -->
-          <text x="${x}" y="250" class="step-label">${step.step}</text>
-          <text x="${x}" y="270" class="timeframe-label">${step.timeframe}</text>
+          <text x="${x}" y="165" class="step-label">${step.step}</text>
+          <text x="${x}" y="185" class="timeframe-label">${step.timeframe}</text>
         `;
       }).join('')}
     </svg>
@@ -1163,45 +1170,45 @@ function generateCareerPathwaySVG(pathwaySteps: PathwayStep[], metadata: Analysi
 
 function generateLearningRoadmapSVG(): string {
   return `
-    <svg width="100%" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+    <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
       <style>
         .roadmap-title { font-size: 16px; font-weight: bold; fill: #a855f7; text-anchor: middle; }
-        .timeline-line { stroke: #a855f7; stroke-width: 3; }
+        .timeline-line { stroke: #a855f7; stroke-width: 2; }
         .milestone { fill: white; stroke: #a855f7; stroke-width: 2; }
-        .milestone-label { font-size: 14px; fill: #1e293b; text-anchor: middle; }
-        .timeline-label { font-size: 12px; fill: #64748b; text-anchor: middle; }
+        .milestone-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
+        .timeline-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
       </style>
       
-      <text x="200" y="40" text-anchor="middle" class="roadmap-title">Learning Roadmap Timeline</text>
+      <text x="200" y="30" text-anchor="middle" class="roadmap-title">Learning Roadmap Timeline</text>
       
       <!-- Main timeline line -->
-      <line x1="50" y1="200" x2="350" y2="200" class="timeline-line" />
+      <line x1="50" y1="120" x2="350" y2="120" class="timeline-line" />
       
       <!-- Month markers -->
-      <line x1="50" y1="190" x2="50" y2="210" class="timeline-line" />
-      <text x="50" y="230" class="timeline-label">Month 1</text>
+      <line x1="50" y1="110" x2="50" y2="130" class="timeline-line" />
+      <text x="50" y="145" class="timeline-label">Month 1</text>
       
-      <line x1="150" y1="190" x2="150" y2="210" class="timeline-line" />
-      <text x="150" y="230" class="timeline-label">Month 3</text>
+      <line x1="150" y1="110" x2="150" y2="130" class="timeline-line" />
+      <text x="150" y="145" class="timeline-label">Month 3</text>
       
-      <line x1="250" y1="190" x2="250" y2="210" class="timeline-line" />
-      <text x="250" y="230" class="timeline-label">Month 6</text>
+      <line x1="250" y1="110" x2="250" y2="130" class="timeline-line" />
+      <text x="250" y="145" class="timeline-label">Month 6</text>
       
-      <line x1="350" y1="190" x2="350" y2="210" class="timeline-line" />
-      <text x="350" y="230" class="timeline-label">Month 12</text>
+      <line x1="350" y1="110" x2="350" y2="130" class="timeline-line" />
+      <text x="350" y="145" class="timeline-label">Month 12</text>
       
       <!-- Milestones -->
-      <circle cx="90" cy="200" r="10" class="milestone" />
-      <text x="90" y="170" class="milestone-label">Foundation Skills</text>
+      <circle cx="90" cy="120" r="8" class="milestone" />
+      <text x="90" y="95" class="milestone-label">Foundation Skills</text>
       
-      <circle cx="180" cy="200" r="10" class="milestone" />
-      <text x="180" y="170" class="milestone-label">Intermediate Learning</text>
+      <circle cx="180" cy="120" r="8" class="milestone" />
+      <text x="180" y="95" class="milestone-label">Intermediate Learning</text>
       
-      <circle cx="280" cy="200" r="10" class="milestone" />
-      <text x="280" y="170" class="milestone-label">Advanced Skills</text>
+      <circle cx="280" cy="120" r="8" class="milestone" />
+      <text x="280" y="95" class="milestone-label">Advanced Skills</text>
       
-      <circle cx="350" cy="200" r="10" class="milestone" />
-      <text x="350" y="170" class="milestone-label">Career Ready</text>
+      <circle cx="350" cy="120" r="8" class="milestone" />
+      <text x="350" y="95" class="milestone-label">Career Ready</text>
     </svg>
   `;
 }
