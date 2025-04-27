@@ -2,10 +2,10 @@
  * X-Gen AI Career Pathway Page
  * 
  * A dedicated page for generating and viewing structured career pathway analyses
- * using a simplified X-Gen AI implementation that's more stable and reliable.
+ * using advanced X-Gen AI technology with the standardized 11-section format.
  */
 import { motion } from 'framer-motion';
-import { SimpleXGenPathwayForm } from '@/components/x-gen/SimpleXGenPathwayForm';
+import { XGenPathwayForm } from '@/components/x-gen/XGenPathwayForm';
 import { AuthenticatedLayout } from '@/components/layouts/AuthenticatedLayout';
 import { fadeIn } from '@/lib/animations';
 
@@ -23,8 +23,8 @@ export default function XGenPathwayPage() {
             X-Gen AI Career Analysis
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
-            This streamlined tool analyzes your skills, experience, and career goals to create a personalized 
-            development pathway with essential recommendations and practical guidance.
+            This tool analyzes your skills, experience, and career goals to create a personalized development pathway. It uses both
+            SFIA 9 and DigComp 2.2 frameworks to provide comprehensive recommendations in our standard 11-section format.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -37,7 +37,7 @@ export default function XGenPathwayPage() {
               </div>
               <div>
                 <h3 className="font-medium text-primary">Skill Assessment</h3>
-                <p className="text-sm text-muted-foreground">Evaluates your current skills against requirements</p>
+                <p className="text-sm text-muted-foreground">Maps your current skills to industry frameworks</p>
               </div>
             </div>
             
@@ -50,7 +50,7 @@ export default function XGenPathwayPage() {
               </div>
               <div>
                 <h3 className="font-medium text-primary">Gap Analysis</h3>
-                <p className="text-sm text-muted-foreground">Identifies priority skill gaps to address</p>
+                <p className="text-sm text-muted-foreground">Identifies skill gaps for your desired career path</p>
               </div>
             </div>
             
@@ -62,13 +62,13 @@ export default function XGenPathwayPage() {
               </div>
               <div>
                 <h3 className="font-medium text-primary">Learning Recommendations</h3>
-                <p className="text-sm text-muted-foreground">Suggests targeted resources for skill development</p>
+                <p className="text-sm text-muted-foreground">Suggests specific education and certifications</p>
               </div>
             </div>
           </div>
         </div>
         
-        <SimpleXGenPathwayForm />
+        <XGenPathwayForm />
       </motion.div>
     </AuthenticatedLayout>
   );

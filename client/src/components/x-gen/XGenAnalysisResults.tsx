@@ -64,6 +64,18 @@ export function XGenAnalysisResults({
   report, 
   requestData 
 }: XGenAnalysisResultsProps) {
+  // Validate report to prevent errors
+  if (!report || typeof report !== 'object') {
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-600 mb-4">Error: Invalid report data</div>
+        <Button onClick={() => window.location.reload()}>
+          Reload Page
+        </Button>
+      </div>
+    );
+  }
+
   const [activeSection, setActiveSection] = useState('executive-summary');
   
   // Function to get color class based on proficiency level
@@ -166,6 +178,27 @@ export function XGenAnalysisResults({
     );
   };
   
+  // Helper function to safely access arrays and avoid null/undefined errors
+  const safeMap = (array: any[] | null | undefined, mapFn: (item: any, index: number) => React.ReactNode) => {
+    if (!array || !Array.isArray(array) || array.length === 0) {
+      return null;
+    }
+    return array.map(mapFn);
+  };
+
+  // Helper function to check if section exists with data
+  const hasData = (section: any, arrayProps: string[] = []) => {
+    if (!section || typeof section !== 'object') return false;
+    
+    if (arrayProps.length === 0) return true;
+    
+    return arrayProps.some(prop => 
+      section[prop] && 
+      Array.isArray(section[prop]) && 
+      section[prop].length > 0
+    );
+  };
+
   // Format location string
   const location = `${requestData.state}, ${requestData.country}`;
   
@@ -371,7 +404,7 @@ export function XGenAnalysisResults({
                 <div>
                   <h3 className="text-lg font-medium mb-2">Key Findings</h3>
                   <ul className="space-y-2">
-                    {report?.executiveSummary?.keyFindings?.map((finding, idx) => (
+                    {safeMap(report.executiveSummary?.keyFindings, (finding, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                         <span>{finding}</span>
@@ -407,7 +440,7 @@ export function XGenAnalysisResults({
                     <div className="rounded-lg border p-4">
                       <h4 className="font-medium mb-4">SFIA Framework Skills</h4>
                       <div className="space-y-4">
-                        {report?.skillMapping?.sfiaSkills?.map(skill => renderSkillProficiency(skill)) || <div>No SFIA skills available</div>}
+                        {safeMap(report.skillMapping?.sfiaSkills, skill => renderSkillProficiency(skill)) || <div>No SFIA skills available</div>}
                       </div>
                     </div>
                   </TabsContent>
@@ -416,7 +449,7 @@ export function XGenAnalysisResults({
                     <div className="rounded-lg border p-4">
                       <h4 className="font-medium mb-4">DigComp Framework Skills</h4>
                       <div className="space-y-4">
-                        {report?.skillMapping?.digCompSkills?.map(skill => renderSkillProficiency(skill)) || <div>No DigComp skills available</div>}
+                        {safeMap(report.skillMapping?.digCompSkills, skill => renderSkillProficiency(skill)) || <div>No DigComp skills available</div>}
                       </div>
                     </div>
                   </TabsContent>
