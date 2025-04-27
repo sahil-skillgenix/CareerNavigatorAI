@@ -58,6 +58,7 @@ function Router() {
       <ProtectedRoute path="/dashboard" component={DashboardPage} />
       <ProtectedRoute path="/my-details" component={MyDetailsPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
+      <ProtectedRoute path="/structured-pathway" component={StructuredPathwayPage} />
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />

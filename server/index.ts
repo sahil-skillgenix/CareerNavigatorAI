@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import dotenv from "dotenv";
 import { connectToDatabase } from "./db/mongodb";
 import { registerRoutes } from "./routes";
+import { registerStructuredRoutes } from "./routes-structured";
 import { MongoDBStorage } from "./mongodb-storage";
 import { logError, logUserActivity, getAPIRequestLogs } from "./services/logging-service";
 import { apiRequestLogger, authEventLogger, errorLogger } from "./services/activity-logger";
@@ -67,13 +68,17 @@ app.get("/api/health", (_req, res) => {
       
       // Register all routes with MongoDB storage
       await registerRoutes(app, mongoDBStorage);
-      console.log("Routes registered with MongoDB storage");
+      // Register structured routes for improved report format
+      registerStructuredRoutes(app);
+      console.log("Routes registered with MongoDB storage and structured routes");
     } catch (dbError) {
       console.error("MongoDB connection failed:", dbError);
       console.log("Falling back to in-memory storage");
       
       // Register routes with default in-memory storage
       await registerRoutes(app);
+      // Register structured routes even with in-memory storage
+      registerStructuredRoutes(app);
     }
     
     // Database error logging middleware
