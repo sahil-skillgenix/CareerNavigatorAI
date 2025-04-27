@@ -51,11 +51,6 @@ export default function DashboardPage() {
                   Create New Analysis
                 </Link>
               </Button>
-              <Button variant="outline" className="shadow-sm" asChild>
-                <Link href="/my-details">
-                  My Details
-                </Link>
-              </Button>
             </div>
           </div>
           <div className="flex justify-center">

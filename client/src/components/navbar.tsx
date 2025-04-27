@@ -94,11 +94,7 @@ export default function Navbar() {
                     Dashboard
                   </Button>
                 </Link>
-                <Link href="/my-details">
-                  <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-                    My Details
-                  </Button>
-                </Link>
+
                 <Link href="/learning-resources">
                   <Button variant="ghost" size="sm" className="hidden md:inline-flex">
                     Learning Resources
@@ -271,11 +267,7 @@ export default function Navbar() {
                           Dashboard
                         </Button>
                       </Link>
-                      <Link href="/my-details" className="w-full">
-                        <Button className="w-full justify-start" variant="ghost">
-                          My Details
-                        </Button>
-                      </Link>
+
                       <Link href="/learning-resources" className="w-full">
                         <Button className="w-full justify-start" variant="ghost">
                           Learning Resources
