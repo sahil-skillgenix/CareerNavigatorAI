@@ -605,7 +605,7 @@ export function StructuredCareerAnalysisResults({
             <div>
               <h3>Key Findings</h3>
               <ul class="findings-list">
-                ${executiveSummary.keyFindings.map(finding => `<li>${finding}</li>`).join('')}
+                ${executiveSummary.keyFindings?.map(finding => `<li>${finding}</li>`).join('') || ''}
               </ul>
             </div>
           </div>
@@ -622,7 +622,7 @@ export function StructuredCareerAnalysisResults({
             <div>
               <h3>SFIA Skills</h3>
               <div>
-                ${skillMapping.sfiaSkills.map(skill => 
+                ${skillMapping.sfiaSkills?.map(skill => 
                   `<div class="info-card" style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between;">
                       <div style="font-weight: 600;">${skill.skill}</div>
@@ -660,7 +660,7 @@ export function StructuredCareerAnalysisResults({
             <div>
               <h3>Key Skill Gaps to Address</h3>
               <div>
-                ${skillGapAnalysis.keyGaps.map(gap => 
+                ${skillGapAnalysis.keyGaps?.map(gap => 
                   `<div class="info-card" style="margin-bottom: 10px; border-right: 4px solid ${
                     gap.priority === 'High' 
                       ? 'rgb(239, 68, 68)' 
@@ -713,7 +713,7 @@ export function StructuredCareerAnalysisResults({
             <div>
               <h3>Pathway from ${careerPathwayOptions.currentRole} to ${careerPathwayOptions.targetRole} (${careerPathwayOptions.timeframe})</h3>
               <div style="margin-top: 20px;">
-                ${careerPathwayOptions.pathwaySteps.map((step, index) => 
+                ${careerPathwayOptions.pathwaySteps?.map((step, index) => 
                   `<div class="step-container">
                     <div class="step-number">${index + 1}</div>
                     <div class="step-content">
@@ -730,13 +730,13 @@ export function StructuredCareerAnalysisResults({
             <div style="margin-top: 30px;">
               <h3>University Pathway Options</h3>
               <div>
-                ${careerPathwayOptions.universityPathway.map(degree => 
+                ${careerPathwayOptions.universityPathway?.map(degree => 
                   `<div class="info-card" style="margin-bottom: 15px;">
                     <h4 style="margin-top: 0; margin-bottom: 10px; color: rgb(79, 70, 229);">${degree.degree}</h4>
                     <div style="margin-bottom: 10px;">
                       <div style="font-weight: 500; margin-bottom: 5px;">Top Institutions:</div>
                       <ul style="margin: 0; padding-left: 20px;">
-                        ${degree.institutions.map(institution => `<li>${institution}</li>`).join('')}
+                        ${degree.institutions?.map(institution => `<li>${institution}</li>`).join('') || ''}
                       </ul>
                     </div>
                     <div style="display: flex; gap: 20px;">
