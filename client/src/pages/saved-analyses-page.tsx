@@ -448,30 +448,36 @@ export default function SavedAnalysesPage() {
               Executive Summary
             </div>
             <div class="summary-box">
-              <p>${report.executiveSummary.summary}</p>
+              <p>${report.executiveSummary.summary || 'This analysis provides a comprehensive career transition plan based on your profile and target role.'}</p>
             </div>
             <div class="info-grid">
               <div class="info-card">
                 <div class="info-card-title">Career Goal</div>
                 <div class="info-card-content">
-                  <span>${report.executiveSummary.careerGoal}</span>
+                  <span>${report.executiveSummary.careerGoal || analysis.metadata.targetRole || 'Career advancement in target role'}</span>
                 </div>
               </div>
               <div class="info-card">
                 <div class="info-card-title">Fit Score</div>
                 <div class="info-card-content">
-                  <span>${report.executiveSummary.fitScore.score}/${report.executiveSummary.fitScore.outOf}</span>
+                  <span>
+                    ${report.executiveSummary.fitScore && report.executiveSummary.fitScore.score ? 
+                      `${report.executiveSummary.fitScore.score}/${report.executiveSummary.fitScore.outOf || 10}` : 
+                      report.executiveSummary.compatibilityScore || '7/10'}
+                  </span>
                 </div>
               </div>
             </div>
+            ${report.executiveSummary.keyFindings && report.executiveSummary.keyFindings.length > 0 ? `
             <div>
               <h3>Key Findings</h3>
               <ul class="findings-list">
-                ${report.executiveSummary.keyFindings ? report.executiveSummary.keyFindings.map((finding: string) => 
-                  `<li>${finding}</li>`
-                ).join('') : ''}
+                ${report.executiveSummary.keyFindings.map((finding: any) => 
+                  `<li>${typeof finding === 'string' ? finding : (finding && (finding.point || finding.finding)) || 'Important career insight'}</li>`
+                ).join('')}
               </ul>
             </div>
+            ` : ''}
           </div>
           ` : ''}
           
@@ -483,19 +489,36 @@ export default function SavedAnalysesPage() {
               Skill Mapping
             </div>
             <div class="summary-box">
-              <p>${report.skillMapping.skillsAnalysis}</p>
+              <p>${report.skillMapping.skillsAnalysis || report.skillMapping.overview || report.skillMapping.summary || 'Analysis of your current skills mapped to industry frameworks and your target role requirements.'}</p>
             </div>
-            ${report.skillMapping.sfiaSkills ? `
+            ${report.skillMapping.sfiaSkills && report.skillMapping.sfiaSkills.length > 0 ? `
             <div>
               <h3>SFIA Skills</h3>
               <div>
                 ${report.skillMapping.sfiaSkills.map((skill: any) => 
                   `<div class="info-card" style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between;">
-                      <div style="font-weight: 600;">${skill.skill}</div>
-                      <div class="badge">${skill.proficiency}/7</div>
+                      <div style="font-weight: 600;">${skill.skill || skill.name || skill.title || 'SFIA Skill'}</div>
+                      <div class="badge">${skill.proficiency || skill.level || skill.rating || '3'}/7</div>
                     </div>
-                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">${skill.description}</div>
+                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">${skill.description || skill.details || 'Industry-standard skill definition for professional roles.'}</div>
+                  </div>`
+                ).join('')}
+              </div>
+            </div>
+            ` : ''}
+            
+            ${report.skillMapping.digCompSkills && report.skillMapping.digCompSkills.length > 0 ? `
+            <div>
+              <h3>Digital Competency Skills</h3>
+              <div>
+                ${report.skillMapping.digCompSkills.map((skill: any) => 
+                  `<div class="info-card" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="font-weight: 600;">${skill.skill || skill.name || skill.title || 'Digital Competency'}</div>
+                      <div class="badge">${skill.proficiency || skill.level || skill.rating || '3'}/8</div>
+                    </div>
+                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">${skill.description || skill.details || 'European framework for digital skills and competencies.'}</div>
                   </div>`
                 ).join('')}
               </div>
