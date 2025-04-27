@@ -44,14 +44,6 @@ export default function DashboardPage() {
             <div className="absolute top-12 -left-12 w-32 h-32 bg-indigo-100 rounded-full opacity-60 blur-xl"></div>
             
             <div className="relative z-10">
-              <div className="inline-flex items-center bg-blue-50/80 rounded-full px-3 py-1 text-blue-700 text-sm font-medium mb-4">
-                <span className="mr-1.5 flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </span>
-                Dashboard Overview
-              </div>
-              
               <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-700 bg-clip-text text-transparent">
                 Welcome, {user?.fullName || 'Skillgenix User'}!
               </h1>
