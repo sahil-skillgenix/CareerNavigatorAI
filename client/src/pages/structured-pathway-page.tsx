@@ -20,7 +20,7 @@ export default function StructuredPathwayPage() {
       >
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Advanced Career Analysis
+            AI Career Analysis
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
             Generate a comprehensive career analysis with our structured 11-section format

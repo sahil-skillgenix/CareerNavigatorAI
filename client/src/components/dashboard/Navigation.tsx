@@ -37,14 +37,14 @@ export function Navigation() {
       icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
     },
     {
-      name: "Structured Pathway",
+      name: "AI Career Analysis",
       path: "/structured-pathway",
       icon: <Sparkles className="h-5 w-5 mr-2" />,
     },
     {
-      name: "History",
-      path: "/history",
-      icon: <History className="h-5 w-5 mr-2" />,
+      name: "Saved Analyses",
+      path: "/saved-analyses",
+      icon: <Save className="h-5 w-5 mr-2" />,
     },
     {
       name: "Learning Resources",
@@ -57,9 +57,9 @@ export function Navigation() {
       icon: <Bookmark className="h-5 w-5 mr-2" />,
     },
     {
-      name: "Saved Analyses",
-      path: "/saved-analyses",
-      icon: <Save className="h-5 w-5 mr-2" />,
+      name: "History",
+      path: "/history",
+      icon: <History className="h-5 w-5 mr-2" />,
     },
   ];
 
