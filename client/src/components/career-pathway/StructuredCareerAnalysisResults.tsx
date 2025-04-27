@@ -747,7 +747,7 @@ export function StructuredCareerAnalysisResults({
                       <div>
                         <div style="font-weight: 500; margin-bottom: 5px;">Outcomes:</div>
                         <ul style="margin: 0; padding-left: 20px;">
-                          ${degree.outcomes.map(outcome => `<li>${outcome}</li>`).join('')}
+                          ${degree.outcomes?.map(outcome => `<li>${outcome}</li>`).join('') || ''}
                         </ul>
                       </div>
                     </div>
@@ -769,7 +769,7 @@ export function StructuredCareerAnalysisResults({
             <div style="margin-top: 30px;">
               <h3>Technical Skills Development</h3>
               <div>
-                ${developmentPlan.technicalSkills.map(skill => 
+                ${developmentPlan.technicalSkills?.map(skill => 
                   `<div class="info-card" style="margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                       <h4 style="margin: 0;">${skill.skill}</h4>
@@ -798,7 +798,7 @@ export function StructuredCareerAnalysisResults({
                     <div>
                       <div style="font-weight: 500; margin-bottom: 5px;">Recommended Resources:</div>
                       <ul style="margin: 0; padding-left: 20px;">
-                        ${skill.resources.map(resource => `<li>${resource}</li>`).join('')}
+                        ${skill.resources?.map(resource => `<li>${resource}</li>`).join('') || ''}
                       </ul>
                     </div>
                   </div>`
