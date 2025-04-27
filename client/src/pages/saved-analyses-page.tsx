@@ -540,6 +540,10 @@ export default function SavedAnalysesPage() {
               `).join('')}
             </div>
             ` : ''}
+            <div class="chart-container">
+              <h3>Gap Analysis Visualization</h3>
+              ${chartImages.gapAnalysisChart}
+            </div>
           </div>
           ` : ''}
           
@@ -567,11 +571,270 @@ export default function SavedAnalysesPage() {
                 </div>
               </div>
             `).join('')}
+            
+            <div class="chart-container">
+              <h3>Career Pathway Visualization</h3>
+              ${chartImages.careerPathwayVisualization}
+            </div>
             ` : ''}
           </div>
           ` : ''}
           
-          <!-- Additional sections would be generated based on available data -->
+          <!-- Development Plan -->
+          ${report.developmentPlan ? `
+          <div class="section development-plan">
+            <div class="section-title">
+              <div class="section-icon">5</div>
+              Development Plan
+            </div>
+            <div class="summary-box">
+              <p>${report.developmentPlan.overview}</p>
+            </div>
+            ${report.developmentPlan.recommendedDegrees ? `
+            <h3>Recommended Degrees</h3>
+            <div class="info-grid">
+              ${report.developmentPlan.recommendedDegrees.map((degree: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${degree.degree}</div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${degree.description}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            
+            ${report.developmentPlan.recommendedInstitutions ? `
+            <h3>Recommended Institutions</h3>
+            <div class="info-grid">
+              ${report.developmentPlan.recommendedInstitutions.map((institution: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${institution.name}</div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${institution.description}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Educational Programs -->
+          ${report.educationalPrograms ? `
+          <div class="section educational-programs">
+            <div class="section-title">
+              <div class="section-icon">6</div>
+              Educational Programs
+            </div>
+            <div class="summary-box">
+              <p>${report.educationalPrograms.overview}</p>
+            </div>
+            ${report.educationalPrograms.learningOutcomes ? `
+            <h3>Learning Outcomes</h3>
+            <div>
+              ${report.educationalPrograms.learningOutcomes.map((outcome: any) => `
+                <div style="display: flex; margin-bottom: 10px;">
+                  <div style="color: rgb(34, 197, 94); margin-right: 10px;">✓</div>
+                  <div>${outcome}</div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Learning Roadmap -->
+          ${report.learningRoadmap ? `
+          <div class="section learning-roadmap">
+            <div class="section-title">
+              <div class="section-icon">7</div>
+              Learning Roadmap
+            </div>
+            <div class="summary-box">
+              <p>${report.learningRoadmap.overview}</p>
+            </div>
+            ${report.learningRoadmap.keySkills ? `
+            <h3>Key Skills to Learn</h3>
+            <div class="info-grid">
+              ${report.learningRoadmap.keySkills.map((skill: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${skill.skill}</div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${skill.description}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            <div class="chart-container">
+              <h3>Learning Roadmap Visualization</h3>
+              ${chartImages.learningRoadmapVisualization}
+            </div>
+          </div>
+          ` : ''}
+          
+          <!-- All remaining sections with proper numbering and styling -->
+          
+          <!-- Similar Roles -->
+          ${report.similarRoles ? `
+          <div class="section similar-roles">
+            <div class="section-title">
+              <div class="section-icon">8</div>
+              Similar Roles
+            </div>
+            <div class="summary-box">
+              <p>${report.similarRoles.introduction}</p>
+            </div>
+            ${report.similarRoles.roles ? `
+            <h3>Related Roles to Consider</h3>
+            <div class="info-grid">
+              ${report.similarRoles.roles.map((role: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${role.title}</div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${role.description}
+                  </div>
+                  <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 14px;">
+                    <div>Similarity: ${role.similarityScore}%</div>
+                    <div>Avg. Salary: ${role.averageSalary}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Quick Tips -->
+          ${report.quickTips ? `
+          <div class="section quick-tips">
+            <div class="section-title">
+              <div class="section-icon">9</div>
+              Quick Tips
+            </div>
+            <div class="summary-box">
+              <p>${report.quickTips.introduction}</p>
+            </div>
+            ${report.quickTips.resumeTips ? `
+            <h3>Resume Tips</h3>
+            <div>
+              ${report.quickTips.resumeTips.map((tip: any) => `
+                <div style="display: flex; margin-bottom: 10px;">
+                  <div style="color: rgb(250, 204, 21); margin-right: 10px;">★</div>
+                  <div>${tip}</div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            
+            ${report.quickTips.interviewTips ? `
+            <h3>Interview Tips</h3>
+            <div>
+              ${report.quickTips.interviewTips.map((tip: any) => `
+                <div style="display: flex; margin-bottom: 10px;">
+                  <div style="color: rgb(250, 204, 21); margin-right: 10px;">★</div>
+                  <div>${tip}</div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Growth Trajectory -->
+          ${report.growthTrajectory ? `
+          <div class="section growth-trajectory">
+            <div class="section-title">
+              <div class="section-icon">10</div>
+              Growth Trajectory
+            </div>
+            <div class="summary-box">
+              <p>${report.growthTrajectory.overview}</p>
+            </div>
+            ${report.growthTrajectory.promotionTimeline ? `
+            <h3>Promotion Timeline</h3>
+            <div>
+              ${report.growthTrajectory.promotionTimeline.map((step: any, index: number) => `
+                <div class="step-container">
+                  <div class="step-number">${index + 1}</div>
+                  <div class="step-content">
+                    <div class="step-title">
+                      <div class="step-name">${step.role}</div>
+                      <div class="step-time">${step.timeframe}</div>
+                    </div>
+                    <div>${step.description}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            
+            ${report.growthTrajectory.salaryProgression ? `
+            <h3>Salary Progression</h3>
+            <div class="info-grid">
+              ${report.growthTrajectory.salaryProgression.map((item: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${item.stage}</div>
+                  <div style="margin-top: 5px; font-weight: 700; color: rgb(20, 184, 166); font-size: 18px;">
+                    ${item.salary}
+                  </div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${item.timeframe}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Learning Path Roadmap -->
+          ${report.learningPathRoadmap ? `
+          <div class="section learning-path">
+            <div class="section-title">
+              <div class="section-icon">11</div>
+              Learning Path Roadmap
+            </div>
+            <div class="summary-box">
+              <p>${report.learningPathRoadmap.introduction}</p>
+            </div>
+            ${report.learningPathRoadmap.milestones ? `
+            <h3>Key Milestones</h3>
+            <div>
+              ${report.learningPathRoadmap.milestones.map((milestone: any, index: number) => `
+                <div class="step-container">
+                  <div class="step-number">${index + 1}</div>
+                  <div class="step-content" style="background: rgba(236, 72, 153, 0.05);">
+                    <div class="step-title">
+                      <div class="step-name">${milestone.milestone}</div>
+                      <div class="step-time" style="color: rgb(236, 72, 153); border-color: rgba(236, 72, 153, 0.3);">${milestone.timeframe}</div>
+                    </div>
+                    <div>${milestone.description}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            
+            ${report.learningPathRoadmap.resources ? `
+            <h3>Key Learning Resources</h3>
+            <div class="info-grid">
+              ${report.learningPathRoadmap.resources.map((resource: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${resource.title}</div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${resource.description}
+                  </div>
+                  <div style="margin-top: 10px; font-size: 14px; color: rgb(236, 72, 153);">
+                    ${resource.type} • ${resource.duration}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
           
           <div class="footer">
             <p>Generated by Skillgenix - The Career Pathway Platform</p>
