@@ -5,7 +5,7 @@
  * using the standardized 11-section format.
  */
 import { motion } from 'framer-motion';
-import { StructuredCareerPathwayForm } from '@/components/career-pathway/StructuredCareerPathwayForm';
+import { StructuredCareerPathwayFormEnhanced } from '@/components/career-pathway/StructuredCareerPathwayFormEnhanced';
 import { AuthenticatedLayout } from '@/components/layouts/AuthenticatedLayout';
 import { fadeIn } from '@/lib/animations';
 
@@ -68,7 +68,7 @@ export default function StructuredPathwayPage() {
           </div>
         </div>
         
-        <StructuredCareerPathwayForm />
+        <StructuredCareerPathwayFormEnhanced />
       </motion.div>
     </AuthenticatedLayout>
   );
