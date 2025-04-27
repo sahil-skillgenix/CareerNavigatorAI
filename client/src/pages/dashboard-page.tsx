@@ -37,29 +37,12 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h1 className="text-3xl font-bold mb-4">Welcome, {user?.fullName || 'Skillgenix User'}!</h1>
-            <p className="mb-4 text-gray-700">
-              This is your personalized dashboard where you can track your career progress, 
-              review your saved analyses, and discover recommended learning resources.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-6">
-              <Button className="shadow-sm bg-primary hover:bg-primary/90" asChild>
-                <Link href="/career-pathway">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Analysis
-                </Link>
-              </Button>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <img 
-              src="/src/assets/images/career-growth-ai.svg" 
-              alt="Career Growth" 
-              className="max-w-full h-48"
-            />
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold mb-4">Welcome, {user?.fullName || 'Skillgenix User'}!</h1>
+          <p className="mb-4 text-gray-700">
+            This is your personalized dashboard where you can track your career progress, 
+            review your saved analyses, and discover recommended learning resources.
+          </p>
         </div>
       </motion.section>
       
