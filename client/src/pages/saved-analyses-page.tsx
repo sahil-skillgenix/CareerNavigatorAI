@@ -159,6 +159,43 @@ export default function SavedAnalysesPage() {
   // Download a saved analysis with all charts and all 11 sections
   const handleDownload = (analysis: SavedAnalysis) => {
     try {
+      // Use the new embedded SVG report generator instead of the old approach
+      import('../utils/embedded-svg-report').then(({ generateEmbeddedSVGReport }) => {
+        // Generate HTML with embedded SVG charts
+        const htmlContent = generateEmbeddedSVGReport(analysis.report, analysis.metadata);
+        
+        // Create a Blob with the HTML content
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        
+        // Create a download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Skillgenix_Career_Analysis_${analysis.metadata.targetRole.replace(/\s+/g, '_')}_${format(new Date(analysis.metadata.dateCreated), 'yyyy-MM-dd')}.html`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        
+        toast({
+          title: 'Success',
+          description: 'Comprehensive report downloaded successfully',
+          variant: 'default',
+        });
+      }).catch(error => {
+        console.error('Error generating HTML report:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to generate HTML report. Please try again later.',
+          variant: 'destructive',
+        });
+      });
+      
+      return; // Early return to skip the old implementation
+      
+      // === Legacy implementation below (kept for reference) ===
       // Create HTML content for the report
       const reportTitle = `Skillgenix Career Analysis - ${analysis.metadata.targetRole}`;
       const report = analysis.report;
