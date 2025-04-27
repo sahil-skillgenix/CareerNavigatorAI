@@ -11,29 +11,56 @@ import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export interface SkillRadarChartProps {
-  data: Array<{
+  results?: any; // Career analysis results
+  data?: Array<{
     name: string;
     value: number;
-    fullMark: number;
+    fullMark?: number;
   }>;
-  title: string;
+  title?: string;
   maxLevel?: number;
   colorPrimary?: string;
   colorSecondary?: string;
 }
 
 export function SkillRadarChart({
+  results,
   data,
-  title,
+  title = "Skills Profile",
   maxLevel = 7,
   colorPrimary = 'rgb(28, 59, 130)',
   colorSecondary = 'rgba(28, 59, 130, 0.6)'
 }: SkillRadarChartProps) {
+  // Extract skills data from results if no direct data is provided
+  const chartData = data || 
+    (results?.skillMapping?.sfia9?.slice(0, 6)?.map((skill: any) => ({
+      name: typeof skill === 'string' ? skill : skill.skill || skill.name || 'Skill',
+      value: typeof skill === 'string' ? 3 : parseInt(skill.proficiency || skill.level || '3', 10),
+      fullMark: maxLevel
+    })) || 
+    results?.skillMapping?.digcomp22?.slice(0, 6)?.map((skill: any) => ({
+      name: typeof skill === 'string' ? skill : skill.competency || skill.name || 'Skill',
+      value: typeof skill === 'string' ? 3 : parseInt(skill.level || skill.proficiency || '3', 10),
+      fullMark: maxLevel
+    })) || []);
+
+  // Ensure chartData has at least some data
+  if (!chartData || chartData.length === 0) {
+    chartData = [
+      { name: "Technical Skills", value: 3, fullMark: maxLevel },
+      { name: "Communication", value: 4, fullMark: maxLevel },
+      { name: "Leadership", value: 2, fullMark: maxLevel },
+      { name: "Problem Solving", value: 5, fullMark: maxLevel },
+      { name: "Domain Knowledge", value: 3, fullMark: maxLevel },
+    ];
+  }
+  
   // Create adjusted data to ensure all skills show on the radar
-  const adjustedData = data.map(item => ({
+  const adjustedData = chartData.map(item => ({
     ...item,
     // Add a tiny amount to zero values to ensure they appear on the chart
-    value: item.value === 0 ? 0.1 : item.value
+    value: item.value === 0 ? 0.1 : item.value,
+    fullMark: item.fullMark || maxLevel
   }));
 
   return (

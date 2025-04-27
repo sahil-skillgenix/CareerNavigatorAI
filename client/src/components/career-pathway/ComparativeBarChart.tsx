@@ -25,21 +25,53 @@ export interface ChartData {
 }
 
 interface ComparativeBarChartProps {
-  data: ChartData;
+  results: any; // Career analysis results
+  data?: ChartData;
   colors?: string[];
   maxValue?: number;
 }
 
 export function ComparativeBarChart({ 
+  results,
   data,
   colors = ['rgb(28, 59, 130)', 'rgb(163, 29, 82)'],
   maxValue = 7 
 }: ComparativeBarChartProps) {
+  // If direct data is provided, use it, otherwise extract from results
+  const chartData = data || {
+    labels: results?.skillGapAnalysis?.keyGaps?.map((gap: any) => 
+      typeof gap === 'string' ? gap : gap.skill || 'Skill'
+    ) || [],
+    datasets: [
+      {
+        label: 'Current Level',
+        data: results?.skillGapAnalysis?.keyGaps?.map((gap: any) => 
+          typeof gap === 'string' ? 3 : parseInt(gap.currentLevel || '3', 10)
+        ) || [],
+        color: colors[0]
+      },
+      {
+        label: 'Required Level',
+        data: results?.skillGapAnalysis?.keyGaps?.map((gap: any) => 
+          typeof gap === 'string' ? 5 : parseInt(gap.requiredLevel || '5', 10)
+        ) || [],
+        color: colors[1]
+      }
+    ]
+  };
+
+  // Ensure chartData has at least some data
+  if (chartData.labels.length === 0) {
+    chartData.labels = ['Technical', 'Data', 'Management'];
+    chartData.datasets[0].data = [2, 1, 4];
+    chartData.datasets[1].data = [5, 4, 4];
+  }
+  
   // Transform data into the format expected by Recharts
-  const transformedData = data.labels.map((label, index) => {
+  const transformedData = chartData.labels.map((label, index) => {
     const result: Record<string, any> = { name: label };
     
-    data.datasets.forEach((dataset, i) => {
+    chartData.datasets.forEach((dataset, i) => {
       result[dataset.label] = dataset.data[index];
     });
     
@@ -73,7 +105,7 @@ export function ComparativeBarChart({
           wrapperStyle={{ paddingTop: 10 }}
           iconType="circle"
         />
-        {data.datasets.map((dataset, index) => (
+        {chartData.datasets.map((dataset, index) => (
           <Bar 
             key={dataset.label} 
             dataKey={dataset.label} 

@@ -259,7 +259,11 @@ function CareerAnalysisContent() {
                 <CardTitle className="text-lg">Skill Gap Visualization</CardTitle>
               </CardHeader>
               <CardContent className="h-[350px]">
-                <SkillRadarChart results={result} />
+                <SkillRadarChart 
+                  results={result} 
+                  title="Current Skills Profile" 
+                  maxLevel={7}
+                />
               </CardContent>
             </Card>
             <Card>
