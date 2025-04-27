@@ -181,20 +181,32 @@ export default function SavedAnalysesPage() {
           }));
         }
         
+        // If we don't have any skills data, add some placeholder skills to ensure chart displays
+        if (skillData.length === 0) {
+          skillData = [
+            { name: 'Technical Skills', value: 3 },
+            { name: 'Communication', value: 4 },
+            { name: 'Management', value: 3 },
+            { name: 'Domain Knowledge', value: 2 }
+          ];
+        }
+        
         // Cap at 6 skills for the radar chart
         skillData = skillData.slice(0, 6);
         
         // Create SVG radar chart
         const skillRadarChartSvg = `
           <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <style>
-              .radar-chart-title { font-size: 16px; font-weight: bold; fill: #1c3b82; }
-              .axis-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
-              .axis-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; }
-              .level-circle { fill: none; stroke: rgba(0,0,0,0.1); stroke-width: 1; }
-              .skill-polygon { fill: rgba(28,59,130,0.5); stroke: rgb(28,59,130); stroke-width: 2; }
-              .level-label { font-size: 8px; fill: #64748b; text-anchor: middle; }
-            </style>
+            <defs>
+              <style type="text/css">
+                .radar-chart-title { font-size: 16px; font-weight: bold; fill: #1c3b82; text-anchor: middle; }
+                .axis-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+                .axis-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+                .level-circle { fill: none; stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+                .skill-polygon { fill: rgba(28,59,130,0.5); stroke: rgb(28,59,130); stroke-width: 2; }
+                .level-label { font-size: 8px; fill: #64748b; text-anchor: middle; }
+              </style>
+            </defs>
             
             <text x="200" y="25" class="radar-chart-title">Skills Proficiency Radar</text>
             
@@ -207,13 +219,13 @@ export default function SavedAnalysesPage() {
             <circle cx="200" cy="150" r="20" class="level-circle" />
             
             <!-- Level labels -->
-            <text x="200" y="25" class="level-label">7</text>
-            <text x="200" y="45" class="level-label">6</text>
-            <text x="200" y="65" class="level-label">5</text>
-            <text x="200" y="85" class="level-label">4</text>
-            <text x="200" y="105" class="level-label">3</text>
-            <text x="200" y="125" class="level-label">2</text>
-            <text x="200" y="145" class="level-label">1</text>
+            <text x="230" y="40" class="level-label">7</text>
+            <text x="230" y="60" class="level-label">6</text>
+            <text x="230" y="80" class="level-label">5</text>
+            <text x="230" y="100" class="level-label">4</text>
+            <text x="230" y="120" class="level-label">3</text>
+            <text x="230" y="140" class="level-label">2</text>
+            <text x="230" y="160" class="level-label">1</text>
             
             ${skillData.map((skill, index) => {
               // Calculate position on the radar chart for each skill label
@@ -229,11 +241,14 @@ export default function SavedAnalysesPage() {
             }).join('')}
             
             <!-- Skill level polygon -->
-            <polygon points="${skillData.map((skill, index) => {
-              const angle = (Math.PI * 2 * index) / skillData.length;
-              const radius = (skill.value / 7) * 120; // Scale based on max level of 7
-              return `${200 + radius * Math.sin(angle)},${150 - radius * Math.cos(angle)}`;
-            }).join(' ')}" class="skill-polygon" />
+            <polygon 
+              points="${skillData.map((skill, index) => {
+                const angle = (Math.PI * 2 * index) / skillData.length;
+                const radius = (skill.value / 7) * 120; // Scale based on max level of 7
+                return `${200 + radius * Math.sin(angle)},${150 - radius * Math.cos(angle)}`;
+              }).join(' ')}"
+              class="skill-polygon" 
+            />
           </svg>
         `;
         
@@ -252,18 +267,29 @@ export default function SavedAnalysesPage() {
         // Cap at 5 gaps for the bar chart
         gapData = gapData.slice(0, 5);
         
+        // If no gap data, add placeholder data
+        if (gapData.length === 0) {
+          gapData = [
+            { skill: 'Technical', current: 2, required: 5 },
+            { skill: 'Data', current: 1, required: 4 },
+            { skill: 'Management', current: 4, required: 4 }
+          ];
+        }
+
         // Create SVG bar chart for gap analysis
         const gapAnalysisChartSvg = `
           <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <style>
-              .chart-title { font-size: 16px; font-weight: bold; fill: #ff9900; }
-              .axis-label { font-size: 10px; fill: #64748b; }
-              .grid-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; stroke-dasharray: 3,3; }
-              .bar-current { fill: rgba(28,59,130,0.8); }
-              .bar-required { fill: rgba(163,29,82,0.8); }
-              .legend-text { font-size: 10px; fill: #64748b; }
-              .legend-rect { stroke: none; }
-            </style>
+            <defs>
+              <style type="text/css">
+                .chart-title { font-size: 16px; font-weight: bold; fill: #ff9900; text-anchor: middle; }
+                .axis-label { font-size: 10px; fill: #64748b; }
+                .grid-line { stroke: rgba(0,0,0,0.1); stroke-width: 1; stroke-dasharray: 3,3; }
+                .bar-current { fill: rgba(28,59,130,0.8); }
+                .bar-required { fill: rgba(163,29,82,0.8); }
+                .legend-text { font-size: 10px; fill: #64748b; }
+                .legend-rect { stroke: none; }
+              </style>
+            </defs>
             
             <text x="200" y="25" text-anchor="middle" class="chart-title">Skill Gap Analysis</text>
             
@@ -313,22 +339,33 @@ export default function SavedAnalysesPage() {
           }));
         }
         
+        // Add default pathway steps if none exist
+        if (pathwaySteps.length === 0) {
+          pathwaySteps = [
+            { step: 'Skill Building', timeframe: '3-6 months' },
+            { step: 'Certification', timeframe: '6-9 months' },
+            { step: 'Career Transition', timeframe: '9-12 months' }
+          ];
+        }
+        
         // Cap at 4 steps for the pathway visualization
         pathwaySteps = pathwaySteps.slice(0, 4);
         
         // Create pathway visualization
         const careerPathwayVisualizationSvg = `
           <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <style>
-              .pathway-title { font-size: 16px; font-weight: bold; fill: #4f46e5; }
-              .step-circle { fill: rgba(79,70,229,0.2); stroke: #4f46e5; stroke-width: 2; }
-              .step-line { stroke: #4f46e5; stroke-width: 2; stroke-dasharray: 5,5; }
-              .step-number { font-size: 14px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
-              .step-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
-              .timeframe-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
-              .current-role { font-size: 12px; fill: #64748b; text-anchor: start; }
-              .target-role { font-size: 12px; fill: #64748b; text-anchor: end; }
-            </style>
+            <defs>
+              <style type="text/css">
+                .pathway-title { font-size: 16px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
+                .step-circle { fill: rgba(79,70,229,0.2); stroke: #4f46e5; stroke-width: 2; }
+                .step-line { stroke: #4f46e5; stroke-width: 2; stroke-dasharray: 5,5; }
+                .step-number { font-size: 14px; font-weight: bold; fill: #4f46e5; text-anchor: middle; }
+                .step-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
+                .timeframe-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+                .current-role { font-size: 12px; fill: #64748b; text-anchor: start; }
+                .target-role { font-size: 12px; fill: #64748b; text-anchor: end; }
+              </style>
+            </defs>
             
             <text x="200" y="25" text-anchor="middle" class="pathway-title">Career Pathway Steps</text>
             
@@ -360,13 +397,15 @@ export default function SavedAnalysesPage() {
         // Create a basic learning roadmap timeline
         const learningRoadmapVisualizationSvg = `
           <svg width="100%" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <style>
-              .roadmap-title { font-size: 16px; font-weight: bold; fill: #a855f7; }
-              .timeline-line { stroke: #a855f7; stroke-width: 3; }
-              .milestone { fill: white; stroke: #a855f7; stroke-width: 2; }
-              .milestone-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
-              .timeline-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
-            </style>
+            <defs>
+              <style type="text/css">
+                .roadmap-title { font-size: 16px; font-weight: bold; fill: #a855f7; text-anchor: middle; }
+                .timeline-line { stroke: #a855f7; stroke-width: 3; }
+                .milestone { fill: white; stroke: #a855f7; stroke-width: 2; }
+                .milestone-label { font-size: 12px; fill: #1e293b; text-anchor: middle; }
+                .timeline-label { font-size: 10px; fill: #64748b; text-anchor: middle; }
+              </style>
+            </defs>
             
             <text x="200" y="25" text-anchor="middle" class="roadmap-title">Learning Roadmap Timeline</text>
             
