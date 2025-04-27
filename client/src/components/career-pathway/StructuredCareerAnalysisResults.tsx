@@ -2427,7 +2427,7 @@ export function StructuredCareerAnalysisResults({
                   <div>
                     <h5 className="font-medium text-sm mb-2">Key Skills:</h5>
                     <div className="flex flex-wrap gap-1.5">
-                      {growthTrajectory.longTerm.skillsRequired.map((skill: string, idx: number) => (
+                      {growthTrajectory.longTerm.skillsRequired?.map((skill: string, idx: number) => (
                         <Badge key={idx} variant="outline" className="bg-indigo-50 text-indigo-600 text-xs">
                           {skill}
                         </Badge>
@@ -2486,14 +2486,14 @@ export function StructuredCareerAnalysisResults({
             
             <ScrollArea className="h-[450px] pr-4 -mr-4">
               <div className="pb-4">
-                {learningPathRoadmap.careerTrajectory.map((stage: any, index: number) => (
+                {learningPathRoadmap.careerTrajectory?.map((stage: any, index: number) => (
                   <motion.div
                     key={index}
                     variants={fadeInUp}
                     custom={index * 0.15}
                     className="relative mb-12 last:mb-0"
                   >
-                    {index < learningPathRoadmap.careerTrajectory.length - 1 && (
+                    {index < (learningPathRoadmap.careerTrajectory?.length || 0) - 1 && (
                       <div className="absolute top-16 bottom-[-1rem] left-[5.5rem] border-l-2 border-dashed border-pink-300 z-0"></div>
                     )}
                     
@@ -2517,7 +2517,7 @@ export function StructuredCareerAnalysisResults({
                           <div>
                             <h5 className="text-sm font-medium mb-2">Key Skills:</h5>
                             <div className="flex flex-wrap gap-1.5">
-                              {stage.skills.map((skill: string, idx: number) => (
+                              {stage.skills?.map((skill: string, idx: number) => (
                                 <Badge key={idx} variant="outline" className="bg-pink-50 text-pink-600 text-xs">
                                   {skill}
                                 </Badge>
@@ -2528,7 +2528,7 @@ export function StructuredCareerAnalysisResults({
                           <div>
                             <h5 className="text-sm font-medium mb-2">Key Milestones:</h5>
                             <ul className="space-y-1">
-                              {stage.milestones.map((milestone: string, idx: number) => (
+                              {stage.milestones?.map((milestone: string, idx: number) => (
                                 <li key={idx} className="text-sm flex items-start gap-2">
                                   <CheckCircle className="h-4 w-4 text-pink-500 flex-shrink-0 mt-0.5" />
                                   <span>{milestone}</span>
