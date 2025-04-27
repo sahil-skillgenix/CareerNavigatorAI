@@ -876,9 +876,9 @@ export function StructuredCareerPathwayForm() {
               Structured Format
             </Badge>
           </div>
-          <CardTitle className="text-2xl md:text-3xl">Advanced Career Analysis</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl">AI Career Analysis</CardTitle>
           <CardDescription className="text-base">
-            Generate a comprehensive career development plan using our structured 11-section analysis framework, powered by SFIA 9 and DigComp 2.2.
+            Fill in the form below to get a personalized career development plan based on SFIA 9 and DigComp 2.2 frameworks. Our AI will analyze your skills and experience to create a tailored pathway toward your goals.
           </CardDescription>
         </CardHeader>
         

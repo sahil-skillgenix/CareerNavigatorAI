@@ -37,7 +37,7 @@ export function Navigation() {
       icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
     },
     {
-      name: "AI Career Analysis",
+      name: "Skillgenix AI Career Analysis",
       path: "/structured-pathway",
       icon: <Sparkles className="h-5 w-5 mr-2" />,
     },

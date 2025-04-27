@@ -20,7 +20,7 @@ export default function StructuredPathwayPage() {
       >
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            AI Career Analysis
+            Skillgenix AI Career Analysis
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
             This tool analyzes your skills, experience, and career goals to create a personalized development pathway. It uses both
