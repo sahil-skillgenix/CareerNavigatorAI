@@ -2085,7 +2085,7 @@ export function StructuredCareerAnalysisResults({
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {similarRoles.roles.map((role: any, index: number) => (
+              {similarRoles.roles?.map((role: any, index: number) => (
                 <motion.div
                   key={index}
                   variants={fadeInUp}
@@ -2116,7 +2116,7 @@ export function StructuredCareerAnalysisResults({
                           Skill Overlap
                         </h5>
                         <div className="flex flex-wrap gap-1.5">
-                          {role.keySkillOverlap.map((skill: string, idx: number) => (
+                          {role.keySkillOverlap?.map((skill: string, idx: number) => (
                             <Badge key={idx} variant="outline" className="bg-green-50 text-green-600 text-xs">
                               {skill}
                             </Badge>
@@ -2130,7 +2130,7 @@ export function StructuredCareerAnalysisResults({
                           Additional Skills Needed
                         </h5>
                         <div className="flex flex-wrap gap-1.5">
-                          {role.additionalSkillsNeeded.map((skill: string, idx: number) => (
+                          {role.additionalSkillsNeeded?.map((skill: string, idx: number) => (
                             <Badge key={idx} variant="outline" className="bg-amber-50 text-amber-600 text-xs">
                               {skill}
                             </Badge>
@@ -2203,7 +2203,7 @@ export function StructuredCareerAnalysisResults({
               </h4>
               
               <div className="space-y-3">
-                {quickTips.quickWins.map((tip: any, index: number) => (
+                {quickTips.quickWins?.map((tip: any, index: number) => (
                   <motion.div
                     key={index}
                     variants={fadeInLeft}
@@ -2247,7 +2247,7 @@ export function StructuredCareerAnalysisResults({
               
               <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border border-yellow-100">
                 <ul className="space-y-3">
-                  {quickTips.industryInsights.map((insight: string, index: number) => (
+                  {quickTips.industryInsights?.map((insight: string, index: number) => (
                     <motion.li
                       key={index}
                       variants={fadeInRight}
@@ -2331,7 +2331,7 @@ export function StructuredCareerAnalysisResults({
                   <div>
                     <h5 className="font-medium text-sm mb-2">Responsibilities:</h5>
                     <ul className="space-y-1">
-                      {growthTrajectory.shortTerm.responsibilities.map((responsibility: string, idx: number) => (
+                      {growthTrajectory.shortTerm.responsibilities?.map((responsibility: string, idx: number) => (
                         <li key={idx} className="text-sm flex items-start gap-2">
                           <Check className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
                           <span>{responsibility}</span>
@@ -2343,7 +2343,7 @@ export function StructuredCareerAnalysisResults({
                   <div>
                     <h5 className="font-medium text-sm mb-2">Key Skills:</h5>
                     <div className="flex flex-wrap gap-1.5">
-                      {growthTrajectory.shortTerm.skillsRequired.map((skill: string, idx: number) => (
+                      {growthTrajectory.shortTerm.skillsRequired?.map((skill: string, idx: number) => (
                         <Badge key={idx} variant="outline" className="bg-blue-50 text-blue-600 text-xs">
                           {skill}
                         </Badge>
@@ -2373,7 +2373,7 @@ export function StructuredCareerAnalysisResults({
                   <div>
                     <h5 className="font-medium text-sm mb-2">Responsibilities:</h5>
                     <ul className="space-y-1">
-                      {growthTrajectory.mediumTerm.responsibilities.map((responsibility: string, idx: number) => (
+                      {growthTrajectory.mediumTerm.responsibilities?.map((responsibility: string, idx: number) => (
                         <li key={idx} className="text-sm flex items-start gap-2">
                           <Check className="h-4 w-4 text-teal-500 flex-shrink-0 mt-0.5" />
                           <span>{responsibility}</span>
@@ -2385,7 +2385,7 @@ export function StructuredCareerAnalysisResults({
                   <div>
                     <h5 className="font-medium text-sm mb-2">Key Skills:</h5>
                     <div className="flex flex-wrap gap-1.5">
-                      {growthTrajectory.mediumTerm.skillsRequired.map((skill: string, idx: number) => (
+                      {growthTrajectory.mediumTerm.skillsRequired?.map((skill: string, idx: number) => (
                         <Badge key={idx} variant="outline" className="bg-teal-50 text-teal-600 text-xs">
                           {skill}
                         </Badge>
@@ -2415,7 +2415,7 @@ export function StructuredCareerAnalysisResults({
                   <div>
                     <h5 className="font-medium text-sm mb-2">Responsibilities:</h5>
                     <ul className="space-y-1">
-                      {growthTrajectory.longTerm.responsibilities.map((responsibility: string, idx: number) => (
+                      {growthTrajectory.longTerm.responsibilities?.map((responsibility: string, idx: number) => (
                         <li key={idx} className="text-sm flex items-start gap-2">
                           <Check className="h-4 w-4 text-indigo-500 flex-shrink-0 mt-0.5" />
                           <span>{responsibility}</span>
