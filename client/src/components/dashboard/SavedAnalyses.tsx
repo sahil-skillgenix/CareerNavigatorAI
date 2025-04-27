@@ -361,6 +361,15 @@ export function SavedAnalyses() {
                         <ScrollText className="mr-2 h-5 w-5" />
                         Executive Summary
                       </h2>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs px-2 h-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => toggleSectionDebug('executiveSummary')}
+                      >
+                        <Bug className="h-3.5 w-3.5 mr-1" />
+                        {sectionDebug['executiveSummary'] ? 'Hide Debug' : 'Debug'}
+                      </Button>
                     </div>
                     
                     {latestAnalysis.result.executiveSummary ? (
@@ -416,6 +425,15 @@ export function SavedAnalyses() {
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-5 w-5 lucide-gauge"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>
                         Skill Mapping
                       </h2>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs px-2 h-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => toggleSectionDebug('skillMapping')}
+                      >
+                        <Bug className="h-3.5 w-3.5 mr-1" />
+                        {sectionDebug['skillMapping'] ? 'Hide Debug' : 'Debug'}
+                      </Button>
                     </div>
                     
                     <div className="space-y-6">
