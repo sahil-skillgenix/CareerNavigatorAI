@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
-import { CareerAnalysisReport } from '../../../shared/reportSchema';
+import { CareerAnalysisReport } from '@shared/reportSchema';
 import { SkillRadarChart } from './SkillRadarChart';
 import { ComparativeBarChart } from './ComparativeBarChart';
 import { CareerPathwayStepsDisplay } from './CareerPathwayStepsDisplay';
