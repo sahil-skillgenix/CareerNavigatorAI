@@ -5,6 +5,7 @@
  * using the OpenAI API integration.
  */
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,132 @@ const professionalLevelOptions = [
 ];
 
 /**
+ * Normalizes the API response to ensure it has the expected format for rendering
+ * This handles any inconsistencies between the API output and component expectations
+ */
+function normalizeApiResponse(apiResponse: any): CareerAnalysisReport {
+  console.log('API Response structure:', Object.keys(apiResponse));
+  
+  // Create a default structure that matches what the component expects
+  const normalizedResponse: CareerAnalysisReport = {
+    executiveSummary: apiResponse.executiveSummary || {
+      summary: '',
+      careerGoal: '',
+      fitScore: { score: 0, outOf: 10, description: '' },
+      keyFindings: []
+    },
+    skillMapping: apiResponse.skillMapping || {
+      skillsAnalysis: '',
+      sfiaSkills: [],
+      digCompSkills: [],
+      otherSkills: []
+    },
+    skillGapAnalysis: apiResponse.skillGapAnalysis || {
+      targetRole: '',
+      currentProficiencyData: { labels: [], datasets: [] },
+      gapAnalysisData: { labels: [], datasets: [] },
+      aiAnalysis: '',
+      keyGaps: [],
+      keyStrengths: []
+    },
+    careerPathwayOptions: apiResponse.careerPathwayOptions || {
+      pathwayDescription: '',
+      currentRole: '',
+      targetRole: '',
+      timeframe: '',
+      pathwaySteps: [],
+      universityPathway: [],
+      vocationalPathway: [],
+      aiInsights: ''
+    },
+    developmentPlan: apiResponse.developmentPlan || {
+      overview: '',
+      technicalSkills: [],
+      softSkills: []
+    },
+    educationalPrograms: apiResponse.educationalPrograms || {
+      introduction: '',
+      formalEducation: [],
+      certifications: []
+    },
+    learningRoadmap: apiResponse.learningRoadmap || {
+      introduction: '',
+      shortTerm: { timeframe: '', goals: [] },
+      mediumTerm: { timeframe: '', goals: [] },
+      longTerm: { timeframe: '', goals: [] }
+    },
+    similarRoles: apiResponse.similarRoles || {
+      introduction: '',
+      roles: []
+    },
+    quickTips: apiResponse.quickTips || {
+      careerAdvice: [],
+      skillDevelopment: []
+    },
+    growthTrajectory: apiResponse.growthTrajectory || {
+      overview: '',
+      promotionTimeline: '',
+      salaryExpectations: [],
+      careerMilestones: []
+    },
+    learningPathRoadmap: apiResponse.learningPathRoadmap || {
+      introduction: '',
+      keyStages: []
+    },
+    timestamp: Date.now(),
+    dateFormatted: new Date().toISOString()
+  };
+  
+  // Fix universityPathway and vocationalPathway if they're not arrays
+  if (normalizedResponse.careerPathwayOptions.universityPathway && 
+      !Array.isArray(normalizedResponse.careerPathwayOptions.universityPathway)) {
+    console.log('Fixing universityPathway - not an array');
+    normalizedResponse.careerPathwayOptions.universityPathway = [];
+  }
+  
+  if (normalizedResponse.careerPathwayOptions.vocationalPathway && 
+      !Array.isArray(normalizedResponse.careerPathwayOptions.vocationalPathway)) {
+    console.log('Fixing vocationalPathway - not an array');
+    normalizedResponse.careerPathwayOptions.vocationalPathway = [];
+  }
+  
+  // Add any missing arrays that should be arrays but aren't
+  const arrayFields = [
+    'keyFindings', 'sfiaSkills', 'digCompSkills', 'otherSkills', 
+    'keyGaps', 'keyStrengths', 'pathwaySteps', 'technicalSkills', 
+    'softSkills', 'formalEducation', 'certifications', 'roles',
+    'careerAdvice', 'skillDevelopment', 'salaryExpectations', 
+    'careerMilestones', 'keyStages'
+  ];
+  
+  arrayFields.forEach(field => {
+    // Find the parent object that contains this field
+    const path = field.split('.');
+    let current = normalizedResponse as any;
+    let parentPath = '';
+    
+    // Navigate through nested objects if needed
+    if (path.length > 1) {
+      for (let i = 0; i < path.length - 1; i++) {
+        parentPath = path[i];
+        if (current[parentPath]) {
+          current = current[parentPath];
+        }
+      }
+      field = path[path.length - 1];
+    }
+    
+    // Ensure the field is an array
+    if (current[field] === undefined || current[field] === null || !Array.isArray(current[field])) {
+      console.log(`Fixing ${parentPath ? `${parentPath}.${field}` : field} - not an array`);
+      current[field] = [];
+    }
+  });
+  
+  return normalizedResponse;
+}
+
+/**
  * Enhanced Form Component with real API integration
  */
 export function StructuredCareerPathwayFormEnhanced() {
@@ -102,7 +229,10 @@ export function StructuredCareerPathwayFormEnhanced() {
       }
       
       const result = await response.json();
-      setResults(result);
+      
+      // Data format validation and normalization
+      const normalizedResult = normalizeApiResponse(result);
+      setResults(normalizedResult);
       
       toast({
         title: 'Career Analysis Generated',
