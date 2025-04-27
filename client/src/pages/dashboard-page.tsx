@@ -32,17 +32,36 @@ export default function DashboardPage() {
     <AuthenticatedLayout title="Dashboard">
       {/* Welcome Message */}
       <motion.section 
-        className="mb-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl py-8 px-6 max-w-7xl mx-auto shadow-sm"
+        className="mb-12 max-w-7xl mx-auto relative overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div>
-          <h1 className="text-3xl font-bold mb-4">Welcome, {user?.fullName || 'Skillgenix User'}!</h1>
-          <p className="mb-4 text-gray-700">
-            This is your personalized dashboard where you can track your career progress, 
-            review your saved analyses, and discover recommended learning resources.
-          </p>
+        <div className="rounded-xl bg-gradient-to-r from-blue-600/10 via-indigo-500/10 to-purple-500/10 p-0.5">
+          <div className="bg-white rounded-[calc(0.75rem-1px)] p-8 relative overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-100 rounded-full opacity-70 blur-xl"></div>
+            <div className="absolute top-12 -left-12 w-32 h-32 bg-indigo-100 rounded-full opacity-60 blur-xl"></div>
+            
+            <div className="relative z-10">
+              <div className="inline-flex items-center bg-blue-50/80 rounded-full px-3 py-1 text-blue-700 text-sm font-medium mb-4">
+                <span className="mr-1.5 flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                Dashboard Overview
+              </div>
+              
+              <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-700 bg-clip-text text-transparent">
+                Welcome, {user?.fullName || 'Skillgenix User'}!
+              </h1>
+              
+              <p className="text-gray-600 max-w-3xl text-base md:text-lg">
+                This is your personalized dashboard where you can track your career progress, 
+                review your saved analyses, and discover recommended learning resources.
+              </p>
+            </div>
+          </div>
         </div>
       </motion.section>
       
