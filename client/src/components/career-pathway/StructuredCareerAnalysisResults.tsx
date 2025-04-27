@@ -981,7 +981,7 @@ export function StructuredCareerAnalysisResults({
               >
                 <h4 className="text-sm font-medium text-muted-foreground mb-1">Key Findings</h4>
                 <ul className="space-y-1.5">
-                  {executiveSummary.keyFindings.map((finding, index) => (
+                  {executiveSummary.keyFindings?.map((finding, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
                       <span>{finding}</span>
@@ -1060,7 +1060,7 @@ export function StructuredCareerAnalysisResults({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {skillMapping.sfiaSkills.map((skill: any, index: number) => (
+                  {skillMapping.sfiaSkills?.map((skill: any, index: number) => (
                     <motion.div
                       key={index}
                       variants={fadeInLeft}
@@ -1079,7 +1079,7 @@ export function StructuredCareerAnalysisResults({
                 {skillMapping.sfiaSkills.length > 0 && (
                   <div className="mt-4 p-4 bg-slate-50 rounded-lg">
                     <SkillRadarChart 
-                      data={skillMapping.sfiaSkills.map((skill: any) => ({
+                      data={skillMapping.sfiaSkills?.map((skill: any) => ({
                         name: skill.skill,
                         value: skill.proficiency,
                         fullMark: 7
@@ -1114,7 +1114,7 @@ export function StructuredCareerAnalysisResults({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {skillMapping.digCompSkills.map((skill: any, index: number) => (
+                  {skillMapping.digCompSkills?.map((skill: any, index: number) => (
                     <motion.div
                       key={index}
                       variants={fadeInRight}
@@ -1154,7 +1154,7 @@ export function StructuredCareerAnalysisResults({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {skillMapping.otherSkills.map((skill: any, index: number) => (
+                  {skillMapping.otherSkills?.map((skill: any, index: number) => (
                     <motion.div
                       key={index}
                       variants={fadeInUp}
@@ -1293,7 +1293,7 @@ export function StructuredCareerAnalysisResults({
                 </h4>
                 
                 <div className="space-y-3">
-                  {skillGapAnalysis.keyGaps.map((gap: any, index: number) => (
+                  {skillGapAnalysis.keyGaps?.map((gap: any, index: number) => (
                     <motion.div
                       key={index}
                       variants={fadeInLeft}
@@ -1346,7 +1346,7 @@ export function StructuredCareerAnalysisResults({
                 </h4>
                 
                 <div className="space-y-3">
-                  {skillGapAnalysis.keyStrengths.map((strength: any, index: number) => (
+                  {skillGapAnalysis.keyStrengths?.map((strength: any, index: number) => (
                     <motion.div
                       key={index}
                       variants={fadeInRight}
@@ -1455,7 +1455,7 @@ export function StructuredCareerAnalysisResults({
                 </h4>
                 
                 <div className="space-y-3">
-                  {careerPathwayOptions.universityPathway.map((degree: any, index: number) => (
+                  {careerPathwayOptions.universityPathway?.map((degree: any, index: number) => (
                     <Accordion key={index} type="single" collapsible className="border rounded-lg">
                       <AccordionItem value={`degree-${index}`} className="border-0">
                         <AccordionTrigger className="px-4 py-2 hover:bg-indigo-50 data-[state=open]:bg-indigo-50">
@@ -1514,7 +1514,7 @@ export function StructuredCareerAnalysisResults({
                 </h4>
                 
                 <div className="space-y-3">
-                  {careerPathwayOptions.vocationalPathway.map((cert: any, index: number) => (
+                  {careerPathwayOptions.vocationalPathway?.map((cert: any, index: number) => (
                     <Accordion key={index} type="single" collapsible className="border rounded-lg">
                       <AccordionItem value={`cert-${index}`} className="border-0">
                         <AccordionTrigger className="px-4 py-2 hover:bg-orange-50 data-[state=open]:bg-orange-50">
