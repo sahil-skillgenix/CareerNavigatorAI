@@ -323,74 +323,161 @@ function normalizeApiResponse(apiResponse: any): CareerAnalysisReport {
       roles: (apiResponse.similarRoles && Array.isArray(apiResponse.similarRoles.roles)) ? 
         apiResponse.similarRoles.roles : [
           {
-            title: 'Data Analyst',
-            fitScore: '85',
-            description: 'Focuses on analyzing data and creating visualizations',
-            skillAlignment: 'High overlap with current skills',
-            transitionEase: 'Easier transition path than primary target role'
+            role: 'Data Analyst',
+            similarityScore: 85,
+            keySkillOverlap: ['Data Visualization', 'SQL', 'Statistical Analysis'],
+            additionalSkillsNeeded: ['Advanced Excel', 'Business Intelligence Tools'],
+            summary: 'Excellent fit with your current skills. This role focuses on analyzing data and creating visualizations, with high overlap with your existing skill set.'
           },
           {
-            title: 'Business Intelligence Analyst',
-            fitScore: '80',
-            description: 'Combines business knowledge with technical skills',
-            skillAlignment: 'Very high overlap with current skills',
-            transitionEase: 'Natural transition from current role'
+            role: 'Business Intelligence Analyst',
+            similarityScore: 80,
+            keySkillOverlap: ['SQL', 'Data Analysis', 'Dashboard Creation'],
+            additionalSkillsNeeded: ['Tableau', 'Power BI', 'Business Knowledge'],
+            summary: 'Strong fit with a business focus. Combines technical abilities with business knowledge, representing a natural transition from your current role.'
           }
         ]
     },
     
     quickTips: {
-      careerAdvice: (apiResponse.quickTips && Array.isArray(apiResponse.quickTips.careerAdvice)) ? 
-        apiResponse.quickTips.careerAdvice : [
-          'Join data science communities to network with professionals',
-          'Contribute to open-source projects to build portfolio',
-          'Attend industry meetups and conferences'
+      introduction: (apiResponse.quickTips && apiResponse.quickTips.introduction) || 
+        'Actionable tips for immediate progress on your career journey.',
+      quickWins: (apiResponse.quickTips && Array.isArray(apiResponse.quickTips.quickWins)) ? 
+        apiResponse.quickTips.quickWins : [
+          {
+            tip: 'Join data science communities to network with professionals',
+            timeframe: 'This week',
+            impact: 'High - expands your professional network'
+          },
+          {
+            tip: 'Create a GitHub profile and start contributing to open-source',
+            timeframe: 'Next 2 weeks',
+            impact: 'Medium - demonstrates practical skills to employers'
+          },
+          {
+            tip: 'Complete one online Python programming challenge daily',
+            timeframe: 'Daily',
+            impact: 'High - rapidly builds coding proficiency'
+          }
         ],
-      skillDevelopment: (apiResponse.quickTips && Array.isArray(apiResponse.quickTips.skillDevelopment)) ? 
-        apiResponse.quickTips.skillDevelopment : [
-          'Practice coding daily, even if just for 30 minutes',
-          'Work through real-world datasets on platforms like Kaggle',
-          'Follow data science blogs and podcasts to stay current'
+      industryInsights: (apiResponse.quickTips && Array.isArray(apiResponse.quickTips.industryInsights)) ? 
+        apiResponse.quickTips.industryInsights : [
+          'The data science field is increasingly specializing - focus on your area of interest',
+          'Cloud-based data processing skills are highly valued in the current job market',
+          'Communication skills are becoming as important as technical abilities for data roles'
         ]
     },
     
     growthTrajectory: {
-      overview: (apiResponse.growthTrajectory && apiResponse.growthTrajectory.overview) || 
-        'Long-term career growth potential and progression path.',
-      promotionTimeline: (apiResponse.growthTrajectory && apiResponse.growthTrajectory.promotionTimeline) || 
-        'Typical progression from Junior to Senior in 3-5 years with consistent skill development',
-      salaryExpectations: (apiResponse.growthTrajectory && Array.isArray(apiResponse.growthTrajectory.salaryExpectations)) ? 
-        apiResponse.growthTrajectory.salaryExpectations : [
-          { level: 'Entry-Level', range: '$70,000 - $90,000', timeframe: 'First 1-2 years' },
-          { level: 'Mid-Level', range: '$90,000 - $120,000', timeframe: '2-5 years' },
-          { level: 'Senior-Level', range: '$120,000 - $160,000+', timeframe: '5+ years' }
-        ],
-      careerMilestones: (apiResponse.growthTrajectory && Array.isArray(apiResponse.growthTrajectory.careerMilestones)) ? 
-        apiResponse.growthTrajectory.careerMilestones : [
-          { milestone: 'First Junior Position', timeframe: '6-12 months', description: 'Entry-level position applying basic skills' },
-          { milestone: 'Leading Small Projects', timeframe: '2-3 years', description: 'Taking ownership of data projects' },
-          { milestone: 'Senior/Lead Role', timeframe: '5+ years', description: 'Leading teams and setting technical direction' }
-        ]
+      introduction: (apiResponse.growthTrajectory && apiResponse.growthTrajectory.introduction) || 
+        'Long-term career growth potential and progression path in data science.',
+      shortTerm: (apiResponse.growthTrajectory && apiResponse.growthTrajectory.shortTerm) || 
+        {
+          role: 'Junior Data Scientist',
+          timeline: '1-2 years',
+          responsibilities: [
+            'Assisting with data preparation and cleaning',
+            'Building basic models under supervision',
+            'Creating visualizations and simple reports'
+          ],
+          skillsRequired: [
+            'Python programming',
+            'Basic statistics',
+            'Data visualization',
+            'SQL fundamentals'
+          ],
+          salary: {
+            min: 70000,
+            max: 90000,
+            currency: 'USD'
+          }
+        },
+      mediumTerm: (apiResponse.growthTrajectory && apiResponse.growthTrajectory.mediumTerm) || 
+        {
+          role: 'Data Scientist',
+          timeline: '2-5 years',
+          responsibilities: [
+            'Leading analysis projects independently',
+            'Developing complex models with minimal supervision',
+            'Communicating insights to stakeholders',
+            'Mentoring junior team members'
+          ],
+          skillsRequired: [
+            'Advanced ML techniques',
+            'Feature engineering',
+            'Model optimization',
+            'Business domain knowledge'
+          ],
+          salary: {
+            min: 90000,
+            max: 120000,
+            currency: 'USD'
+          }
+        },
+      longTerm: (apiResponse.growthTrajectory && apiResponse.growthTrajectory.longTerm) || 
+        {
+          role: 'Senior Data Scientist / Lead',
+          timeline: '5+ years',
+          responsibilities: [
+            'Leading teams and setting technical direction',
+            'Architecting data science solutions',
+            'Making strategic data-driven recommendations',
+            'Setting department standards and best practices'
+          ],
+          skillsRequired: [
+            'Team leadership',
+            'Advanced ML systems design',
+            'Project management',
+            'Strategic thinking'
+          ],
+          salary: {
+            min: 120000,
+            max: 180000,
+            currency: 'USD'
+          }
+        }
     },
     
     learningPathRoadmap: {
-      introduction: (apiResponse.learningPathRoadmap && apiResponse.learningPathRoadmap.introduction) || 
-        'Detailed learning path with specific resources and milestones.',
-      keyStages: (apiResponse.learningPathRoadmap && Array.isArray(apiResponse.learningPathRoadmap.keyStages)) ? 
-        apiResponse.learningPathRoadmap.keyStages : [
+      overview: (apiResponse.learningPathRoadmap && apiResponse.learningPathRoadmap.overview) || 
+        'Detailed learning path roadmap with specific career stages and milestones.',
+      careerTrajectory: (apiResponse.learningPathRoadmap && Array.isArray(apiResponse.learningPathRoadmap.careerTrajectory)) ? 
+        apiResponse.learningPathRoadmap.careerTrajectory : [
           {
-            stage: 'Foundations',
-            skills: ['Python', 'Statistics', 'Data Visualization'],
-            resources: ['Python for Data Analysis Book', 'Khan Academy Statistics'],
-            projects: ['Exploratory Data Analysis Project'],
-            timeEstimate: '3 months'
+            stage: 'Entry',
+            timeframe: '0-1 years',
+            role: 'Junior Data Scientist',
+            skills: ['Python', 'Statistics', 'Data Visualization', 'SQL Basics'],
+            milestones: [
+              'Complete foundational training in Python and statistics',
+              'Build first data analysis project',
+              'Participate in team projects under supervision',
+              'Learn the company data infrastructure'
+            ]
           },
           {
-            stage: 'Intermediate',
-            skills: ['Machine Learning Basics', 'SQL', 'Data Cleaning'],
-            resources: ['Andrew Ng Machine Learning Course', 'Mode Analytics SQL Tutorial'],
-            projects: ['Predictive Model for Tabular Data'],
-            timeEstimate: '3-6 months'
+            stage: 'Advancement',
+            timeframe: '1-3 years',
+            role: 'Data Scientist',
+            skills: ['Machine Learning Algorithms', 'Feature Engineering', 'ETL Processes', 'Model Deployment'],
+            milestones: [
+              'Lead independent analysis projects',
+              'Develop machine learning models in production',
+              'Present findings to stakeholders',
+              'Mentor junior team members'
+            ]
+          },
+          {
+            stage: 'Mastery',
+            timeframe: '3-5+ years',
+            role: 'Senior Data Scientist',
+            skills: ['Advanced ML Systems', 'Team Leadership', 'Strategic Data Planning', 'Research Direction'],
+            milestones: [
+              'Lead cross-functional data science initiatives',
+              'Architect complex data science solutions',
+              'Drive methodological improvements',
+              'Influence organization-wide data strategy'
+            ]
           }
         ]
     },
@@ -399,18 +486,8 @@ function normalizeApiResponse(apiResponse: any): CareerAnalysisReport {
     dateFormatted: new Date().toISOString()
   };
   
-  // If we have received nested objects without the right structure, normalize them here
-  // Cast to any to handle dynamic property access
-  const roadmap = normalizedResponse.learningRoadmap as any;
-  ['shortTerm', 'mediumTerm', 'longTerm'].forEach(term => {
-    if (roadmap[term] && !roadmap[term].goals) {
-      // Fix the structure if it doesn't match expected format
-      roadmap[term] = {
-        timeframe: roadmap[term].timeframe || '0-0 months',
-        goals: Array.isArray(roadmap[term].goals) ? roadmap[term].goals : []
-      };
-    }
-  });
+  // We've updated all section structures to match the reportSchema
+  // No need for extra normalization steps here
   
   console.log('Normalized response ready:', Object.keys(normalizedResponse));
   return normalizedResponse;
