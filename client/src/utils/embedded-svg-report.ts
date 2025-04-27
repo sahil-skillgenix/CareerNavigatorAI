@@ -685,15 +685,14 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
       </div>
       ${sectionSpacing}
       
-      <!-- Learning Roadmap -->
-      ${report.learningRoadmap ? `
+      <!-- Learning Roadmap (Section 5) -->
       <div class="section learning-roadmap">
         <div class="section-title">
-          <div class="section-icon">7</div>
+          <div class="section-icon">5</div>
           Learning Roadmap
         </div>
         <div class="summary-box">
-          <p>${report.learningRoadmap.overview || 'This roadmap visualizes your learning journey, from foundational to advanced skills.'}</p>
+          <p>${ensuredReport.learningRoadmap.overview}</p>
         </div>
         
         <div class="chart-container">
@@ -704,31 +703,304 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
         <div>
           <h3>Foundational Skills (First 3 months)</h3>
           <ul class="findings-list">
-            ${report.learningRoadmap.foundationalSkills && report.learningRoadmap.foundationalSkills.length > 0 ? 
-              report.learningRoadmap.foundationalSkills.map(skill => `<li>${skill}</li>`).join('') : 
-              '<li>Basic programming and data concepts</li>'}
+            ${ensuredReport.learningRoadmap.foundationalSkills && ensuredReport.learningRoadmap.foundationalSkills.length > 0 ? 
+              ensuredReport.learningRoadmap.foundationalSkills.map(skill => `<li>${skill}</li>`).join('') : 
+              '<li>Basic industry concepts</li><li>Fundamental technical skills</li><li>Entry-level certifications</li>'}
           </ul>
         </div>
         
         <div>
           <h3>Intermediate Skills (Months 3-6)</h3>
           <ul class="findings-list">
-            ${report.learningRoadmap.intermediateSkills && report.learningRoadmap.intermediateSkills.length > 0 ? 
-              report.learningRoadmap.intermediateSkills.map(skill => `<li>${skill}</li>`).join('') : 
-              '<li>Applied techniques and portfolio-building projects</li>'}
+            ${ensuredReport.learningRoadmap.intermediateSkills && ensuredReport.learningRoadmap.intermediateSkills.length > 0 ? 
+              ensuredReport.learningRoadmap.intermediateSkills.map(skill => `<li>${skill}</li>`).join('') : 
+              '<li>Applied techniques</li><li>Practical project experience</li><li>More specialized knowledge</li>'}
           </ul>
         </div>
         
         <div>
           <h3>Advanced Skills (Months 6+)</h3>
           <ul class="findings-list">
-            ${report.learningRoadmap.advancedSkills && report.learningRoadmap.advancedSkills.length > 0 ? 
-              report.learningRoadmap.advancedSkills.map(skill => `<li>${skill}</li>`).join('') : 
-              '<li>Specialized knowledge and industry-specific applications</li>'}
+            ${ensuredReport.learningRoadmap.advancedSkills && ensuredReport.learningRoadmap.advancedSkills.length > 0 ? 
+              ensuredReport.learningRoadmap.advancedSkills.map(skill => `<li>${skill}</li>`).join('') : 
+              '<li>Leadership and strategic thinking</li><li>Advanced industry knowledge</li><li>Expert-level technical skills</li>'}
           </ul>
         </div>
       </div>
-      ` : ''}
+      ${sectionSpacing}
+      
+      <!-- Similar Roles (Section 6) -->
+      <div class="section similar-roles">
+        <div class="section-title">
+          <div class="section-icon">6</div>
+          Similar Roles
+        </div>
+        <div class="summary-box">
+          <p>${ensuredReport.similarRoles.introduction}</p>
+        </div>
+        
+        <div>
+          ${ensuredReport.similarRoles.roles && ensuredReport.similarRoles.roles.length > 0 ? `
+            ${ensuredReport.similarRoles.roles.map(role => `
+              <div class="info-card" style="margin-bottom: 15px;">
+                <div style="font-weight: 600;">${typeof role === 'string' ? role : role.title || role.name || 'Related Role'}</div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                  ${typeof role !== 'string' && role.description ? role.description : 'This role shares similar responsibilities and skill requirements with your target role.'}
+                </div>
+                ${typeof role !== 'string' && role.matchScore ? `
+                  <div style="margin-top: 8px;">
+                    <span class="badge">Match: ${role.matchScore}%</span>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          ` : `
+            <div class="info-card" style="margin-bottom: 15px;">
+              <div style="font-weight: 600;">Senior ${metadata.targetRole || 'Professional'}</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Advanced version of your target role with more responsibilities and strategic decision-making.
+              </div>
+            </div>
+            <div class="info-card" style="margin-bottom: 15px;">
+              <div style="font-weight: 600;">${metadata.targetRole || 'Role'} Manager</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Managerial role that requires both technical knowledge and leadership skills.
+              </div>
+            </div>
+            <div class="info-card">
+              <div style="font-weight: 600;">Consultant ${metadata.targetRole || 'Specialist'}</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Advisory role focused on providing expert guidance in the field.
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+      ${sectionSpacing}
+      
+      <!-- Quick Tips (Section 7) -->
+      <div class="section quick-tips">
+        <div class="section-title">
+          <div class="section-icon">7</div>
+          Quick Tips
+        </div>
+        <div class="summary-box">
+          <p>${ensuredReport.quickTips.introduction}</p>
+        </div>
+        
+        <div class="two-columns">
+          <div>
+            <h3>Career Tips</h3>
+            <ul class="findings-list">
+              ${ensuredReport.quickTips.careerTips && ensuredReport.quickTips.careerTips.length > 0 ? 
+                ensuredReport.quickTips.careerTips.map(tip => `<li>${tip}</li>`).join('') : 
+                '<li>Develop a personal brand focused on your target role</li><li>Network with professionals in your field</li><li>Create a portfolio showcasing relevant projects</li>'}
+            </ul>
+          </div>
+          <div>
+            <h3>Learning Tips</h3>
+            <ul class="findings-list">
+              ${ensuredReport.quickTips.learningTips && ensuredReport.quickTips.learningTips.length > 0 ? 
+                ensuredReport.quickTips.learningTips.map(tip => `<li>${tip}</li>`).join('') : 
+                '<li>Schedule regular learning time</li><li>Join communities of practice</li><li>Apply new skills to real-world problems</li>'}
+            </ul>
+          </div>
+        </div>
+      </div>
+      ${sectionSpacing}
+      
+      <!-- Growth Trajectory (Section 8) -->
+      <div class="section growth-trajectory">
+        <div class="section-title">
+          <div class="section-icon">8</div>
+          Growth Trajectory
+        </div>
+        <div class="summary-box">
+          <p>${ensuredReport.growthTrajectory.overview}</p>
+        </div>
+        
+        <div>
+          <h3>Career Progression</h3>
+          <div class="info-card" style="margin-bottom: 15px;">
+            <div style="font-weight: 600;">Entry Level</div>
+            <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+              ${ensuredReport.growthTrajectory.shortTermGrowth || 'Initial role focusing on foundational skills and learning core competencies.'}
+            </div>
+          </div>
+          <div class="info-card" style="margin-bottom: 15px;">
+            <div style="font-weight: 600;">Mid Level</div>
+            <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+              ${ensuredReport.growthTrajectory.midTermGrowth || 'More responsibilities and autonomy, leading smaller projects and initiatives.'}
+            </div>
+          </div>
+          <div class="info-card">
+            <div style="font-weight: 600;">Senior Level</div>
+            <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+              ${ensuredReport.growthTrajectory.longTermGrowth || 'Strategic leadership roles with extensive experience and expert knowledge.'}
+            </div>
+          </div>
+        </div>
+      </div>
+      ${sectionSpacing}
+      
+      <!-- Learning Path Roadmap (Section 9) -->
+      <div class="section learning-path">
+        <div class="section-title">
+          <div class="section-icon">9</div>
+          Learning Path Roadmap
+        </div>
+        <div class="summary-box">
+          <p>${ensuredReport.learningPathRoadmap.overview}</p>
+        </div>
+        
+        <div>
+          <h3>Key Learning Milestones</h3>
+          ${ensuredReport.learningPathRoadmap.keyMilestones && ensuredReport.learningPathRoadmap.keyMilestones.length > 0 ? 
+            ensuredReport.learningPathRoadmap.keyMilestones.map((milestone, index) => `
+              <div class="step-container">
+                <div class="step-number">${index + 1}</div>
+                <div class="step-content">
+                  <div class="step-title">
+                    <div class="step-name">${typeof milestone === 'string' ? milestone : milestone.title || 'Milestone'}</div>
+                    <div class="step-time">${typeof milestone === 'string' ? 'Month ' + (index + 3) : milestone.timeframe || 'Month ' + (index + 3)}</div>
+                  </div>
+                  <p>${typeof milestone === 'string' ? 'Important learning achievement in your career development journey.' : milestone.description || 'Important learning achievement in your career development journey.'}</p>
+                </div>
+              </div>
+            `).join('') : 
+            `
+            <div class="step-container">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Core Fundamentals</div>
+                  <div class="step-time">Month 3</div>
+                </div>
+                <p>Master foundational concepts and tools required for the role.</p>
+              </div>
+            </div>
+            <div class="step-container">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Project Experience</div>
+                  <div class="step-time">Month 6</div>
+                </div>
+                <p>Complete practical projects to build a professional portfolio.</p>
+              </div>
+            </div>
+            <div class="step-container">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <div class="step-title">
+                  <div class="step-name">Advanced Specialization</div>
+                  <div class="step-time">Month 9</div>
+                </div>
+                <p>Develop expertise in specialized areas within your field.</p>
+              </div>
+            </div>
+            `
+          }
+        </div>
+      </div>
+      ${sectionSpacing}
+      
+      <!-- Development Plan (Section 10) -->
+      <div class="section development-plan">
+        <div class="section-title">
+          <div class="section-icon">10</div>
+          Development Plan
+        </div>
+        <div class="summary-box">
+          <p>${ensuredReport.developmentPlan.overview}</p>
+        </div>
+        
+        <div class="two-columns">
+          <div>
+            <h3>Priority Skills to Develop</h3>
+            <ul class="findings-list">
+              ${ensuredReport.developmentPlan.prioritySkills && ensuredReport.developmentPlan.prioritySkills.length > 0 ? 
+                ensuredReport.developmentPlan.prioritySkills.map(skill => `<li>${skill}</li>`).join('') : 
+                '<li>Technical competencies</li><li>Communication skills</li><li>Problem-solving abilities</li>'}
+            </ul>
+            
+            <h3>Action Items</h3>
+            <ul class="findings-list">
+              ${ensuredReport.developmentPlan.actionItems && ensuredReport.developmentPlan.actionItems.length > 0 ? 
+                ensuredReport.developmentPlan.actionItems.map(item => `<li>${item}</li>`).join('') : 
+                '<li>Enroll in relevant courses</li><li>Join professional associations</li><li>Seek mentorship opportunities</li>'}
+            </ul>
+          </div>
+          <div>
+            <h3>Resources</h3>
+            <ul class="findings-list">
+              ${ensuredReport.developmentPlan.resources && ensuredReport.developmentPlan.resources.length > 0 ? 
+                ensuredReport.developmentPlan.resources.map(resource => `<li>${resource}</li>`).join('') : 
+                '<li>Online learning platforms</li><li>Industry-specific books</li><li>Professional networking events</li>'}
+            </ul>
+            
+            <h3>Timeline</h3>
+            <ul class="findings-list">
+              ${ensuredReport.developmentPlan.timeline && ensuredReport.developmentPlan.timeline.length > 0 ? 
+                ensuredReport.developmentPlan.timeline.map(item => `<li>${item}</li>`).join('') : 
+                '<li>First 3 months: Build foundation</li><li>Months 4-6: Practice application</li><li>Months 7-12: Specialize and network</li>'}
+            </ul>
+          </div>
+        </div>
+      </div>
+      ${sectionSpacing}
+      
+      <!-- Educational Programs (Section 11) -->
+      <div class="section educational-programs">
+        <div class="section-title">
+          <div class="section-icon">11</div>
+          Educational Programs
+        </div>
+        <div class="summary-box">
+          <p>${ensuredReport.educationalPrograms.overview}</p>
+        </div>
+        
+        <div>
+          <h3>Recommended Courses</h3>
+          ${ensuredReport.educationalPrograms.recommendedCourses && ensuredReport.educationalPrograms.recommendedCourses.length > 0 ? 
+            ensuredReport.educationalPrograms.recommendedCourses.map(course => `
+              <div class="info-card" style="margin-bottom: 15px;">
+                <div style="font-weight: 600;">${typeof course === 'string' ? course : course.title || course.name || 'Course'}</div>
+                <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                  ${typeof course !== 'string' && course.provider ? `Provider: ${course.provider}` : ''}
+                  ${typeof course !== 'string' && course.description ? `<br>${course.description}` : ''}
+                </div>
+                ${typeof course !== 'string' && course.url ? `
+                  <div style="margin-top: 8px;">
+                    <span class="badge">Online Course</span>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('') : 
+            `
+            <div class="info-card" style="margin-bottom: 15px;">
+              <div style="font-weight: 600;">Fundamentals of ${metadata.targetRole || 'the Field'}</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Comprehensive introduction to essential concepts and practices.
+              </div>
+            </div>
+            <div class="info-card" style="margin-bottom: 15px;">
+              <div style="font-weight: 600;">Advanced ${metadata.targetRole || 'Professional'} Skills</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Specialized techniques and methodologies for professional growth.
+              </div>
+            </div>
+            <div class="info-card">
+              <div style="font-weight: 600;">${metadata.targetRole || 'Industry'} Certification Program</div>
+              <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
+                Recognized certification to validate your expertise and enhance credibility.
+              </div>
+            </div>
+            `
+          }
+        </div>
+      </div>
+      ${sectionSpacing}
       
       <div class="footer">
         <p>© 2025 Skillgenix - Career Pathway Analysis Report</p>
