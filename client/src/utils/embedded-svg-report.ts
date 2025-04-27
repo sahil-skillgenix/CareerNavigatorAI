@@ -51,15 +51,69 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
   // Generate title for the report
   const reportTitle = `Skillgenix Career Analysis - ${metadata.targetRole}`;
   
+  // Ensure all required sections exist in the report (even if empty)
+  const ensuredReport = {
+    executiveSummary: report.executiveSummary || {
+      summary: 'This analysis provides a comprehensive career transition plan based on your profile and target role.',
+      careerGoal: metadata.targetRole || 'Career advancement',
+      compatibilityScore: '7/10',
+      keyFindings: ['Strong transferable skills', 'Development areas identified', 'Clear pathway to target role'],
+    },
+    skillMapping: report.skillMapping || {
+      overview: 'This section maps your current skills to industry frameworks.',
+      sfiaSkills: [],
+      digCompSkills: []
+    },
+    skillGapAnalysis: report.skillGapAnalysis || {
+      overview: 'This analysis identifies gaps between your current skills and those needed for your target role.',
+      keyGaps: [],
+      transferableStrengths: []
+    },
+    careerPathwayOptions: report.careerPathwayOptions || {
+      overview: 'This pathway outlines recommended steps to transition to your target role.',
+      pathwaySteps: []
+    },
+    learningRoadmap: report.learningRoadmap || {
+      overview: 'This roadmap visualizes your learning journey, from foundational to advanced skills.',
+      foundationalSkills: [],
+      intermediateSkills: [],
+      advancedSkills: []
+    },
+    similarRoles: report.similarRoles || {
+      introduction: 'These roles share similarities with your target position and may offer alternative paths.',
+      roles: []
+    },
+    quickTips: report.quickTips || {
+      overview: 'Quick actionable tips to accelerate your career transition.',
+      keyTips: []
+    },
+    growthTrajectory: report.growthTrajectory || {
+      overview: 'Your projected career growth and progression path.',
+      projectedTimeline: []
+    },
+    learningPathRoadmap: report.learningPathRoadmap || {
+      overview: 'A detailed learning path to achieve your career goals.',
+      keyMilestones: []
+    },
+    developmentPlan: report.developmentPlan || {
+      overview: 'Your customized skill development plan.',
+      actionItems: []
+    },
+    educationalPrograms: report.educationalPrograms || {
+      overview: 'Recommended educational programs and resources.',
+      programs: []
+    }
+  };
+  
   // Extract skill data for radar chart
   let skillData: ChartData[] = [];
-  if (report.skillMapping && report.skillMapping.sfiaSkills && report.skillMapping.sfiaSkills.length > 0) {
-    skillData = report.skillMapping.sfiaSkills.map(skill => ({
+  if (ensuredReport.skillMapping.sfiaSkills && ensuredReport.skillMapping.sfiaSkills.length > 0) {
+    skillData = ensuredReport.skillMapping.sfiaSkills.map(skill => ({
       name: typeof skill === 'string' ? skill : skill.skill || skill.name || 'Skill',
       value: typeof skill === 'string' ? 3 : parseInt(skill.proficiency || skill.level || '3', 10)
     }));
-  } else if (report.skillMapping && report.skillMapping.digCompSkills && report.skillMapping.digCompSkills.length > 0) {
-    skillData = report.skillMapping.digCompSkills.map(skill => ({
+  } else if (ensuredReport.skillMapping.digCompSkills && ensuredReport.skillMapping.digCompSkills.length > 0) {
+    skillData = ensuredReport.skillMapping.digCompSkills.map(skill => ({
       name: typeof skill === 'string' ? skill : skill.skill || skill.name || 'Skill',
       value: typeof skill === 'string' ? 3 : parseInt(skill.proficiency || skill.level || '3', 10)
     }));
@@ -80,8 +134,8 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
   
   // Extract gap data for bar chart
   let gapData: GapData[] = [];
-  if (report.skillGapAnalysis && report.skillGapAnalysis.keyGaps && report.skillGapAnalysis.keyGaps.length > 0) {
-    gapData = report.skillGapAnalysis.keyGaps.map(gap => ({
+  if (ensuredReport.skillGapAnalysis.keyGaps && ensuredReport.skillGapAnalysis.keyGaps.length > 0) {
+    gapData = ensuredReport.skillGapAnalysis.keyGaps.map(gap => ({
       skill: typeof gap === 'string' ? gap : gap.skill || 'Skill',
       current: typeof gap === 'string' ? 3 : parseInt(gap.currentLevel || '3', 10),
       required: typeof gap === 'string' ? 5 : parseInt(gap.requiredLevel || '5', 10)
@@ -102,8 +156,8 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
   
   // Extract pathway steps
   let pathwaySteps: PathwayStep[] = [];
-  if (report.careerPathwayOptions && report.careerPathwayOptions.pathwaySteps && report.careerPathwayOptions.pathwaySteps.length > 0) {
-    pathwaySteps = report.careerPathwayOptions.pathwaySteps.map(step => ({
+  if (ensuredReport.careerPathwayOptions.pathwaySteps && ensuredReport.careerPathwayOptions.pathwaySteps.length > 0) {
+    pathwaySteps = ensuredReport.careerPathwayOptions.pathwaySteps.map(step => ({
       step: typeof step === 'string' ? step : step.step || step.title || step.name || 'Step',
       timeframe: typeof step === 'string' ? '3-6 months' : step.timeframe || step.duration || step.timeline || '3-6 months'
     }));
@@ -133,6 +187,9 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
   // Create learning roadmap SVG
   const learningRoadmapSVG = generateLearningRoadmapSVG();
   
+  // Add spacing between sections to avoid overlapping
+  const sectionSpacing = '<div style="height: 30px; clear: both;"></div>';
+
   // Build the complete HTML report
   return `
     <!DOCTYPE html>
@@ -404,30 +461,29 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
         <p>Generated on ${format(new Date(metadata.dateCreated), 'MMMM d, yyyy')} for ${metadata.professionalLevel} professional</p>
       </div>
       
-      <!-- Executive Summary -->
-      ${report.executiveSummary ? `
+      <!-- Executive Summary (Section 1) -->
       <div class="section executive-summary">
         <div class="section-title">
           <div class="section-icon">1</div>
           Executive Summary
         </div>
         <div class="summary-box">
-          <p>${report.executiveSummary.summary || 'This analysis provides a comprehensive career transition plan based on your profile and target role.'}</p>
+          <p>${ensuredReport.executiveSummary.summary}</p>
         </div>
         <div class="info-grid">
           <div class="info-card">
             <div class="info-card-title">Career Goal</div>
             <div class="info-card-content">
-              <span>${report.executiveSummary.careerGoal || metadata.targetRole || 'Career advancement in target role'}</span>
+              <span>${ensuredReport.executiveSummary.careerGoal || metadata.targetRole}</span>
             </div>
           </div>
           <div class="info-card">
             <div class="info-card-title">Fit Score</div>
             <div class="info-card-content">
               <span>
-                ${report.executiveSummary.fitScore && report.executiveSummary.fitScore.score ? 
-                  `${report.executiveSummary.fitScore.score}/${report.executiveSummary.fitScore.outOf || 10}` : 
-                  report.executiveSummary.compatibilityScore || '7/10'}
+                ${ensuredReport.executiveSummary.fitScore && ensuredReport.executiveSummary.fitScore.score ? 
+                  `${ensuredReport.executiveSummary.fitScore.score}/${ensuredReport.executiveSummary.fitScore.outOf || 10}` : 
+                  ensuredReport.executiveSummary.compatibilityScore || '7/10'}
               </span>
             </div>
           </div>
@@ -436,31 +492,29 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
         <div>
           <h3>Key Findings</h3>
           <ul class="findings-list">
-            ${report.executiveSummary.keyFindings ? 
-              report.executiveSummary.keyFindings.map(finding => `<li>${finding}</li>`).join('') : 
-              '<li>No key findings available</li>'}
+            ${ensuredReport.executiveSummary.keyFindings && ensuredReport.executiveSummary.keyFindings.length > 0 ? 
+              ensuredReport.executiveSummary.keyFindings.map(finding => `<li>${finding}</li>`).join('') : 
+              '<li>Strong transferable skills</li><li>Development areas identified</li><li>Clear pathway to target role</li>'}
           </ul>
         </div>
-        
       </div>
-      ` : ''}
+      ${sectionSpacing}
       
-      <!-- Skill Mapping -->
-      ${report.skillMapping ? `
+      <!-- Skill Mapping (Section 2) -->
       <div class="section skill-mapping">
         <div class="section-title">
           <div class="section-icon">2</div>
           Skill Mapping
         </div>
         <div class="summary-box">
-          <p>${report.skillMapping.overview || 'This section maps your current skills to the SFIA and DigComp frameworks to identify strengths and growth areas.'}</p>
+          <p>${ensuredReport.skillMapping.overview}</p>
         </div>
         
-        ${report.skillMapping.sfiaSkills && report.skillMapping.sfiaSkills.length > 0 ? `
+        ${ensuredReport.skillMapping.sfiaSkills && ensuredReport.skillMapping.sfiaSkills.length > 0 ? `
         <div>
           <h3>SFIA Skills</h3>
           <div>
-            ${report.skillMapping.sfiaSkills.map(skill => `
+            ${ensuredReport.skillMapping.sfiaSkills.map(skill => `
               <div class="info-card" style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between;">
                   <div style="font-weight: 600;">${typeof skill === 'string' ? skill : skill.skill || skill.name || 'Skill'}</div>
@@ -470,13 +524,20 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
               </div>`).join('')}
           </div>
         </div>
-        ` : ''}
+        ` : `
+        <div>
+          <h3>SFIA Skills</h3>
+          <div class="info-card">
+            <div style="font-weight: 600;">No SFIA skills data available</div>
+          </div>
+        </div>
+        `}
         
-        ${report.skillMapping.digCompSkills && report.skillMapping.digCompSkills.length > 0 ? `
+        ${ensuredReport.skillMapping.digCompSkills && ensuredReport.skillMapping.digCompSkills.length > 0 ? `
         <div>
           <h3>Digital Competency Skills</h3>
           <div>
-            ${report.skillMapping.digCompSkills.map(skill => `
+            ${ensuredReport.skillMapping.digCompSkills.map(skill => `
               <div class="info-card" style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between;">
                   <div style="font-weight: 600;">${typeof skill === 'string' ? skill : skill.skill || skill.name || 'Skill'}</div>
@@ -493,17 +554,16 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
           ${radarChartSVG}
         </div>
       </div>
-      ` : ''}
+      ${sectionSpacing}
       
-      <!-- Skill Gap Analysis -->
-      ${report.skillGapAnalysis ? `
+      <!-- Skill Gap Analysis (Section 3) -->
       <div class="section gap-analysis">
         <div class="section-title">
           <div class="section-icon">3</div>
           Skill Gap Analysis
         </div>
         <div class="summary-box">
-          <p>${report.skillGapAnalysis.overview || 'This analysis identifies the gaps between your current skills and those required for your target role.'}</p>
+          <p>${ensuredReport.skillGapAnalysis.overview}</p>
         </div>
         
         <div class="chart-container">
@@ -515,8 +575,8 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
           <div>
             <h3>Key Gaps</h3>
             <div>
-              ${report.skillGapAnalysis.keyGaps && report.skillGapAnalysis.keyGaps.length > 0 ? 
-                report.skillGapAnalysis.keyGaps.map(gap => `
+              ${ensuredReport.skillGapAnalysis.keyGaps && ensuredReport.skillGapAnalysis.keyGaps.length > 0 ? 
+                ensuredReport.skillGapAnalysis.keyGaps.map(gap => `
                   <div class="info-card" style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between;">
                       <div style="font-weight: 600;">${typeof gap === 'string' ? gap : gap.skill || 'Skill'}</div>
@@ -539,8 +599,8 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
           <div>
             <h3>Transferable Strengths</h3>
             <div>
-              ${report.skillGapAnalysis.transferableStrengths && report.skillGapAnalysis.transferableStrengths.length > 0 ? 
-                report.skillGapAnalysis.transferableStrengths.map(strength => `
+              ${ensuredReport.skillGapAnalysis.transferableStrengths && ensuredReport.skillGapAnalysis.transferableStrengths.length > 0 ? 
+                ensuredReport.skillGapAnalysis.transferableStrengths.map(strength => `
                   <div class="info-card" style="margin-bottom: 10px;">
                     <div style="font-weight: 600;">${typeof strength === 'string' ? strength : strength.skill || 'Skill'}</div>
                     <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">
@@ -554,17 +614,16 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
           </div>
         </div>
       </div>
-      ` : ''}
+      ${sectionSpacing}
       
-      <!-- Career Pathway -->
-      ${report.careerPathwayOptions ? `
+      <!-- Career Pathway (Section 4) -->
       <div class="section career-pathway">
         <div class="section-title">
           <div class="section-icon">4</div>
           Career Pathway
         </div>
         <div class="summary-box">
-          <p>${report.careerPathwayOptions.overview || 'This pathway outlines the recommended steps to transition to your target role.'}</p>
+          <p>${ensuredReport.careerPathwayOptions.overview}</p>
         </div>
         
         <div class="chart-container">
@@ -572,10 +631,10 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
           ${careerPathwaySVG}
         </div>
         
-        ${report.careerPathwayOptions.pathwaySteps && report.careerPathwayOptions.pathwaySteps.length > 0 ? `
+        ${ensuredReport.careerPathwayOptions.pathwaySteps && ensuredReport.careerPathwayOptions.pathwaySteps.length > 0 ? `
         <div>
           <h3>Pathway Steps</h3>
-          ${report.careerPathwayOptions.pathwaySteps.map((step, index) => `
+          ${ensuredReport.careerPathwayOptions.pathwaySteps.map((step, index) => `
             <div class="step-container">
               <div class="step-number">${index + 1}</div>
               <div class="step-content">
@@ -588,9 +647,43 @@ export function generateEmbeddedSVGReport(report: Report, metadata: AnalysisMeta
             </div>
           `).join('')}
         </div>
-        ` : ''}
+        ` : `
+        <div>
+          <h3>Pathway Steps</h3>
+          <div class="step-container">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <div class="step-title">
+                <div class="step-name">Skill Building</div>
+                <div class="step-time">3-6 months</div>
+              </div>
+              <p>Focus on developing the required core skills for the target role.</p>
+            </div>
+          </div>
+          <div class="step-container">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <div class="step-title">
+                <div class="step-name">Certification</div>
+                <div class="step-time">6-9 months</div>
+              </div>
+              <p>Obtain relevant certifications to validate your skills.</p>
+            </div>
+          </div>
+          <div class="step-container">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <div class="step-title">
+                <div class="step-name">Career Transition</div>
+                <div class="step-time">9-12 months</div>
+              </div>
+              <p>Apply for roles in the target career field.</p>
+            </div>
+          </div>
+        </div>
+        `}
       </div>
-      ` : ''}
+      ${sectionSpacing}
       
       <!-- Learning Roadmap -->
       ${report.learningRoadmap ? `
