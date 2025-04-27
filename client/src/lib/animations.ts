@@ -1,60 +1,144 @@
-import { TargetAndTransition, VariantLabels, Variants } from "framer-motion";
+/**
+ * Animation variants for Framer Motion
+ * 
+ * This file contains reusable animation variants for consistent
+ * animations throughout the application.
+ */
+
+export const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+    }
+  },
+};
 
 export const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 }
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.4,
+    }
+  },
 };
 
 export const fadeInDown = {
-  initial: { opacity: 0, y: -20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 }
+  hidden: { opacity: 0, y: -20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.4,
+    }
+  },
 };
 
 export const fadeInLeft = {
-  initial: { opacity: 0, x: -20 },
-  animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.6 }
+  hidden: { opacity: 0, x: -100 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { 
+      duration: 0.4,
+      type: "spring",
+      stiffness: 100,
+    }
+  },
 };
 
 export const fadeInRight = {
-  initial: { opacity: 0, x: 20 },
-  animate: { opacity: 1, x: 0 },
-  transition: { duration: 0.6 }
+  hidden: { opacity: 0, x: 100 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { 
+      duration: 0.4,
+      type: "spring",
+      stiffness: 100,
+    }
+  },
 };
 
-export const staggerContainer: Variants = {
+export const staggerChildren = {
   hidden: { opacity: 0 },
-  show: {
+  visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
-export const staggerItem = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
+export const slideInLeft = {
+  hidden: { x: -100, opacity: 0 },
+  visible: { 
+    x: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+      type: "spring",
+      stiffness: 100,
+    }
+  },
+};
+
+export const slideInRight = {
+  hidden: { x: 100, opacity: 0 },
+  visible: { 
+    x: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+      type: "spring",
+      stiffness: 100,
+    }
+  },
 };
 
 export const scaleIn = {
-  initial: { opacity: 0, scale: 0.9 },
-  animate: { opacity: 1, scale: 1 },
-  transition: { duration: 0.5 }
+  hidden: { scale: 0.8, opacity: 0 },
+  visible: { 
+    scale: 1, 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+    }
+  },
 };
 
-export const getStaggerAnimation = (delay: number = 0): {
-  initial: any;
-  whileInView: TargetAndTransition | VariantLabels;
-  viewport: { once: boolean };
-  transition: { duration: number; delay: number };
-} => {
-  return {
-    initial: { opacity: 0, y: 20 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.5, delay }
-  };
+export const scaleOut = {
+  hidden: { scale: 1.2, opacity: 0 },
+  visible: { 
+    scale: 1, 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+    }
+  },
+};
+
+export const rotateIn = {
+  hidden: { rotate: -5, opacity: 0 },
+  visible: { 
+    rotate: 0, 
+    opacity: 1,
+    transition: { 
+      duration: 0.4,
+    }
+  },
+};
+
+export const listItem = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { 
+      duration: 0.3,
+    }
+  },
 };

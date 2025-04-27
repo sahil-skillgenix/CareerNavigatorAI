@@ -1,56 +1,47 @@
 /**
- * Enhanced Career Analysis Results component that works with the structured report format
- * ensuring all 11 sections are displayed correctly with proper ordering.
+ * Structured Career Analysis Results Component
+ * 
+ * Displays the results of a structured career analysis report, ensuring
+ * all 11 sections are properly ordered and rendered.
  */
 
-import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { motion } from "framer-motion";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  ArrowLeft, 
-  Sparkles, 
-  Save, 
-  FileDown, 
-  ChevronRight,
-  InfoIcon,
-  Lightbulb,
-  BookOpen,
-  GraduationCap,
-  Map,
-  CheckCircle,
-  BriefcaseBusiness,
-  BarChart2,
-  ListChecks,
-  TrendingUp,
-  Timer
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
+import React, { useState, useEffect, Fragment } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { motion } from 'framer-motion';
+import { fadeIn } from '@/lib/animations';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { SkillRadarChart } from './SkillRadarChart';
+import { ComparativeBarChart } from './ComparativeBarChart';
+import { CareerPathwayStepsDisplay } from './CareerPathwayStepsDisplay';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AlertCircle,
+  ArrowLeft,
+  BarChart,
+  BookOpen,
+  ChevronRight,
+  Download,
+  FileDown,
+  Lightbulb,
+  LineChart,
+  ListChecks,
+  Rocket,
+  School,
+  Sparkles,
+  TrendingUp,
+  Trophy,
+  User,
+  UserCheck,
+} from 'lucide-react';
+import { CareerAnalysisReport } from '../../../shared/reportSchema';
 
-import { SkillRadarChart } from "./SkillRadarChart";
-import { ComparativeBarChart } from "./ComparativeBarChart";
-import { CareerPathwayStepsDisplay } from "./CareerPathwayStepsDisplay";
-import { AIRecommendationsPanel } from "./AIRecommendationsPanel";
-import { LearningRecommendationsGrid } from "./LearningRecommendationsGrid";
-import { StructuredPdfDownloader } from "./StructuredPdfDownloader";
-import { CareerAnalysisReport } from "../../../shared/reportSchema";
-
-// Props for the form data
+// Define interfaces for the component props
 interface SubmittedFormData {
   userId: string | undefined;
   professionalLevel: string;
@@ -62,7 +53,6 @@ interface SubmittedFormData {
   country: string;
 }
 
-// Props for the component
 interface StructuredCareerAnalysisResultsProps {
   results: CareerAnalysisReport;
   formData: SubmittedFormData | null;
@@ -97,674 +87,750 @@ export function StructuredCareerAnalysisResults({
 }: StructuredCareerAnalysisResultsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showDevDebug, setShowDevDebug] = useState(() => {
-    // Load debug state from localStorage to persist across refreshes
-    const savedState = localStorage.getItem("showDevDebug");
-    return savedState ? JSON.parse(savedState) : false;
+  const [activeSection, setActiveSection] = useState('overview');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [savedToAccount, setSavedToAccount] = useState(false);
+  
+  // Debug mode tracking
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugStates, setDebugStates] = useState<DebugStates>({
+    executiveSummary: false,
+    skillMapping: false,
+    gapAnalysis: false,
+    pathwayOptions: false,
+    developmentPlan: false,
+    educationalPrograms: false,
+    learningRoadmap: false,
+    similarRoles: false,
+    quickTips: false,
+    growthTrajectory: false,
+    learningPathRoadmap: false,
   });
-
-  // Initialize debug states for each section with values from localStorage
-  const [debugStates, setDebugStates] = useState<DebugStates>(() => {
-    const savedStates = localStorage.getItem("debugStates");
-    return savedStates ? JSON.parse(savedStates) : {
-      executiveSummary: false,
-      skillMapping: false,
-      gapAnalysis: false,
-      pathwayOptions: false,
-      developmentPlan: false,
-      educationalPrograms: false,
-      learningRoadmap: false,
-      similarRoles: false,
-      quickTips: false,
-      growthTrajectory: false,
-      learningPathRoadmap: false
+  
+  // Access report sections
+  const { 
+    executiveSummary, 
+    skillMapping, 
+    skillGapAnalysis, 
+    careerPathwayOptions, 
+    developmentPlan,
+    educationalPrograms,
+    learningRoadmap,
+    similarRoles,
+    quickTips,
+    growthTrajectory,
+    learningPathRoadmap,
+    timestamp
+  } = results;
+  
+  // Track section completion to show in UI
+  const [completedSections, setCompletedSections] = useState<Record<string, boolean>>({});
+  
+  // Effect to update completed sections based on data presence
+  useEffect(() => {
+    // Check each section for presence of key data
+    const sections: Record<string, boolean> = {
+      executiveSummary: Boolean(executiveSummary?.summary),
+      skillMapping: Boolean(skillMapping?.sfiaSkills?.length || skillMapping?.digCompSkills?.length),
+      skillGapAnalysis: Boolean(skillGapAnalysis?.gapAnalysisData?.labels?.length),
+      careerPathwayOptions: Boolean(careerPathwayOptions?.pathwaySteps?.length),
+      developmentPlan: Boolean(developmentPlan?.technicalSkills?.length || developmentPlan?.softSkills?.length),
+      educationalPrograms: Boolean(educationalPrograms?.recommendedPrograms?.length),
+      learningRoadmap: Boolean(learningRoadmap?.phases?.length),
+      similarRoles: Boolean(similarRoles?.roles?.length),
+      quickTips: Boolean(quickTips?.quickWins?.length || quickTips?.industryInsights?.length),
+      growthTrajectory: Boolean(growthTrajectory?.shortTerm?.role || growthTrajectory?.mediumTerm?.role),
+      learningPathRoadmap: Boolean(learningPathRoadmap?.careerTrajectory?.length),
     };
-  });
-
-  // Helper function to toggle debug state for a specific section
-  const toggleSectionDebug = (section: string) => {
-    setDebugStates(prev => {
-      const newStates = { ...prev, [section]: !prev[section] };
-      // Save to localStorage to persist across refreshes
-      localStorage.setItem("debugStates", JSON.stringify(newStates));
-      return newStates;
-    });
-  };
-
-  // Toggle the developer debug panel visibility
-  const toggleDevDebug = () => {
-    setShowDevDebug(prev => {
-      const newState = !prev;
-      localStorage.setItem("showDevDebug", JSON.stringify(newState));
-      return newState;
-    });
-  };
-
+    
+    setCompletedSections(prev => ({...prev, ...sections}));
+  }, [results]);
+  
   /**
    * Save career analysis to user's account
    */
-  const saveToAccount = async () => {
-    if (!user || !formData) {
-      toast({
-        title: "Error",
-        description: "Unable to save analysis. Please try again.",
-        variant: "destructive"
-      });
-      return;
-    }
+  const saveAnalysis = async () => {
+    if (!user || !formData) return;
     
     try {
-      setSaving(true);
-      
-      // Call API to save analysis
-      const response = await apiRequest("POST", "/api/save-career-analysis", {
-        userId: user.id,
-        ...formData,
-        result: results
+      const response = await fetch('/api/save-career-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          professionalLevel: formData.professionalLevel,
+          currentSkills: formData.currentSkills,
+          educationalBackground: formData.educationalBackground,
+          careerHistory: formData.careerHistory,
+          desiredRole: formData.desiredRole,
+          state: formData.state,
+          country: formData.country,
+          result: results,
+          progress: 100,
+        }),
       });
       
       if (!response.ok) {
-        throw new Error("Failed to save career analysis");
+        throw new Error('Failed to save analysis');
       }
       
-      const data = await response.json();
-      
+      setSavedToAccount(true);
       toast({
-        title: "Analysis saved",
-        description: "Your career analysis has been saved to your dashboard.",
-        variant: "default"
+        title: 'Analysis Saved',
+        description: 'Your career analysis has been saved to your account.',
+        variant: 'default',
       });
-      
-      console.log("Career analysis saved successfully:", data);
     } catch (error) {
-      console.error("Error saving career analysis:", error);
+      console.error('Error saving analysis:', error);
       toast({
-        title: "Save failed",
-        description: error instanceof Error ? error.message : "Failed to save analysis. Please try again.",
-        variant: "destructive"
+        title: 'Save Failed',
+        description: 'Failed to save analysis to your account. Please try again.',
+        variant: 'destructive',
       });
-    } finally {
-      setSaving(false);
     }
   };
-
-  return (
-    <div className="container mx-auto py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold">Career Analysis Report</h1>
-              <Badge variant="outline" className="ml-3">Structured Format</Badge>
-            </div>
-            <p className="text-muted-foreground mt-1">
-              Your personalized career pathway analysis with 11-section full structure
-            </p>
-          </div>
-          
+  
+  /**
+   * Toggle debug mode for testing/development
+   */
+  const toggleDebugMode = () => {
+    setDebugMode(!debugMode);
+  };
+  
+  /**
+   * Toggle debug state for a specific section
+   */
+  const toggleDebugSection = (section: keyof DebugStates) => {
+    setDebugStates(prev => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+  
+  /**
+   * Render the Executive Summary section
+   */
+  const renderExecutiveSummary = () => (
+    <div className="space-y-4">
+      {debugMode && (
+        <div className="bg-muted p-2 text-xs">
           <Button
-            variant="outline"
             size="sm"
-            className="mt-4 md:mt-0"
-            onClick={onRestart}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Start New Analysis
-          </Button>
-        </div>
-
-        {/* Developer Debug Toggle */}
-        <div className="mb-4 flex items-center justify-end">
-          <Button
             variant="outline"
-            size="sm"
-            onClick={toggleDevDebug}
-            className="text-xs"
+            onClick={() => toggleDebugSection('executiveSummary')}
           >
-            {showDevDebug ? "Hide" : "Developer Debug"}
+            Toggle Debug
           </Button>
+          {debugStates.executiveSummary && (
+            <pre className="mt-2 overflow-auto">
+              {JSON.stringify(executiveSummary, null, 2)}
+            </pre>
+          )}
         </div>
-
-        {/* Debug Panel - Shows available sections in the data */}
-        {showDevDebug && (
-          <div className="mb-6 p-4 border rounded-lg bg-muted/30">
-            <h3 className="text-sm font-medium mb-2">Debug Tools</h3>
-            
-            <div className="mb-4">
-              <p className="text-xs mb-2 font-medium">Available sections:</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.keys(results).map((key) => (
-                  <Badge key={key} variant="outline" className="text-xs">
-                    {key}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <Button
-                size="sm"
-                variant={debugStates.executiveSummary ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('executiveSummary')}
-              >
-                Executive Summary
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.skillMapping ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('skillMapping')}
-              >
-                Skill Mapping
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.gapAnalysis ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('gapAnalysis')}
-              >
-                Gap Analysis
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.pathwayOptions ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('pathwayOptions')}
-              >
-                Pathway Options
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.developmentPlan ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('developmentPlan')}
-              >
-                Development Plan
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.educationalPrograms ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('educationalPrograms')}
-              >
-                Educational Programs
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.learningRoadmap ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('learningRoadmap')}
-              >
-                Learning Roadmap
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.similarRoles ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('similarRoles')}
-              >
-                Similar Roles
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.quickTips ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('quickTips')}
-              >
-                Quick Tips
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.growthTrajectory ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('growthTrajectory')}
-              >
-                Growth Trajectory
-              </Button>
-              
-              <Button
-                size="sm"
-                variant={debugStates.learningPathRoadmap ? "default" : "outline"}
-                className="text-xs h-8"
-                onClick={() => toggleSectionDebug('learningPathRoadmap')}
-              >
-                Learning Path Roadmap
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <Tabs 
-          defaultValue="overview" 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 mb-6">
-            <TabsTrigger value="overview">
-              <InfoIcon className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="skills">
-              <Sparkles className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Skills</span>
-            </TabsTrigger>
-            <TabsTrigger value="gap-analysis">
-              <BarChart2 className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Gap Analysis</span>
-            </TabsTrigger>
-            <TabsTrigger value="pathway">
-              <Map className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Pathway</span>
-            </TabsTrigger>
-            <TabsTrigger value="development">
-              <CheckCircle className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Development</span>
-            </TabsTrigger>
-            <TabsTrigger value="education">
-              <GraduationCap className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Education</span>
-            </TabsTrigger>
-            <TabsTrigger value="similar-roles">
-              <BriefcaseBusiness className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Similar Roles</span>
-            </TabsTrigger>
-            <TabsTrigger value="roadmap">
-              <TrendingUp className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Roadmap</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* 1. Executive Summary */}
-          <TabsContent value="overview" className="space-y-6">
-            {debugStates.executiveSummary && (
-              <div className="p-4 border rounded-lg bg-muted/30 mb-4 overflow-auto max-h-[300px]">
-                <h3 className="text-sm font-medium mb-2">Executive Summary Data:</h3>
-                <pre className="text-xs">{JSON.stringify(results.executiveSummary, null, 2)}</pre>
-              </div>
-            )}
-            
-            <div className="p-6 border rounded-lg bg-card">
-              <h2 className="text-2xl font-bold mb-4">Executive Summary</h2>
-              <p className="mb-6 text-muted-foreground">{results.executiveSummary.overview}</p>
-              
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Key Points</h3>
-                <ul className="list-disc list-inside space-y-1">
-                  {results.executiveSummary.keyPoints.map((point, index) => (
-                    <li key={index} className="text-sm">{point}</li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Recommended Next Steps</h3>
-                <ul className="list-disc list-inside space-y-1">
-                  {results.executiveSummary.recommendedNextSteps.map((step, index) => (
-                    <li key={index} className="text-sm">{step}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* 2. Skill Mapping */}
-          <TabsContent value="skills" className="space-y-6">
-            {debugStates.skillMapping && (
-              <div className="p-4 border rounded-lg bg-muted/30 mb-4 overflow-auto max-h-[300px]">
-                <h3 className="text-sm font-medium mb-2">Skill Mapping Data:</h3>
-                <pre className="text-xs">{JSON.stringify(results.skillMapping, null, 2)}</pre>
-              </div>
-            )}
-            
-            <div className="p-6 border rounded-lg bg-card">
-              <h2 className="text-2xl font-bold mb-4">Skill Mapping</h2>
-              
-              <Accordion type="single" collapsible defaultValue="sfia9">
-                <AccordionItem value="sfia9">
-                  <AccordionTrigger>
-                    <div className="flex items-center">
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      <span>SFIA 9 Framework Skills</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="mt-2 space-y-4">
-                      {results.skillMapping.sfia9.map((skill, index) => (
-                        <div key={index} className="p-3 border rounded-md">
-                          <div className="flex justify-between items-start">
-                            <div className="font-medium">{skill.skill}</div>
-                            <Badge>{skill.level}</Badge>
-                          </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{skill.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-                
-                <AccordionItem value="digcomp22">
-                  <AccordionTrigger>
-                    <div className="flex items-center">
-                      <Laptop className="mr-2 h-4 w-4" />
-                      <span>DigComp 2.2 Framework Competencies</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="mt-2 space-y-4">
-                      {results.skillMapping.digcomp22.map((item, index) => (
-                        <div key={index} className="p-3 border rounded-md">
-                          <div className="flex justify-between items-start">
-                            <div className="font-medium">{item.competence}</div>
-                            <Badge>{item.proficiencyLevel}</Badge>
-                          </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-          </TabsContent>
-          
-          {/* 3. Gap Analysis */}
-          <TabsContent value="gap-analysis" className="space-y-6">
-            {debugStates.gapAnalysis && (
-              <div className="p-4 border rounded-lg bg-muted/30 mb-4 overflow-auto max-h-[300px]">
-                <h3 className="text-sm font-medium mb-2">Gap Analysis Data:</h3>
-                <pre className="text-xs">{JSON.stringify(results.gapAnalysis, null, 2)}</pre>
-              </div>
-            )}
-            
-            <div className="p-6 border rounded-lg bg-card">
-              <h2 className="text-2xl font-bold mb-4">Framework-Based Skill Gap Analysis</h2>
-              
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Skill Radar</h3>
-                  <div className="aspect-square">
-                    <SkillRadarChart data={results.gapAnalysis.radarChartData} />
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Skill Gap Comparison</h3>
-                  <div className="aspect-square">
-                    <ComparativeBarChart data={results.gapAnalysis.barChartData} />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4">AI-Enhanced Analysis</h3>
-                <div className="p-4 bg-primary/5 rounded-lg border">
-                  <div className="flex items-start">
-                    <Sparkles className="h-5 w-5 mr-3 text-primary mt-0.5" />
-                    <p className="text-sm">{results.gapAnalysis.aiAnalysis}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Skill Gaps</h3>
-                  <div className="space-y-3">
-                    {results.gapAnalysis.skillGaps.map((gap, index) => (
-                      <div key={index} className="p-3 border rounded-md">
-                        <div className="flex justify-between items-start">
-                          <div className="font-medium">{gap.skill}</div>
-                          <Badge 
-                            variant={
-                              gap.priorityLevel === 'High' ? 'destructive' : 
-                              gap.priorityLevel === 'Medium' ? 'default' : 
-                              'outline'
-                            }
-                          >
-                            {gap.priorityLevel} Priority
-                          </Badge>
-                        </div>
-                        <p className="mt-1 text-sm text-muted-foreground">{gap.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Skill Strengths</h3>
-                  <div className="space-y-3">
-                    {results.gapAnalysis.skillStrengths.map((strength, index) => (
-                      <div key={index} className="p-3 border rounded-md">
-                        <div className="flex justify-between items-start">
-                          <div className="font-medium">{strength.skill}</div>
-                          <Badge 
-                            variant={
-                              strength.relevanceLevel === 'High' ? 'default' : 
-                              strength.relevanceLevel === 'Medium' ? 'secondary' : 
-                              'outline'
-                            }
-                          >
-                            {strength.relevanceLevel} Relevance
-                          </Badge>
-                        </div>
-                        <p className="mt-1 text-sm text-muted-foreground">{strength.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* 4. Career Pathway Options */}
-          <TabsContent value="pathway" className="space-y-6">
-            {debugStates.pathwayOptions && (
-              <div className="p-4 border rounded-lg bg-muted/30 mb-4 overflow-auto max-h-[300px]">
-                <h3 className="text-sm font-medium mb-2">Pathway Options Data:</h3>
-                <pre className="text-xs">{JSON.stringify(results.pathwayOptions, null, 2)}</pre>
-              </div>
-            )}
-            
-            <div className="p-6 border rounded-lg bg-card">
-              <h2 className="text-2xl font-bold mb-4">Career Pathway Options</h2>
-              
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4">Career Transition Visualization</h3>
-                <div className="bg-muted/30 p-4 rounded-lg">
-                  <CareerPathwayStepsDisplay 
-                    currentRole={results.pathwayOptions.transitionVisualization.currentRole} 
-                    targetRole={results.pathwayOptions.transitionVisualization.targetRole}
-                    steps={results.pathwayOptions.transitionVisualization.transitionSteps}
-                    timeframe={results.pathwayOptions.transitionVisualization.estimatedTimeframe}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="border rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-4">University Pathway</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-1">Recommended Degrees</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {results.pathwayOptions.universityPathway.recommendedDegrees.map((degree, index) => (
-                          <li key={index} className="text-sm">{degree}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Institutions</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {results.pathwayOptions.universityPathway.institutions.map((institution, index) => (
-                          <li key={index} className="text-sm">{institution}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Estimated Timeframe</h4>
-                      <p className="text-sm">{results.pathwayOptions.universityPathway.estimatedTimeframe}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Expected Outcomes</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {results.pathwayOptions.universityPathway.expectedOutcomes.map((outcome, index) => (
-                          <li key={index} className="text-sm">{outcome}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="border rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-4">Vocational Pathway</h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-1">Recommended Certifications</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {results.pathwayOptions.vocationalPathway.recommendedCertifications.map((cert, index) => (
-                          <li key={index} className="text-sm">{cert}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Providers</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {results.pathwayOptions.vocationalPathway.providers.map((provider, index) => (
-                          <li key={index} className="text-sm">{provider}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Estimated Timeframe</h4>
-                      <p className="text-sm">{results.pathwayOptions.vocationalPathway.estimatedTimeframe}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-1">Expected Outcomes</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {results.pathwayOptions.vocationalPathway.expectedOutcomes.map((outcome, index) => (
-                          <li key={index} className="text-sm">{outcome}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-4">AI Pathway Enhancement Insights</h3>
-                <AIRecommendationsPanel 
-                  title="Pathway Insights"
-                  content={results.pathwayOptions.aiInsights}
-                />
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* Other tabs will be implemented similarly */}
-          
-          {/* Additional tab content sections would be added here */}
-          <TabsContent value="development" className="space-y-6">
-            {debugStates.developmentPlan && (
-              <div className="p-4 border rounded-lg bg-muted/30 mb-4 overflow-auto max-h-[300px]">
-                <h3 className="text-sm font-medium mb-2">Development Plan Data:</h3>
-                <pre className="text-xs">{JSON.stringify(results.developmentPlan, null, 2)}</pre>
-              </div>
-            )}
-            
-            <div className="p-6 border rounded-lg bg-card">
-              <h2 className="text-2xl font-bold mb-4">Comprehensive Development Plan</h2>
-              {/* Development plan content */}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="education" className="space-y-6">
-            {/* Educational Programs content */}
-          </TabsContent>
-          
-          <TabsContent value="similar-roles" className="space-y-6">
-            {/* Similar Roles content */}
-          </TabsContent>
-          
-          <TabsContent value="roadmap" className="space-y-6">
-            {/* Roadmap content */}
-          </TabsContent>
-        </Tabs>
+      )}
+      
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold">Summary</h3>
+          <p className="mt-1">{executiveSummary.summary}</p>
+        </div>
         
-        <motion.div 
-          className="flex flex-col items-center gap-6 mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          {/* Save to Dashboard and PDF Download buttons */}
-          <div className="flex justify-center w-full gap-4">
-            <div className="bg-gradient-to-r from-green-600 to-teal-600 p-0.5 rounded-lg">
-              <Button 
-                onClick={saveToAccount}
-                disabled={saving}
-                className="bg-background hover:bg-background/90 text-foreground"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save to Dashboard
-                  </>
-                )}
-              </Button>
+        <div>
+          <h3 className="text-lg font-semibold">Career Goal</h3>
+          <p className="mt-1">{executiveSummary.careerGoal}</p>
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold">Fit Score</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="text-xl font-bold">
+              {executiveSummary.fitScore.score}/{executiveSummary.fitScore.outOf}
             </div>
-            
-            <div className="bg-gradient-to-r from-blue-600 to-violet-600 p-0.5 rounded-lg">
-              {/* We will implement this component later */}
-              {/*<StructuredPdfDownloader results={results} formData={formData} />*/}
-              <Button className="bg-background hover:bg-background/90 text-foreground">
-                <FileDown className="mr-2 h-4 w-4" />
-                Download PDF Report
-              </Button>
+            <div className="text-sm text-muted-foreground">
+              {executiveSummary.fitScore.description}
             </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold">Key Findings</h3>
+          <ul className="mt-1 pl-5 list-disc">
+            {executiveSummary.keyFindings.map((finding, index) => (
+              <li key={index} className="mt-1">
+                {finding}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+  
+  /**
+   * Render the Skill Mapping section
+   */
+  const renderSkillMapping = () => (
+    <div className="space-y-6">
+      {debugMode && (
+        <div className="bg-muted p-2 text-xs">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toggleDebugSection('skillMapping')}
+          >
+            Toggle Debug
+          </Button>
+          {debugStates.skillMapping && (
+            <pre className="mt-2 overflow-auto">
+              {JSON.stringify(skillMapping, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+      
+      <div>
+        <p className="text-muted-foreground mb-4">{skillMapping.skillsAnalysis}</p>
+      </div>
+      
+      {skillMapping.sfiaSkills && skillMapping.sfiaSkills.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+            <Badge variant="outline" className="text-primary bg-primary/10">SFIA 9</Badge>
+            <span>Skills Framework for the Information Age</span>
+          </h3>
+          
+          <div className="space-y-3">
+            {skillMapping.sfiaSkills.map((skill, index) => (
+              <Card key={index} className="border-l-4 border-l-primary">
+                <CardContent className="p-4">
+                  <div className="flex justify-between">
+                    <div className="font-medium">{skill.skill}</div>
+                    <Badge>{skill.proficiency}/7</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{skill.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {skillMapping.digCompSkills && skillMapping.digCompSkills.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+            <Badge variant="outline" className="text-blue-500 bg-blue-500/10">DigComp 2.2</Badge>
+            <span>Digital Competence Framework</span>
+          </h3>
+          
+          <div className="space-y-3">
+            {skillMapping.digCompSkills.map((skill, index) => (
+              <Card key={index} className="border-l-4 border-l-blue-500">
+                <CardContent className="p-4">
+                  <div className="flex justify-between">
+                    <div className="font-medium">{skill.skill}</div>
+                    <Badge variant="secondary">{skill.proficiency}/7</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{skill.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {skillMapping.otherSkills && skillMapping.otherSkills.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Other Skills</h3>
+          
+          <div className="space-y-3">
+            {skillMapping.otherSkills.map((skill, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between">
+                    <div className="font-medium">{skill.skill}</div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{skill.category}</Badge>
+                      <Badge variant="secondary">{skill.proficiency}/7</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+  
+  /**
+   * Render the Skill Gap Analysis section
+   */
+  const renderSkillGapAnalysis = () => (
+    <div className="space-y-6">
+      {debugMode && (
+        <div className="bg-muted p-2 text-xs">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toggleDebugSection('gapAnalysis')}
+          >
+            Toggle Debug
+          </Button>
+          {debugStates.gapAnalysis && (
+            <pre className="mt-2 overflow-auto">
+              {JSON.stringify(skillGapAnalysis, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+      
+      <div>
+        <h3 className="text-lg font-semibold">Target Role</h3>
+        <p className="mt-1 font-medium text-primary">{skillGapAnalysis.targetRole}</p>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-4">Current Proficiency</h3>
+          <SkillRadarChart data={skillGapAnalysis.currentProficiencyData} />
+        </Card>
+        
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-4">Gap Analysis</h3>
+          <ComparativeBarChart data={skillGapAnalysis.gapAnalysisData} />
+        </Card>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-semibold mb-2">AI Analysis</h3>
+        <Card className="p-4 bg-primary/5">
+          <p className="text-sm">{skillGapAnalysis.aiAnalysis}</p>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Key Gaps</h3>
+          <div className="space-y-3">
+            {skillGapAnalysis.keyGaps.map((gap, index) => (
+              <Card key={index} className="border-l-4 border-l-destructive">
+                <CardContent className="p-4">
+                  <div className="flex justify-between">
+                    <div className="font-medium">{gap.skill}</div>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline">Gap: {gap.gap}</Badge>
+                      <Badge variant={
+                        gap.priority === 'High' ? 'destructive' : 
+                        gap.priority === 'Medium' ? 'default' : 'outline'
+                      }>
+                        {gap.priority}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Current: {gap.currentLevel}/7</span>
+                    <span>Required: {gap.requiredLevel}/7</span>
+                  </div>
+                  <p className="text-sm mt-2">{gap.improvementSuggestion}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Key Strengths</h3>
+          <div className="space-y-3">
+            {skillGapAnalysis.keyStrengths.map((strength, index) => (
+              <Card key={index} className="border-l-4 border-l-green-500">
+                <CardContent className="p-4">
+                  <div className="flex justify-between">
+                    <div className="font-medium">{strength.skill}</div>
+                    <Badge className="bg-green-500 hover:bg-green-600">
+                      +{strength.advantage}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Current: {strength.currentLevel}/7</span>
+                    <span>Required: {strength.requiredLevel}/7</span>
+                  </div>
+                  <p className="text-sm mt-2">{strength.leverageSuggestion}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  
+  /**
+   * Render the Career Pathway Options section
+   */
+  const renderCareerPathwayOptions = () => (
+    <div className="space-y-6">
+      {debugMode && (
+        <div className="bg-muted p-2 text-xs">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toggleDebugSection('pathwayOptions')}
+          >
+            Toggle Debug
+          </Button>
+          {debugStates.pathwayOptions && (
+            <pre className="mt-2 overflow-auto">
+              {JSON.stringify(careerPathwayOptions, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="p-4">
+          <CardTitle className="text-lg mb-2">Transition Overview</CardTitle>
+          <CardContent className="p-0 space-y-2">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Current Role:</span>
+              <span className="font-medium">{careerPathwayOptions.currentRole}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Target Role:</span>
+              <span className="font-medium text-primary">{careerPathwayOptions.targetRole}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Difficulty:</span>
+              <Badge variant={
+                careerPathwayOptions.transitionDifficulty === 'Easy' ? 'outline' : 
+                careerPathwayOptions.transitionDifficulty === 'Moderate' ? 'default' : 'destructive'
+              }>
+                {careerPathwayOptions.transitionDifficulty}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Timeframe:</span>
+              <span className="font-medium">{careerPathwayOptions.estimatedTimeframe}</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="p-4">
+          <CardTitle className="text-lg mb-2">AI Insights</CardTitle>
+          <CardContent className="p-0">
+            <p className="text-sm">{careerPathwayOptions.aiInsights}</p>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <CareerPathwayStepsDisplay 
+        currentRole={careerPathwayOptions.currentRole}
+        targetRole={careerPathwayOptions.targetRole}
+        steps={careerPathwayOptions.pathwaySteps}
+        timeframe={careerPathwayOptions.estimatedTimeframe}
+      />
+      
+      <Tabs defaultValue="university">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="university">University Pathway</TabsTrigger>
+          <TabsTrigger value="vocational">Vocational Pathway</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="university" className="space-y-4 mt-4">
+          <div>
+            <h3 className="text-md font-medium mb-2">Recommended Degrees</h3>
+            <ul className="pl-5 list-disc">
+              {careerPathwayOptions.universityPathway.degrees.map((degree, index) => (
+                <li key={index} className="mt-1">{degree}</li>
+              ))}
+            </ul>
           </div>
           
           <div>
-            <Button 
-              variant="outline" 
-              onClick={onRestart}
-              className="flex items-center"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              <span className="font-medium">Start a New Career Analysis</span>
-            </Button>
+            <h3 className="text-md font-medium mb-2">Suggested Institutions</h3>
+            <ul className="pl-5 list-disc">
+              {careerPathwayOptions.universityPathway.institutions.map((institution, index) => (
+                <li key={index} className="mt-1">{institution}</li>
+              ))}
+            </ul>
           </div>
-        </motion.div>
-      </motion.div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Estimated Duration:</span>
+            <Badge variant="outline">
+              {careerPathwayOptions.universityPathway.estimatedDuration}
+            </Badge>
+          </div>
+          
+          <div>
+            <h3 className="text-md font-medium mb-2">Expected Outcomes</h3>
+            <ul className="pl-5 list-disc">
+              {careerPathwayOptions.universityPathway.outcomes.map((outcome, index) => (
+                <li key={index} className="mt-1">{outcome}</li>
+              ))}
+            </ul>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="vocational" className="space-y-4 mt-4">
+          <div>
+            <h3 className="text-md font-medium mb-2">Recommended Certifications</h3>
+            <ul className="pl-5 list-disc">
+              {careerPathwayOptions.vocationalPathway.certifications.map((cert, index) => (
+                <li key={index} className="mt-1">{cert}</li>
+              ))}
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="text-md font-medium mb-2">Suggested Providers</h3>
+            <ul className="pl-5 list-disc">
+              {careerPathwayOptions.vocationalPathway.providers.map((provider, index) => (
+                <li key={index} className="mt-1">{provider}</li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Estimated Duration:</span>
+            <Badge variant="outline">
+              {careerPathwayOptions.vocationalPathway.estimatedDuration}
+            </Badge>
+          </div>
+          
+          <div>
+            <h3 className="text-md font-medium mb-2">Expected Outcomes</h3>
+            <ul className="pl-5 list-disc">
+              {careerPathwayOptions.vocationalPathway.outcomes.map((outcome, index) => (
+                <li key={index} className="mt-1">{outcome}</li>
+              ))}
+            </ul>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
+  );
+  
+  /**
+   * Render section selector buttons
+   */
+  const renderSectionSelector = () => {
+    const sections = [
+      {
+        id: 'overview',
+        name: 'Executive Summary',
+        icon: <User className="h-4 w-4" />,
+        completed: completedSections.executiveSummary,
+      },
+      {
+        id: 'skillMapping',
+        name: 'Skill Mapping',
+        icon: <ListChecks className="h-4 w-4" />,
+        completed: completedSections.skillMapping,
+      },
+      {
+        id: 'gapAnalysis',
+        name: 'Gap Analysis',
+        icon: <BarChart className="h-4 w-4" />,
+        completed: completedSections.skillGapAnalysis,
+      },
+      {
+        id: 'pathwayOptions',
+        name: 'Pathway Options',
+        icon: <Rocket className="h-4 w-4" />,
+        completed: completedSections.careerPathwayOptions,
+      },
+      {
+        id: 'developmentPlan',
+        name: 'Development Plan',
+        icon: <TrendingUp className="h-4 w-4" />,
+        completed: completedSections.developmentPlan,
+      },
+      {
+        id: 'educationalPrograms',
+        name: 'Educational Programs',
+        icon: <School className="h-4 w-4" />,
+        completed: completedSections.educationalPrograms,
+      },
+      {
+        id: 'learningRoadmap',
+        name: 'Learning Roadmap',
+        icon: <BookOpen className="h-4 w-4" />,
+        completed: completedSections.learningRoadmap,
+      },
+      {
+        id: 'similarRoles',
+        name: 'Similar Roles',
+        icon: <UserCheck className="h-4 w-4" />,
+        completed: completedSections.similarRoles,
+      },
+      {
+        id: 'quickTips',
+        name: 'Quick Tips',
+        icon: <Lightbulb className="h-4 w-4" />,
+        completed: completedSections.quickTips,
+      },
+      {
+        id: 'growthTrajectory',
+        name: 'Growth Trajectory',
+        icon: <LineChart className="h-4 w-4" />,
+        completed: completedSections.growthTrajectory,
+      },
+      {
+        id: 'learningPathRoadmap',
+        name: 'Learning Path',
+        icon: <Trophy className="h-4 w-4" />,
+        completed: completedSections.learningPathRoadmap,
+      },
+    ];
+    
+    return (
+      <div className="flex flex-col gap-1 w-full">
+        {sections.map((section) => (
+          <Button
+            key={section.id}
+            variant={activeSection === section.id ? 'default' : 'ghost'}
+            className={`justify-start ${!section.completed ? 'opacity-70' : ''}`}
+            onClick={() => setActiveSection(section.id)}
+            disabled={!section.completed}
+          >
+            <div className="flex items-center gap-2">
+              {section.icon}
+              <span>{section.name}</span>
+            </div>
+            {section.completed && activeSection === section.id && (
+              <ChevronRight className="h-4 w-4 ml-auto" />
+            )}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+  
+  /**
+   * Determine which section to render based on active selection
+   */
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'overview':
+        return renderExecutiveSummary();
+      case 'skillMapping':
+        return renderSkillMapping();
+      case 'gapAnalysis':
+        return renderSkillGapAnalysis();
+      case 'pathwayOptions':
+        return renderCareerPathwayOptions();
+      case 'developmentPlan':
+        return <div>Development Plan Content</div>;
+      case 'educationalPrograms':
+        return <div>Educational Programs Content</div>;
+      case 'learningRoadmap':
+        return <div>Learning Roadmap Content</div>;
+      case 'similarRoles':
+        return <div>Similar Roles Content</div>;
+      case 'quickTips':
+        return <div>Quick Tips Content</div>;
+      case 'growthTrajectory':
+        return <div>Growth Trajectory Content</div>;
+      case 'learningPathRoadmap':
+        return <div>Learning Path Roadmap Content</div>;
+      default:
+        return renderExecutiveSummary();
+    }
+  };
+  
+  return (
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="container mx-auto py-6"
+    >
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          variant="ghost"
+          onClick={onRestart}
+          className="gap-1"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Form
+        </Button>
+        
+        <div className="flex gap-2">
+          {!savedToAccount && user && (
+            <Button 
+              variant="outline"
+              onClick={saveAnalysis}
+            >
+              Save to Account
+            </Button>
+          )}
+          
+          <Button
+            variant="default"
+            disabled={isDownloading}
+            onClick={() => {
+              setIsDownloading(true);
+              // PDF Download logic would go here
+              setTimeout(() => {
+                setIsDownloading(false);
+                toast({
+                  title: 'Download Complete',
+                  description: 'Your career analysis report has been downloaded.',
+                });
+              }, 1500);
+            }}
+          >
+            {isDownloading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Downloading...
+              </>
+            ) : (
+              <>
+                <FileDown className="mr-2 h-4 w-4" />
+                Download Report
+              </>
+            )}
+          </Button>
+          
+          {process.env.NODE_ENV === 'development' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDebugMode}
+              className="w-8 h-8"
+            >
+              <AlertCircle className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <Card className="w-full">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <CardTitle>Career Pathway Analysis for {formData?.desiredRole}</CardTitle>
+          </div>
+          <CardDescription>
+            Generated on {new Date(timestamp).toLocaleDateString()} • Structured Format
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          <div className="grid grid-cols-1 md:grid-cols-4">
+            <div className="md:col-span-1 border-r p-4">
+              {renderSectionSelector()}
+            </div>
+            
+            <div className="md:col-span-3 p-6">
+              {renderActiveSection()}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

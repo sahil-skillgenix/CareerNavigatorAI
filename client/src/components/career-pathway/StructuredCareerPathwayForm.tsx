@@ -1,417 +1,344 @@
 /**
- * Enhanced version of CareerPathwayForm that uses the structured report format
- * to ensure proper ordering and naming consistency across all sections.
+ * Structured Career Pathway Form
+ * 
+ * This component provides a form for submitting career information
+ * that will be analyzed using the structured report format.
  */
 
-import { useState, useRef } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Loader2, 
-  BookCheck, 
-  GraduationCap, 
-  History, 
-  Target, 
-  User2, 
-  MapPin, 
-  Globe, 
-  Sparkles,
-  LineChart as LineChartIcon,
-  Laptop,
-  Clock
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { StructuredPdfDownloader } from "./StructuredPdfDownloader";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { fadeIn } from '@/lib/animations';
+import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CareerAnalysisReport } from '../../../shared/reportSchema';
+import { StructuredCareerAnalysisResults } from './StructuredCareerAnalysisResults';
 
-import { SkillRadarChart } from "./SkillRadarChart";
-import { ComparativeBarChart } from "./ComparativeBarChart";
-import { CareerPathwayStepsDisplay } from "./CareerPathwayStepsDisplay";
-import { AIRecommendationsPanel } from "./AIRecommendationsPanel";
-import { LearningRecommendationsGrid } from "./LearningRecommendationsGrid";
-import { CareerAnalysisReport } from "../../../shared/reportSchema";
-import { StructuredCareerAnalysisResults } from "./StructuredCareerAnalysisResults";
+// Define form schema with Zod
+const formSchema = z.object({
+  professionalLevel: z.string().min(1, 'Please select your professional level'),
+  currentSkills: z.string().min(10, 'Please describe your current skills in more detail'),
+  educationalBackground: z.string().min(10, 'Please provide more details about your education'),
+  careerHistory: z.string().min(10, 'Please provide more details about your career history'),
+  desiredRole: z.string().min(3, 'Please specify your desired role'),
+  state: z.string().optional(),
+  country: z.string().optional(),
+});
 
-// Form data structure for the career analysis
-interface FormValues {
-  professionalLevel: string;
-  currentSkills: string;
-  educationalBackground: string;
-  careerHistory: string;
-  desiredRole: string;
-  state: string;
-  country: string;
-}
+type FormValues = z.infer<typeof formSchema>;
 
-// Submitted form data
-type SubmittedFormData = {
-  userId: string | undefined;
-  professionalLevel: string;
-  currentSkills: string;
-  educationalBackground: string;
-  careerHistory: string;
-  desiredRole: string;
-  state: string;
-  country: string;
-};
-
-/**
- * A form component that collects career information from the user
- * and generates a structured career analysis report
- */
 export function StructuredCareerPathwayForm() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Form state
-  const [formData, setFormData] = useState<FormValues>({
-    professionalLevel: "",
-    currentSkills: "",
-    educationalBackground: "",
-    careerHistory: "",
-    desiredRole: "",
-    state: "",
-    country: ""
-  });
-  
-  // Analysis result state (using the structured CareerAnalysisReport interface)
-  const [analysisResult, setAnalysisResult] = useState<CareerAnalysisReport | null>(null);
-  
-  // Store the submitted form data for later use when saving
-  const [submittedFormData, setSubmittedFormData] = useState<SubmittedFormData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<CareerAnalysisReport | null>(null);
+  const [formData, setFormData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Mutation for submitting career analysis using the structured endpoint
-   */
-  const careerAnalysisMutation = useMutation({
-    mutationFn: async (data: FormValues) => {
-      // Save the form data for later use when saving to dashboard
-      const formDataToSave: SubmittedFormData = {
-        userId: user?.id,
-        professionalLevel: data.professionalLevel,
-        currentSkills: data.currentSkills,
-        educationalBackground: data.educationalBackground,
-        careerHistory: data.careerHistory,
-        desiredRole: data.desiredRole,
-        state: data.state,
-        country: data.country,
-      };
-      
-      setSubmittedFormData(formDataToSave);
-      console.log("Form data saved for later use:", formDataToSave);
-      
-      // Use the structured endpoint for proper section ordering
-      const res = await apiRequest("POST", "/api/career-pathway-analysis-structured", data);
-      const result = await res.json();
-      return result as CareerAnalysisReport;
+  // Initialize form with react-hook-form
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      professionalLevel: '',
+      currentSkills: '',
+      educationalBackground: '',
+      careerHistory: '',
+      desiredRole: '',
+      state: '',
+      country: '',
     },
-    onSuccess: (data) => {
-      setAnalysisResult(data);
-      toast({
-        title: "Career analysis complete",
-        description: "Your personalized career pathway has been generated using the structured format.",
-        variant: "default"
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Analysis failed",
-        description: error.message || "Failed to analyze your career information. Please try again.",
-        variant: "destructive"
-      });
-    }
   });
-  
-  /**
-   * Handle input changes in the form
-   */
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+  const handleReset = () => {
+    setResults(null);
+    setFormData(null);
+    setError(null);
   };
-  
-  /**
-   * Handle select changes in the form
-   */
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+  const onSubmit = async (data: FormValues) => {
+    setIsLoading(true);
+    setError(null);
+    setFormData(data);
+
+    try {
+      // Call the structured API endpoint
+      const response = await fetch('/api/career-pathway-analysis-structured', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          userId: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate career analysis');
+      }
+
+      const result = await response.json();
+      setResults(result);
+      
+      toast({
+        title: 'Analysis Complete',
+        description: 'Your career pathway analysis has been generated successfully.',
+        variant: 'default',
+      });
+    } catch (err: any) {
+      console.error('Error generating career analysis:', err);
+      setError(err.message || 'Failed to generate career analysis. Please try again.');
+      
+      toast({
+        title: 'Analysis Failed',
+        description: err.message || 'Failed to generate career analysis. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  /**
-   * Handle form submission
-   */
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validation
-    if (
-      !formData.professionalLevel ||
-      !formData.currentSkills ||
-      !formData.educationalBackground ||
-      !formData.careerHistory ||
-      !formData.desiredRole
-    ) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all the required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Check skills count limit
-    if (formData.currentSkills.split(',').length > 50) {
-      toast({
-        title: "Too many skills",
-        description: "Please limit your skills to 50 maximum.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Check desired role character limit
-    if (formData.desiredRole.length > 250) {
-      toast({
-        title: "Character limit exceeded",
-        description: "Please limit your desired role to 250 characters.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    careerAnalysisMutation.mutate(formData);
-  };
-  
-  // If user not logged in, don't render form
-  if (!user) {
-    return null;
+
+  // If we have results, show them instead of the form
+  if (results && formData) {
+    return (
+      <StructuredCareerAnalysisResults 
+        results={results} 
+        formData={formData} 
+        onRestart={handleReset} 
+      />
+    );
   }
-  
-  if (analysisResult) {
-    return <StructuredCareerAnalysisResults 
-      results={analysisResult} 
-      formData={submittedFormData}
-      onRestart={() => setAnalysisResult(null)} 
-    />;
-  }
-  
+
   return (
-    <div className="container mx-auto max-w-4xl py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-3">Career Pathway Analysis <Badge variant="outline" className="ml-2">Structured Format</Badge></h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Analyze your skills and receive a personalized career pathway with step-by-step guidance
-            to achieve your career goals.
-          </p>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Enter Your Career Information</CardTitle>
-            <CardDescription>
-              Our AI will analyze your skills and career history to create personalized recommendations.
-            </CardDescription>
-          </CardHeader>
-          
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-6">
-              {/* Professional Level */}
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <User2 className="mr-2 h-4 w-4 text-primary" />
-                  <Label htmlFor="professionalLevel">Professional Level</Label>
-                </div>
-                <Select 
-                  value={formData.professionalLevel} 
-                  onValueChange={(value) => handleSelectChange("professionalLevel", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your professional level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="graduate">Recent Graduate</SelectItem>
-                    <SelectItem value="worker">Working Professional</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="executive">Executive</SelectItem>
-                    <SelectItem value="career-changer">Career Changer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Current Skills */}
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <BookCheck className="mr-2 h-4 w-4 text-primary" />
-                  <Label htmlFor="currentSkills">Current Skills</Label>
-                </div>
-                <Textarea 
-                  id="currentSkills"
-                  name="currentSkills"
-                  value={formData.currentSkills}
-                  onChange={handleInputChange}
-                  placeholder="List your skills and competencies (separated by commas)"
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter up to 50 skills, separated by commas.
-                </p>
-              </div>
-              
-              {/* Educational Background */}
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <GraduationCap className="mr-2 h-4 w-4 text-primary" />
-                  <Label htmlFor="educationalBackground">Educational Background</Label>
-                </div>
-                <Textarea 
-                  id="educationalBackground"
-                  name="educationalBackground"
-                  value={formData.educationalBackground}
-                  onChange={handleInputChange}
-                  placeholder="Describe your education, degrees, certifications, etc."
-                  rows={3}
-                />
-              </div>
-              
-              {/* Career History */}
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <History className="mr-2 h-4 w-4 text-primary" />
-                  <Label htmlFor="careerHistory">Career History</Label>
-                </div>
-                <Textarea 
-                  id="careerHistory"
-                  name="careerHistory"
-                  value={formData.careerHistory}
-                  onChange={handleInputChange}
-                  placeholder="Describe your work experience and previous roles"
-                  rows={3}
-                />
-              </div>
-              
-              {/* Desired Role */}
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <Target className="mr-2 h-4 w-4 text-primary" />
-                  <Label htmlFor="desiredRole">Desired Role or Career Goal</Label>
-                </div>
-                <Textarea 
-                  id="desiredRole"
-                  name="desiredRole"
-                  value={formData.desiredRole}
-                  onChange={handleInputChange}
-                  placeholder="What role or career path are you aiming for?"
-                  rows={2}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Maximum 250 characters.
-                </p>
-              </div>
-              
-              {/* Location Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <MapPin className="mr-2 h-4 w-4 text-primary" />
-                    <Label htmlFor="state">State/Province</Label>
-                  </div>
-                  <Input 
-                    id="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    placeholder="Your state or province"
-                  />
-                </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="container mx-auto py-6"
+    >
+      <Card className="w-full shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <CardTitle>Structured Career Pathway Analysis</CardTitle>
+          </div>
+          <CardDescription>
+            Get a comprehensive career pathway analysis with our structured format including all 11 essential sections.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <Tabs defaultValue="basics" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="basics">Career Details</TabsTrigger>
+                  <TabsTrigger value="location">Location (Optional)</TabsTrigger>
+                </TabsList>
                 
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <Globe className="mr-2 h-4 w-4 text-primary" />
-                    <Label htmlFor="country">Country</Label>
+                <TabsContent value="basics" className="space-y-4 pt-4">
+                  <FormField
+                    control={form.control}
+                    name="professionalLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Professional Level</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your professional level" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Entry Level">Entry Level</SelectItem>
+                            <SelectItem value="Junior">Junior</SelectItem>
+                            <SelectItem value="Mid Level">Mid Level</SelectItem>
+                            <SelectItem value="Senior">Senior</SelectItem>
+                            <SelectItem value="Lead">Lead</SelectItem>
+                            <SelectItem value="Manager">Manager</SelectItem>
+                            <SelectItem value="Director">Director</SelectItem>
+                            <SelectItem value="Executive">Executive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="currentSkills"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Skills</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your current skills and proficiencies. Be as detailed as possible."
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="educationalBackground"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Educational Background</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your educational background including degrees, certifications, etc."
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="careerHistory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Career History</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe your career history, including roles, companies, and key responsibilities."
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="desiredRole"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Desired Role or Career Goal</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="What role or career would you like to pursue?"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="location" className="space-y-4 pt-4">
+                  <div className="flex items-center mb-4">
+                    <Badge variant="outline" className="mr-2">Optional</Badge>
+                    <p className="text-sm text-muted-foreground">
+                      Location information helps with region-specific recommendations.
+                    </p>
                   </div>
-                  <Select 
-                    value={formData.country} 
-                    onValueChange={(value) => handleSelectChange("country", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your country" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="australia">Australia</SelectItem>
-                      <SelectItem value="new-zealand">New Zealand</SelectItem>
-                      <SelectItem value="usa">United States</SelectItem>
-                      <SelectItem value="canada">Canada</SelectItem>
-                      <SelectItem value="uk">United Kingdom</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State/Province</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Your state or province (optional)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Your country (optional)"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              <Separator className="my-4" />
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => form.reset()}
+                  disabled={isLoading}
+                >
+                  Reset
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="min-w-[120px]"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate Pathway
+                    </>
+                  )}
+                </Button>
               </div>
-            </CardContent>
-            
-            <CardFooter className="flex justify-between border-t pt-6">
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-              
-              <Button 
-                type="submit" 
-                disabled={careerAnalysisMutation.isPending}
-                className="min-w-32"
-              >
-                {careerAnalysisMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Pathway
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </motion.div>
-    </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

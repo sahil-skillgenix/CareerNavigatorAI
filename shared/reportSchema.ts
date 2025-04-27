@@ -1,267 +1,241 @@
 /**
- * Structured Career Analysis Report Schema
+ * Career Analysis Report Schema
  * 
- * This schema defines the structured format for career analysis reports
- * to ensure all 11 sections are properly ordered and consistently named.
+ * Defines the structure of the standardized career analysis report with 11 sections.
  */
 
-// Executive Summary Section
+// Executive Summary section
 export interface ExecutiveSummary {
   summary: string;
   careerGoal: string;
-  keyFindings: string[];
   fitScore: {
     score: number;
     outOf: number;
     description: string;
   };
+  keyFindings: string[];
 }
 
-// Skill Mapping Section
+// Skill Mapping section
+export interface SkillItem {
+  skill: string;
+  proficiency: number;
+  description: string;
+  category?: string;
+}
+
 export interface SkillMapping {
-  sfiaSkills: {
-    skill: string;
-    proficiency: number;
-    description: string;
-  }[];
-  digCompSkills: {
-    skill: string;
-    proficiency: number;
-    description: string;
-  }[];
-  otherSkills: {
-    skill: string;
-    proficiency: number;
-    category: string;
-  }[];
   skillsAnalysis: string;
+  sfiaSkills: SkillItem[];
+  digCompSkills: SkillItem[];
+  otherSkills: SkillItem[];
 }
 
-// Skill Gap Analysis Section
+// Skill Gap Analysis section
+export interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+  }[];
+}
+
+export interface SkillGap {
+  skill: string;
+  currentLevel: number;
+  requiredLevel: number;
+  gap: number;
+  priority: 'High' | 'Medium' | 'Low';
+  improvementSuggestion: string;
+}
+
+export interface SkillStrength {
+  skill: string;
+  currentLevel: number;
+  requiredLevel: number;
+  advantage: number;
+  leverageSuggestion: string;
+}
+
 export interface SkillGapAnalysis {
   targetRole: string;
-  currentProficiencyData: {
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-    }[];
-  };
-  gapAnalysisData: {
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-    }[];
-  };
+  currentProficiencyData: ChartData;
+  gapAnalysisData: ChartData;
   aiAnalysis: string;
-  keyGaps: {
-    skill: string;
-    currentLevel: number;
-    requiredLevel: number;
-    gap: number;
-    priority: 'High' | 'Medium' | 'Low';
-    improvementSuggestion: string;
-  }[];
-  keyStrengths: {
-    skill: string;
-    currentLevel: number;
-    requiredLevel: number;
-    advantage: number;
-    leverageSuggestion: string;
-  }[];
+  keyGaps: SkillGap[];
+  keyStrengths: SkillStrength[];
 }
 
-// Career Pathway Options Section
+// Career Pathway Options section
+export interface PathwayStep {
+  step: string;
+  timeframe: string;
+  description: string;
+}
+
+export interface EducationOption {
+  degree: string;
+  institutions: string[];
+  duration: string;
+  outcomes: string[];
+}
+
+export interface VocationalOption {
+  certification: string;
+  providers: string[];
+  duration: string;
+  outcomes: string[];
+}
+
 export interface CareerPathwayOptions {
+  pathwayDescription: string;
   currentRole: string;
   targetRole: string;
-  transitionDifficulty: 'Easy' | 'Moderate' | 'Challenging';
-  estimatedTimeframe: string;
-  universityPathway: {
-    degrees: string[];
-    institutions: string[];
-    estimatedDuration: string;
-    outcomes: string[];
-  };
-  vocationalPathway: {
-    certifications: string[];
-    providers: string[];
-    estimatedDuration: string;
-    outcomes: string[];
-  };
+  timeframe: string;
+  pathwaySteps: PathwayStep[];
+  universityPathway: EducationOption[];
+  vocationalPathway: VocationalOption[];
   aiInsights: string;
-  pathwaySteps: {
-    step: string;
-    timeframe: string;
-    description: string;
-  }[];
 }
 
-// Development Plan Section
+// Development Plan section
 export interface DevelopmentPlan {
-  skillsAssessment: string;
+  overview: string;
   technicalSkills: {
     skill: string;
     currentLevel: number;
     targetLevel: number;
-    developmentActions: string[];
-    resources: string[];
     timeframe: string;
+    resources: string[];
   }[];
   softSkills: {
     skill: string;
     currentLevel: number;
     targetLevel: number;
-    developmentActions: string[];
-    resources: string[];
     timeframe: string;
+    resources: string[];
   }[];
   skillsToAcquire: {
     skill: string;
-    relevance: string;
-    developmentActions: string[];
-    resources: string[];
+    reason: string;
     timeframe: string;
+    resources: string[];
   }[];
 }
 
-// Educational Programs Section
+// Educational Programs section
+export interface EducationalProgram {
+  name: string;
+  provider: string;
+  duration: string;
+  format: string;
+  skillsCovered: string[];
+  description: string;
+}
+
+export interface ProjectIdea {
+  title: string;
+  description: string;
+  skillsDeveloped: string[];
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  timeEstimate: string;
+}
+
 export interface EducationalPrograms {
-  recommendedPrograms: {
+  introduction: string;
+  recommendedPrograms: EducationalProgram[];
+  projectIdeas: ProjectIdea[];
+}
+
+// Learning Roadmap section
+export interface LearningPhase {
+  phase: string;
+  timeframe: string;
+  focus: string;
+  milestones: string[];
+  resources: {
+    type: string;
     name: string;
-    provider: string;
-    format: string;
-    duration: string;
-    url?: string;
-    description: string;
-    skillsAddressed: string[];
-    cost?: string;
-  }[];
-  suggestedProjects: {
-    title: string;
-    description: string;
-    skillsDeveloped: string[];
-    difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-    estimatedTime: string;
-    resources: string[];
+    link?: string;
   }[];
 }
 
-// Learning Roadmap Section
 export interface LearningRoadmap {
-  phases: {
-    name: string;
-    duration: string;
-    focus: string;
-    activities: string[];
-    outcomes: string[];
-    resources: string[];
-  }[];
-  roadmapOverview: string;
+  overview: string;
+  phases: LearningPhase[];
 }
 
-// Similar Roles Section
+// Similar Roles section
+export interface SimilarRole {
+  role: string;
+  similarityScore: number;
+  keySkillOverlap: string[];
+  additionalSkillsNeeded: string[];
+  summary: string;
+}
+
 export interface SimilarRoles {
-  roles: {
-    title: string;
-    description: string;
-    fitScore: number;
-    skillOverlap: string[];
-    additionalSkillsNeeded: string[];
-    transitionDifficulty: 'Easy' | 'Moderate' | 'Challenging';
-    industry: string;
-    salary?: string;
-  }[];
+  introduction: string;
+  roles: SimilarRole[];
 }
 
-// Quick Tips Section
+// Quick Tips section
 export interface QuickTips {
-  quickWins: string[];
+  introduction: string;
+  quickWins: {
+    tip: string;
+    timeframe: string;
+    impact: 'High' | 'Medium' | 'Low';
+  }[];
   industryInsights: string[];
-  interviewTips: string[];
 }
 
-// Growth Trajectory Section
+// Growth Trajectory section
+export interface CareerStage {
+  role: string;
+  timeline: string;
+  responsibilities: string[];
+  skillsRequired: string[];
+  salary?: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+}
+
 export interface GrowthTrajectory {
-  shortTerm: {
-    role: string;
-    timeframe: string;
-    keySkills: string[];
-    developmentFocus: string;
-  };
-  mediumTerm: {
-    role: string;
-    timeframe: string;
-    keySkills: string[];
-    developmentFocus: string;
-  };
-  longTerm: {
-    role: string;
-    timeframe: string;
-    keySkills: string[];
-    developmentFocus: string;
-  };
-  potentialSalaryProgression: {
-    stage: string;
-    range: string;
-    notes?: string;
-  }[];
+  introduction: string;
+  shortTerm: CareerStage;
+  mediumTerm: CareerStage;
+  longTerm: CareerStage;
 }
 
-// Learning Path Roadmap Section
+// Learning Path Roadmap section
+export interface CareerTrajectoryItem {
+  stage: string;
+  timeframe: string;
+  role: string;
+  skills: string[];
+  milestones: string[];
+}
+
 export interface LearningPathRoadmap {
-  careerTrajectory: {
-    stage: string;
-    role: string;
-    timeframe: string;
-    keyResponsibilities: string[];
-    requiredSkills: string[];
-  }[];
-  milestones: {
-    title: string;
-    achievement: string;
-    timeframe: string;
-    skillsUtilized: string[];
-  }[];
+  overview: string;
+  careerTrajectory: CareerTrajectoryItem[];
 }
 
-// Complete Career Analysis Report with all 11 sections in proper order
+// Complete Career Analysis Report
 export interface CareerAnalysisReport {
-  // Section 1: Executive Summary
   executiveSummary: ExecutiveSummary;
-  
-  // Section 2: Skill Mapping
   skillMapping: SkillMapping;
-  
-  // Section 3: Skill Gap Analysis
   skillGapAnalysis: SkillGapAnalysis;
-  
-  // Section 4: Career Pathway Options
   careerPathwayOptions: CareerPathwayOptions;
-  
-  // Section 5: Development Plan
   developmentPlan: DevelopmentPlan;
-  
-  // Section 6: Educational Programs
   educationalPrograms: EducationalPrograms;
-  
-  // Section 7: Learning Roadmap
   learningRoadmap: LearningRoadmap;
-  
-  // Section 8: Similar Roles
   similarRoles: SimilarRoles;
-  
-  // Section 9: Quick Tips
   quickTips: QuickTips;
-  
-  // Section 10: Growth Trajectory
   growthTrajectory: GrowthTrajectory;
-  
-  // Section 11: Learning Path Roadmap
   learningPathRoadmap: LearningPathRoadmap;
-  
-  // Additional metadata
   timestamp: string;
-  version: string;
 }
