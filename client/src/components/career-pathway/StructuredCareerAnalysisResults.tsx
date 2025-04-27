@@ -4,52 +4,75 @@
  * Displays the results of a structured career analysis report, ensuring
  * all 11 sections are properly ordered and rendered with a futuristic design.
  */
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { CareerAnalysisReport } from '../../../shared/reportSchema';
 import { SkillRadarChart } from './SkillRadarChart';
 import { ComparativeBarChart } from './ComparativeBarChart';
 import { CareerPathwayStepsDisplay } from './CareerPathwayStepsDisplay';
-import {
-  AlertCircle,
-  ArrowLeft,
-  BarChart,
-  BookOpen,
-  ChevronRight,
-  Download,
-  FileDown,
-  Lightbulb,
-  LineChart,
-  ListChecks,
-  Loader2,
-  Rocket,
-  School,
-  Sparkles,
-  TrendingUp,
-  Trophy,
-  User,
-  UserCheck,
-  Info,
-  Zap,
-  GraduationCap,
-  Brain,
-  CheckCircle,
-  AlertTriangle
-} from 'lucide-react';
-import { CareerAnalysisReport } from '../../../shared/reportSchema';
-import { fadeIn, fadeInUp, fadeInLeft, fadeInRight, staggerChildren, listItem } from '@/lib/animations';
+import { fadeIn, fadeInUp, fadeInLeft, fadeInRight } from '@/lib/animations';
+import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-// Define interfaces for the component props
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from '@/components/ui/tabs';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
+import {
+  LineChart,
+  BarChart3,
+  Target,
+  ArrowRight,
+  Asterisk,
+  BarChart,
+  BookOpen,
+  Brain,
+  Check,
+  CheckCircle,
+  Clock,
+  Download,
+  FileText,
+  GraduationCap,
+  Info,
+  Laptop,
+  LineChartIcon,
+  ListChecks,
+  Loader2,
+  MapPin,
+  School,
+  Sparkles,
+  Star,
+  TrendingUp,
+  AlertCircle,
+  AlertTriangle,
+  Lightbulb,
+  Save
+} from 'lucide-react';
+
 interface SubmittedFormData {
   userId: string | undefined;
   professionalLevel: string;
@@ -85,122 +108,116 @@ interface DebugStates {
   [key: string]: boolean;
 }
 
+const defaultDebugStates: DebugStates = {
+  executiveSummary: false,
+  skillMapping: false,
+  gapAnalysis: false,
+  pathwayOptions: false,
+  developmentPlan: false,
+  educationalPrograms: false,
+  learningRoadmap: false,
+  similarRoles: false,
+  quickTips: false,
+  growthTrajectory: false,
+  learningPathRoadmap: false
+};
+
 /**
  * Component that displays a structured career analysis report with support for debugging
  */
 export function StructuredCareerAnalysisResults({ 
   results, 
-  formData, 
-  onRestart 
+  formData,
+  onRestart
 }: StructuredCareerAnalysisResultsProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState('executiveSummary');
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedToAccount, setSavedToAccount] = useState(false);
+  const { user } = useAuth();
   
-  // Debug mode tracking
-  const [debugMode, setDebugMode] = useState(false);
-  const [debugStates, setDebugStates] = useState<DebugStates>({
-    executiveSummary: false,
-    skillMapping: false,
-    gapAnalysis: false,
-    pathwayOptions: false,
-    developmentPlan: false,
-    educationalPrograms: false,
-    learningRoadmap: false,
-    similarRoles: false,
-    quickTips: false,
-    growthTrajectory: false,
-    learningPathRoadmap: false,
-  });
-  
-  // Access report sections
+  // Extract result sections for easier referencing
   const { 
     executiveSummary, 
     skillMapping, 
-    skillGapAnalysis, 
-    careerPathwayOptions, 
+    skillGapAnalysis,
+    careerPathwayOptions,
     developmentPlan,
     educationalPrograms,
     learningRoadmap,
     similarRoles,
     quickTips,
     growthTrajectory,
-    learningPathRoadmap,
-    timestamp
+    learningPathRoadmap
   } = results;
   
-  // Track section completion to show in UI
-  const [completedSections, setCompletedSections] = useState<Record<string, boolean>>({});
+  // UI state
+  const [activeSection, setActiveSection] = useState<string>('executiveSummary');
+  const [saveInProgress, setSaveInProgress] = useState<boolean>(false);
+  const [downloadInProgress, setDownloadInProgress] = useState<boolean>(false);
+  const [debugMode, setDebugMode] = useState<boolean>(false);
+  const [debugStates, setDebugStates] = useState<DebugStates>(defaultDebugStates);
   
-  // Effect to update completed sections based on data presence
+  // Save report to localStorage to persist across page refreshes
   useEffect(() => {
-    // Check each section for presence of key data
-    const sections: Record<string, boolean> = {
-      executiveSummary: Boolean(executiveSummary?.summary),
-      skillMapping: Boolean(skillMapping?.sfiaSkills?.length || skillMapping?.digCompSkills?.length),
-      skillGapAnalysis: Boolean(skillGapAnalysis?.gapAnalysisData?.labels?.length),
-      careerPathwayOptions: Boolean(careerPathwayOptions?.pathwaySteps?.length),
-      developmentPlan: Boolean(developmentPlan?.technicalSkills?.length || developmentPlan?.softSkills?.length),
-      educationalPrograms: Boolean(educationalPrograms?.recommendedPrograms?.length),
-      learningRoadmap: Boolean(learningRoadmap?.phases?.length),
-      similarRoles: Boolean(similarRoles?.roles?.length),
-      quickTips: Boolean(quickTips?.quickWins?.length || quickTips?.industryInsights?.length),
-      growthTrajectory: Boolean(growthTrajectory?.shortTerm?.role || growthTrajectory?.mediumTerm?.role),
-      learningPathRoadmap: Boolean(learningPathRoadmap?.careerTrajectory?.length),
-    };
+    const savedReports = localStorage.getItem('careerAnalysisReports');
+    const reports = savedReports ? JSON.parse(savedReports) : [];
     
-    setCompletedSections(prev => ({...prev, ...sections}));
+    // Only save if the report doesn't already exist (based on timestamp)
+    const exists = reports.some((r: CareerAnalysisReport) => r.timestamp === results.timestamp);
+    
+    if (!exists) {
+      reports.push(results);
+      localStorage.setItem('careerAnalysisReports', JSON.stringify(reports));
+      console.log(`Saved ${reports.length} resources to localStorage`);
+    } else {
+      console.log(`Loaded ${reports.length} resources from localStorage`);
+    }
   }, [results]);
   
   /**
    * Save career analysis to user's account
    */
-  const saveAnalysis = async () => {
-    if (!user || !formData) return;
-    setIsSaving(true);
+  const handleSaveToAccount = async () => {
+    if (!user) {
+      toast({
+        title: "Not logged in",
+        description: "Please log in to save your career analysis.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSaveInProgress(true);
     
     try {
-      const response = await fetch('/api/save-career-analysis', {
+      const response = await fetch('/api/career-analysis/save', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           userId: user.id,
-          professionalLevel: formData.professionalLevel,
-          currentSkills: formData.currentSkills,
-          educationalBackground: formData.educationalBackground,
-          careerHistory: formData.careerHistory,
-          desiredRole: formData.desiredRole,
-          state: formData.state,
-          country: formData.country,
-          result: results,
-          progress: 100,
-        }),
+          formData,
+          report: results
+        })
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to save analysis');
+      if (response.ok) {
+        toast({
+          title: "Career Analysis Saved",
+          description: "Your analysis has been saved to your account.",
+          variant: "default"
+        });
+      } else {
+        throw new Error('Failed to save career analysis');
       }
-      
-      setSavedToAccount(true);
-      toast({
-        title: 'Analysis Saved',
-        description: 'Your career analysis has been saved to your account.',
-        variant: 'default',
-      });
     } catch (error) {
-      console.error('Error saving analysis:', error);
+      console.error('Error saving career analysis:', error);
       toast({
-        title: 'Save Failed',
-        description: 'Failed to save analysis to your account. Please try again.',
-        variant: 'destructive',
+        title: "Save Failed",
+        description: "There was an error saving your career analysis.",
+        variant: "destructive"
       });
     } finally {
-      setIsSaving(false);
+      setSaveInProgress(false);
     }
   };
   
@@ -208,287 +225,127 @@ export function StructuredCareerAnalysisResults({
    * Handle downloading the report as HTML
    */
   const handleDownloadReport = async () => {
-    setIsDownloading(true);
-    toast({
-      title: 'Download Started',
-      description: 'Preparing your career analysis report...',
-    });
+    setDownloadInProgress(true);
     
     try {
-      // Create a new HTML document for the report
-      const reportContent = document.getElementById('report-content');
-      if (!reportContent) {
-        throw new Error('Report content not found');
+      // Create a container to hold the report content
+      const reportContainer = document.getElementById('report-container');
+      
+      if (!reportContainer) {
+        throw new Error('Report container not found');
       }
       
-      // Clone the content
-      const contentClone = reportContent.cloneNode(true) as HTMLElement;
-      
-      // Create HTML template with styling
-      const html = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Skillgenix Career Analysis - ${executiveSummary.careerGoal}</title>
-          <style>
-            /* Base styles */
-            :root {
-              --primary: rgb(28, 59, 130);
-              --primary-light: rgba(28, 59, 130, 0.1);
-              --accent: rgb(163, 29, 82);
-              --accent-light: rgba(163, 29, 82, 0.1);
-              --text: #333;
-              --text-light: #666;
-              --background: #fff;
-              --background-alt: #f8f9fa;
-              --border: #e2e8f0;
-              --success: #10b981;
-              --warning: #f59e0b;
-              --error: #ef4444;
-            }
-            
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              line-height: 1.6;
-              color: var(--text);
-              background-color: var(--background);
-              margin: 0;
-              padding: 0;
-            }
-            
-            * {
-              box-sizing: border-box;
-            }
-            
-            .container {
-              max-width: 1200px;
-              margin: 0 auto;
-              padding: 2rem;
-            }
-            
-            header {
-              background: linear-gradient(135deg, var(--primary), var(--accent));
-              color: white;
-              padding: 2rem;
-              border-radius: 0.5rem 0.5rem 0 0;
-              position: relative;
-              overflow: hidden;
-            }
-            
-            header::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              right: 0;
-              bottom: 0;
-              left: 0;
-              background-image: 
-                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 20%),
-                radial-gradient(circle at 80% 30%, rgba(255,255,255,0.1) 0%, transparent 20%);
-              z-index: 0;
-            }
-            
-            header > * {
-              position: relative;
-              z-index: 1;
-            }
-            
-            h1, h2, h3, h4, h5, h6 {
-              color: var(--primary);
-              margin-top: 1.5rem;
-              margin-bottom: 1rem;
-            }
-            
-            header h1, header h2, header h3, header p {
-              color: white;
-            }
-            
-            p {
-              margin-top: 0;
-              margin-bottom: 1rem;
-            }
-            
-            .card {
-              background: var(--background);
-              border-radius: 0.5rem;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-              padding: 1.5rem;
-              margin-bottom: 1.5rem;
-              border: 1px solid var(--border);
-            }
-            
-            .card-header {
-              display: flex;
-              align-items: center;
-              margin-bottom: 1rem;
-              padding-bottom: 0.5rem;
-              border-bottom: 1px solid var(--border);
-            }
-            
-            .card-header-icon {
-              background: var(--primary-light);
-              color: var(--primary);
-              width: 2.5rem;
-              height: 2.5rem;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin-right: 0.75rem;
-            }
-            
-            .badge {
-              display: inline-block;
-              padding: 0.35em 0.65em;
-              font-size: 0.75em;
-              font-weight: 700;
-              line-height: 1;
-              text-align: center;
-              white-space: nowrap;
-              vertical-align: baseline;
-              border-radius: 0.25rem;
-              background: var(--primary-light);
-              color: var(--primary);
-            }
-            
-            .badge-accent {
-              background: var(--accent-light);
-              color: var(--accent);
-            }
-            
-            .grid {
-              display: grid;
-              grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-              gap: 1.5rem;
-            }
-            
-            .progress-bar {
-              height: 0.5rem;
-              background-color: var(--border);
-              border-radius: 9999px;
-              overflow: hidden;
-            }
-            
-            .progress-bar-fill {
-              height: 100%;
-              background-color: var(--primary);
-              border-radius: 9999px;
-            }
-            
-            ul, ol {
-              padding-left: 1.5rem;
-            }
-            
-            li {
-              margin-bottom: 0.5rem;
-            }
-            
-            .skill-card {
-              background: var(--background-alt);
-              border-radius: 0.375rem;
-              padding: 1rem;
-              margin-bottom: 0.75rem;
-              border-left: 4px solid var(--primary);
-            }
-            
-            .skill-header {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 0.5rem;
-            }
-            
-            .skill-name {
-              font-weight: 600;
-            }
-            
-            .skill-level {
-              font-weight: 600;
-            }
-            
-            .footer {
-              text-align: center;
-              padding: 2rem;
-              margin-top: 2rem;
-              color: var(--text-light);
-              font-size: 0.875rem;
-              border-top: 1px solid var(--border);
-            }
-            
-            @media print {
-              body {
-                background: white;
-              }
-              .container {
-                max-width: 100%;
-                padding: 0;
-              }
-              .card {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                box-shadow: none;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <header>
-              <h1>Career Analysis Report</h1>
-              <p>Generated by Skillgenix on ${new Date(timestamp).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}</p>
-              <h2>${executiveSummary.careerGoal}</h2>
-            </header>
-            
-            <div class="content">
-              ${contentClone.innerHTML}
-            </div>
-            
-            <footer class="footer">
-              <p>© ${new Date().getFullYear()} Skillgenix | AI-Powered Career Pathway Development</p>
-              <p>This analysis is based on information provided and should be used as a guide for your career development.</p>
-            </footer>
-          </div>
-        </body>
-        </html>
-      `;
-      
-      // Create a Blob with the HTML content
-      const blob = new Blob([html], { type: 'text/html' });
-      
-      // Create a download link
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Skillgenix_Career_Analysis_${formData?.desiredRole.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
-      
-      // Trigger download
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setIsDownloading(false);
-        toast({
-          title: 'Download Complete',
-          description: 'Your career analysis report has been downloaded successfully.',
-        });
-      }, 100);
-      
-    } catch (error) {
-      console.error('Error downloading report:', error);
-      setIsDownloading(false);
-      toast({
-        title: 'Download Failed',
-        description: 'An error occurred while generating your report. Please try again.',
-        variant: 'destructive',
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
       });
+      
+      // Add title
+      pdf.setFontSize(24);
+      pdf.setTextColor(28, 59, 130);
+      pdf.text('Skillgenix Career Analysis Report', 20, 20);
+      
+      // Add date
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated on ${format(new Date(), 'MMMM d, yyyy')}`, 20, 28);
+      
+      // Add target role
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Career Path: ${formData?.desiredRole || skillGapAnalysis.targetRole}`, 20, 36);
+      
+      // Add applicant info
+      pdf.setFontSize(12);
+      pdf.text(`Professional Level: ${formData?.professionalLevel || 'Not specified'}`, 20, 48);
+      pdf.text(`Location: ${formData?.state || 'Not specified'}, ${formData?.country || 'Not specified'}`, 20, 54);
+      
+      // Add content for each section
+      let yPosition = 70;
+      
+      // Executive summary
+      pdf.setFontSize(16);
+      pdf.setTextColor(28, 59, 130);
+      pdf.text('Executive Summary', 20, yPosition);
+      yPosition += 8;
+      
+      pdf.setFontSize(11);
+      pdf.setTextColor(0, 0, 0);
+      const splitSummary = pdf.splitTextToSize(executiveSummary.summary, 170);
+      pdf.text(splitSummary, 20, yPosition);
+      yPosition += splitSummary.length * 6 + 10;
+      
+      // Skill Gap Analysis
+      pdf.setFontSize(16);
+      pdf.setTextColor(28, 59, 130);
+      pdf.text('Skill Gap Analysis', 20, yPosition);
+      yPosition += 8;
+      
+      pdf.setFontSize(11);
+      pdf.setTextColor(0, 0, 0);
+      const splitAnalysis = pdf.splitTextToSize(skillGapAnalysis.aiAnalysis, 170);
+      pdf.text(splitAnalysis, 20, yPosition);
+      yPosition += splitAnalysis.length * 6 + 10;
+      
+      // Check if we need a new page
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      
+      // Career pathway
+      pdf.setFontSize(16);
+      pdf.setTextColor(28, 59, 130);
+      pdf.text('Career Pathway Options', 20, yPosition);
+      yPosition += 8;
+      
+      pdf.setFontSize(11);
+      pdf.setTextColor(0, 0, 0);
+      const splitPathway = pdf.splitTextToSize(careerPathwayOptions.pathwayDescription, 170);
+      pdf.text(splitPathway, 20, yPosition);
+      yPosition += splitPathway.length * 6 + 10;
+      
+      // Include each pathway step
+      careerPathwayOptions.pathwaySteps.forEach((step, index) => {
+        // Check if we need a new page
+        if (yPosition > 250) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        pdf.setFontSize(12);
+        pdf.text(`Step ${index + 1}: ${step.step} (${step.timeframe})`, 20, yPosition);
+        yPosition += 6;
+        
+        pdf.setFontSize(10);
+        const splitDescription = pdf.splitTextToSize(step.description, 170);
+        pdf.text(splitDescription, 20, yPosition);
+        yPosition += splitDescription.length * 5 + 5;
+      });
+      
+      // Add footer with branding
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('Generated by Skillgenix - The Career Pathway Platform', pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+      
+      // Save the PDF
+      pdf.save(`Skillgenix_Career_Analysis_${formData?.desiredRole || 'Report'}_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      
+      toast({
+        title: "Report Downloaded",
+        description: "Your career analysis report has been downloaded successfully.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating your report PDF.",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadInProgress(false);
     }
   };
   
@@ -502,10 +359,10 @@ export function StructuredCareerAnalysisResults({
   /**
    * Toggle debug state for a specific section
    */
-  const toggleDebugSection = (section: keyof DebugStates) => {
+  const toggleDebugSection = (section: string) => {
     setDebugStates(prev => ({
       ...prev,
-      [section]: !prev[section],
+      [section]: !prev[section]
     }));
   };
   
@@ -513,18 +370,20 @@ export function StructuredCareerAnalysisResults({
    * Render a section title with an info tooltip
    */
   const renderSectionTitle = (title: string, description: string, icon: React.ReactNode) => (
-    <div className="flex items-center gap-2">
-      <div className="p-2 rounded-full bg-primary/10">{icon}</div>
-      <h3 className="text-xl font-bold">{title}</h3>
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        {icon}
+        <CardTitle className="text-xl md:text-2xl">{title}</CardTitle>
+      </div>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full p-0">
-              <Info className="h-4 w-4" />
-              <span className="sr-only">Info</span>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Info className="h-5 w-5" />
+              <span className="sr-only">Section Info</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
+          <TooltipContent side="left" className="max-w-xs">
             <p>{description}</p>
           </TooltipContent>
         </Tooltip>
@@ -563,70 +422,73 @@ export function StructuredCareerAnalysisResults({
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Executive Summary", 
-            "A concise overview of your career analysis, highlighting the key findings and fit score for your desired role.",
-            <Trophy className="h-5 w-5 text-primary" />
+            "A concise overview of your career analysis results, highlighting key insights and recommendations.",
+            <FileText className="h-5 w-5 text-primary" />
           )}
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mt-16 -mr-16 z-0"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full -mb-12 -ml-12 z-0"></div>
-            
-            <div className="relative z-10">
-              <h4 className="text-lg font-semibold flex items-center gap-2">
-                <Rocket className="h-4 w-4 text-primary" />
-                Career Goal
-              </h4>
-              <p className="mt-1 text-lg font-medium text-primary">{executiveSummary.careerGoal}</p>
+          <div className="space-y-4">
+            <div className="bg-primary/5 rounded-lg p-4">
+              <p className="text-lg">{executiveSummary.summary}</p>
             </div>
             
-            <div className="relative z-10">
-              <h4 className="text-lg font-semibold flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-primary" />
-                Summary
-              </h4>
-              <p className="mt-1">{executiveSummary.summary}</p>
-            </div>
-            
-            <div className="relative z-10 p-4 bg-gradient-to-r from-primary/10 to-transparent rounded-lg">
-              <h4 className="text-lg font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                Fit Score
-              </h4>
-              <div className="flex items-center gap-4 mt-2">
-                <div className="flex items-center justify-center p-4 w-16 h-16 bg-white shadow-md rounded-full text-xl font-bold text-primary">
-                  {executiveSummary.fitScore.score}/{executiveSummary.fitScore.outOf}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <motion.div 
+                variants={fadeInLeft}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+              >
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Career Goal</h4>
+                <div className="text-xl font-semibold text-primary flex items-center gap-1.5">
+                  <Target className="h-5 w-5" />
+                  {executiveSummary.careerGoal}
                 </div>
-                <div className="flex-1">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-primary h-2.5 rounded-full" style={{ width: `${(executiveSummary.fitScore.score / executiveSummary.fitScore.outOf) * 100}%` }}></div>
+              </motion.div>
+              
+              <motion.div 
+                variants={fadeIn}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+              >
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Fit Score</h4>
+                <div className="flex items-center gap-3">
+                  <div className="relative h-16 w-16">
+                    <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
+                      <path
+                        className="stroke-gray-200"
+                        fill="none"
+                        strokeWidth="3.8"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="stroke-primary"
+                        fill="none"
+                        strokeWidth="3.8"
+                        strokeDasharray={`${(executiveSummary.fitScore.score / executiveSummary.fitScore.outOf) * 100}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                      <div className="text-xl font-bold">{executiveSummary.fitScore.score}/{executiveSummary.fitScore.outOf}</div>
+                    </div>
                   </div>
-                  <p className="text-sm mt-2">{executiveSummary.fitScore.description}</p>
+                  <div className="text-sm">{executiveSummary.fitScore.description}</div>
                 </div>
-              </div>
+              </motion.div>
+              
+              <motion.div 
+                variants={fadeInRight}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+              >
+                <h4 className="text-sm font-medium text-muted-foreground mb-1">Key Findings</h4>
+                <ul className="space-y-1.5">
+                  {executiveSummary.keyFindings.map((finding, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                      <span>{finding}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
             </div>
-            
-            <motion.div 
-              className="relative z-10"
-              variants={staggerChildren}
-            >
-              <h4 className="text-lg font-semibold flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-primary" />
-                Key Findings
-              </h4>
-              <ul className="mt-2 space-y-3">
-                {executiveSummary.keyFindings.map((finding: string, index: number) => (
-                  <motion.li 
-                    key={index} 
-                    className="flex items-start gap-2"
-                    variants={listItem}
-                  >
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{finding}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
           </div>
         </CardContent>
       </Card>
@@ -664,15 +526,15 @@ export function StructuredCareerAnalysisResults({
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Skill Mapping", 
-            "Visualization of your current skills mapped against industry frameworks (SFIA 9 and DigComp 2.2) to provide a comprehensive skills assessment.",
-            <BarChart className="h-5 w-5 text-blue-500" />
+            "A comprehensive mapping of your current skills against industry frameworks like SFIA and DigComp.",
+            <BarChart3 className="h-5 w-5 text-blue-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-              <p className="text-muted-foreground">{skillMapping.skillsAnalysis}</p>
-            </div>
+            <p className="bg-blue-50 rounded-lg p-4 border border-blue-100 text-blue-800">
+              {skillMapping.skillsAnalysis}
+            </p>
             
             {skillMapping.sfiaSkills && skillMapping.sfiaSkills.length > 0 && (
               <motion.div 
@@ -690,7 +552,7 @@ export function StructuredCareerAnalysisResults({
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
-                        <p>SFIA provides a standardized framework for IT skills and competencies, with 7 levels of responsibility.</p>
+                        <p>The SFIA framework defines technical, digital, and professional skills in a standardized structure.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -706,7 +568,7 @@ export function StructuredCareerAnalysisResults({
                     >
                       <div className="flex justify-between items-center">
                         <div className="font-medium">{skill.skill}</div>
-                        <Badge className="bg-primary text-white">{skill.proficiency}/7</Badge>
+                        <Badge variant="secondary" className="bg-primary/10 text-primary">{skill.proficiency}/7</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{skill.description}</p>
                     </motion.div>
@@ -988,11 +850,15 @@ export function StructuredCareerAnalysisResults({
                       key={index}
                       variants={fadeInRight}
                       custom={index * 0.1}
-                      className="bg-green-50 border border-green-100 rounded-lg p-3"
+                      className="bg-green-50 border border-green-100 rounded-lg p-3 relative overflow-hidden"
                     >
+                      <div className="absolute top-0 right-0 bottom-0 w-1 bg-green-500"></div>
+                      
                       <div className="flex justify-between items-center">
                         <div className="font-medium">{strength.skill}</div>
-                        <Badge variant="outline" className="bg-green-100 text-green-700">+{strength.advantage} Advantage</Badge>
+                        <Badge variant="outline" className="bg-green-100 text-green-700">
+                          +{strength.advantage} Advantage
+                        </Badge>
                       </div>
                       
                       <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
@@ -1002,6 +868,7 @@ export function StructuredCareerAnalysisResults({
                       <div className="mt-1 text-xs flex justify-between">
                         <span>Current: {strength.currentLevel}/7</span>
                         <span>Required: {strength.requiredLevel}/7</span>
+                        <span>Advantage: +{strength.advantage}</span>
                       </div>
                       
                       <p className="text-sm mt-2">{strength.leverageSuggestion}</p>
@@ -1047,21 +914,13 @@ export function StructuredCareerAnalysisResults({
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Career Pathway Options", 
-            "Exploration of different pathways to achieve your career goal, including both academic and vocational routes.",
-            <Rocket className="h-5 w-5 text-indigo-500" />
+            "Structured career development pathways including both academic and vocational routes to achieve your career goals.",
+            <ArrowRight className="h-5 w-5 text-indigo-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
-              <div className="flex flex-wrap gap-3 mb-4">
-                <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 py-1.5">
-                  {careerPathwayOptions.currentRole} → {careerPathwayOptions.targetRole}
-                </Badge>
-                <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 py-1.5">
-                  Timeframe: {careerPathwayOptions.timeframe}
-                </Badge>
-              </div>
               <p>{careerPathwayOptions.pathwayDescription}</p>
             </div>
             
@@ -1330,7 +1189,7 @@ export function StructuredCareerAnalysisResults({
                 {developmentPlan.softSkills.map((skill: any, index: number) => (
                   <motion.div
                     key={index}
-                    variants={fadeInLeft}
+                    variants={fadeInRight}
                     custom={index * 0.1}
                     className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
                   >
@@ -1386,7 +1245,7 @@ export function StructuredCareerAnalysisResults({
                 {developmentPlan.skillsToAcquire.map((skill: any, index: number) => (
                   <motion.div
                     key={index}
-                    variants={fadeInLeft}
+                    variants={fadeInUp}
                     custom={index * 0.1}
                     className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
                   >
@@ -1397,9 +1256,9 @@ export function StructuredCareerAnalysisResults({
                       </Badge>
                     </div>
                     
-                    <div className="mt-2">
-                      <h5 className="text-sm font-medium">Why this skill is important:</h5>
-                      <p className="text-sm mt-1">{skill.reason}</p>
+                    <div className="mt-2 bg-purple-50 p-3 rounded-lg">
+                      <h5 className="text-sm font-medium mb-1">Why you should acquire this skill:</h5>
+                      <p className="text-sm">{skill.reason}</p>
                     </div>
                     
                     <div className="mt-4">
@@ -1450,116 +1309,121 @@ export function StructuredCareerAnalysisResults({
         </div>
       )}
       
-      <Card className="border-l-4 border-l-purple-500 overflow-hidden">
+      <Card className="border-l-4 border-l-blue-500 overflow-hidden">
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Educational Programs", 
-            "Curated educational programs and self-directed project ideas to help you develop the skills needed for your target role.",
-            <School className="h-5 w-5 text-purple-500" />
+            "Recommended educational programs, courses, and certifications tailored to your career goals and current skill level.",
+            <GraduationCap className="h-5 w-5 text-blue-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
               <p>{educationalPrograms.introduction}</p>
             </div>
             
-            <Tabs defaultValue="programs" className="w-full">
-              <TabsList className="w-full grid grid-cols-2">
-                <TabsTrigger value="programs">Recommended Programs</TabsTrigger>
-                <TabsTrigger value="projects">Project Ideas</TabsTrigger>
-              </TabsList>
+            <motion.div 
+              variants={fadeInUp}
+              className="space-y-4"
+            >
+              <h4 className="text-lg font-semibold flex items-center gap-2">
+                <School className="h-4 w-4 text-blue-600" />
+                Recommended Programs
+              </h4>
               
-              <TabsContent value="programs" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {educationalPrograms.recommendedPrograms.map((program: any, index: number) => (
-                    <motion.div
-                      key={index}
-                      variants={fadeInLeft}
-                      custom={index * 0.1}
-                      className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
-                    >
-                      <div className="flex justify-between">
-                        <h4 className="font-semibold">{program.name}</h4>
-                        <Badge className="bg-purple-100 text-purple-700">
+              <div className="space-y-3">
+                {educationalPrograms.recommendedPrograms.map((program: any, index: number) => (
+                  <motion.div
+                    key={index}
+                    variants={fadeInLeft}
+                    custom={index * 0.1}
+                    className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                      <div>
+                        <h5 className="font-medium text-lg">{program.name}</h5>
+                        <div className="text-sm text-muted-foreground">by {program.provider}</div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-600">
+                          {program.duration}
+                        </Badge>
+                        <Badge variant="outline" className="bg-slate-50 text-slate-600">
                           {program.format}
                         </Badge>
                       </div>
-                      
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4 text-purple-500" />
-                          {program.provider}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Clock className="h-4 w-4 text-purple-500" />
-                          {program.duration}
-                        </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <h6 className="text-sm font-medium mb-1">Skills Covered:</h6>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {program.skillsCovered.map((skill: string, idx: number) => (
+                          <Badge key={idx} variant="secondary" className="bg-blue-50 text-blue-600">
+                            {skill}
+                          </Badge>
+                        ))}
                       </div>
-                      
-                      <p className="text-sm mt-3">{program.description}</p>
-                      
-                      <div className="mt-3">
-                        <h5 className="text-xs font-medium text-muted-foreground mb-1">SKILLS COVERED</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {program.skillsCovered.map((skill: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="bg-purple-50">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
+                    </div>
+                    
+                    <div className="mt-3">
+                      <p className="text-sm">{program.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              variants={fadeInUp}
+              className="space-y-4"
+            >
+              <h4 className="text-lg font-semibold flex items-center gap-2">
+                <Laptop className="h-4 w-4 text-green-600" />
+                Project Ideas
+              </h4>
               
-              <TabsContent value="projects" className="mt-4">
-                <div className="space-y-4">
-                  {educationalPrograms.projectIdeas.map((project: any, index: number) => (
-                    <motion.div
-                      key={index}
-                      variants={fadeInUp}
-                      custom={index * 0.1}
-                      className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
-                    >
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-semibold">{project.title}</h4>
-                        <Badge className={
-                          project.difficulty === 'Beginner' 
-                            ? 'bg-green-100 text-green-700' 
-                            : project.difficulty === 'Intermediate'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-amber-100 text-amber-700'
-                        }>
-                          {project.difficulty}
-                        </Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {educationalPrograms.projectIdeas.map((project: any, index: number) => (
+                  <motion.div
+                    key={index}
+                    variants={fadeInRight}
+                    custom={index * 0.1}
+                    className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
+                  >
+                    <div className="flex justify-between items-start">
+                      <h5 className="font-medium text-lg">{project.title}</h5>
+                      <Badge variant={
+                        project.difficulty === 'Advanced' 
+                          ? 'destructive' 
+                          : project.difficulty === 'Intermediate' 
+                            ? 'default' 
+                            : 'outline'
+                      }>
+                        {project.difficulty}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-sm mt-2">{project.description}</p>
+                    
+                    <div className="mt-4 flex flex-col gap-2">
+                      <div className="text-sm font-medium">Skills Developed:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {project.skillsDeveloped.map((skill: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="bg-green-50 text-green-600">
+                            {skill}
+                          </Badge>
+                        ))}
                       </div>
-                      
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-purple-500" />
-                          {project.timeEstimate}
-                        </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <Clock className="inline-block h-3 w-3 mr-1" />
+                        Estimated time: {project.timeEstimate}
                       </div>
-                      
-                      <p className="text-sm mt-3">{project.description}</p>
-                      
-                      <div className="mt-3">
-                        <h5 className="text-xs font-medium text-muted-foreground mb-1">SKILLS DEVELOPED</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {project.skillsDeveloped.map((skill: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="bg-purple-50">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </CardContent>
       </Card>
@@ -1593,76 +1457,80 @@ export function StructuredCareerAnalysisResults({
         </div>
       )}
       
-      <Card className="border-l-4 border-l-cyan-500 overflow-hidden">
+      <Card className="border-l-4 border-l-purple-500 overflow-hidden">
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Learning Roadmap", 
-            "A structured phase-by-phase approach to acquiring the necessary skills and knowledge for your target role.",
-            <BookOpen className="h-5 w-5 text-cyan-500" />
+            "A phased approach to building your skills over time, with specific milestones and resources for each phase.",
+            <MapPin className="h-5 w-5 text-purple-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="bg-cyan-50 rounded-lg p-4 border border-cyan-100">
+            <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
               <p>{learningRoadmap.overview}</p>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-8">
               {learningRoadmap.phases.map((phase: any, index: number) => (
                 <motion.div
                   key={index}
                   variants={fadeInUp}
-                  custom={index * 0.2}
+                  custom={index * 0.15}
                   className="relative"
                 >
                   {index < learningRoadmap.phases.length - 1 && (
-                    <div className="absolute top-14 bottom-0 left-6 border-l-2 border-dashed border-cyan-200 z-0"></div>
+                    <div className="absolute top-12 bottom-0 left-6 border-l-2 border-dashed border-purple-300 z-0"></div>
                   )}
                   
-                  <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-4 relative z-10">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-cyan-100 text-cyan-700 font-bold text-lg flex-shrink-0">
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="bg-purple-500 h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {index + 1}
                       </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex flex-wrap justify-between items-center gap-2">
-                          <h4 className="font-semibold text-lg">{phase.phase}</h4>
-                          <Badge className="bg-cyan-100 text-cyan-700">
-                            {phase.timeframe}
-                          </Badge>
+                      <div>
+                        <h4 className="text-lg font-semibold">{phase.phase}</h4>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          {phase.timeframe}
                         </div>
-                        <p className="text-muted-foreground text-sm">{phase.focus}</p>
                       </div>
                     </div>
                     
-                    <div className="mt-4 pl-16">
-                      <h5 className="text-sm font-semibold mb-2">Key Milestones</h5>
-                      <ul className="space-y-2">
-                        {phase.milestones.map((milestone: string, idx: number) => (
-                          <li key={idx} className="text-sm flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-cyan-500 flex-shrink-0 mt-0.5" />
-                            {milestone}
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      <h5 className="text-sm font-semibold mt-4 mb-2">Learning Resources</h5>
-                      <ul className="space-y-2">
-                        {phase.resources.map((resource: any, idx: number) => (
-                          <li key={idx} className="text-sm flex items-start gap-2">
-                            <Badge variant="outline" className="text-xs bg-white">
-                              {resource.type}
-                            </Badge>
-                            <span>{resource.name}</span>
-                            {resource.link && (
-                              <a href={resource.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                (Link)
-                              </a>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="pl-16 space-y-4">
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <h5 className="font-medium mb-2">Focus Area</h5>
+                        <p className="text-sm">{phase.focus}</p>
+                        
+                        <h5 className="font-medium mt-4 mb-2">Key Milestones</h5>
+                        <ul className="space-y-1.5">
+                          {phase.milestones.map((milestone: string, idx: number) => (
+                            <li key={idx} className="text-sm flex items-start gap-2">
+                              <CheckCircle className="h-4 w-4 text-purple-500 flex-shrink-0 mt-0.5" />
+                              <span>{milestone}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        
+                        <h5 className="font-medium mt-4 mb-2">Recommended Resources</h5>
+                        <ul className="space-y-2">
+                          {phase.resources.map((resource: any, idx: number) => (
+                            <li key={idx} className="text-sm p-2 bg-purple-50 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <Badge variant="outline" className="bg-purple-100 text-purple-600 flex-shrink-0 mt-0.5">
+                                  {resource.type}
+                                </Badge>
+                                <span className="font-medium">{resource.name}</span>
+                              </div>
+                              {resource.link && (
+                                <div className="mt-1 text-xs text-blue-600 pl-[3.25rem]">
+                                  {resource.link}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -1701,60 +1569,77 @@ export function StructuredCareerAnalysisResults({
         </div>
       )}
       
-      <Card className="border-l-4 border-l-yellow-500 overflow-hidden">
+      <Card className="border-l-4 border-l-amber-500 overflow-hidden">
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Similar Roles", 
-            "Alternative career paths that leverage your existing skills and might provide additional opportunities.",
-            <User className="h-5 w-5 text-yellow-500" />
+            "Alternative career paths that leverage your existing skills and experience, providing more options for your career development.",
+            <Asterisk className="h-5 w-5 text-amber-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
               <p>{similarRoles.introduction}</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {similarRoles.roles.map((role: any, index: number) => (
                 <motion.div
                   key={index}
-                  variants={index % 2 === 0 ? fadeInLeft : fadeInRight}
+                  variants={fadeInUp}
                   custom={index * 0.1}
                   className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden"
                 >
-                  <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border-b">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 h-2"></div>
+                  <div className="p-4">
                     <div className="flex justify-between items-center">
                       <h4 className="font-semibold text-lg">{role.role}</h4>
-                      <Badge className="bg-yellow-100 text-yellow-800">
-                        {role.similarityScore * 100}% Match
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 space-y-4">
-                    <p className="text-sm">{role.summary}</p>
-                    
-                    <div>
-                      <h5 className="text-xs font-medium text-muted-foreground mb-2">KEY SKILL OVERLAP</h5>
-                      <div className="flex flex-wrap gap-2">
-                        {role.keySkillOverlap.map((skill: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            {skill}
-                          </Badge>
-                        ))}
+                      <div className="flex items-center gap-1">
+                        <div className="text-sm font-medium">{Math.round(role.similarityScore * 100)}%</div>
+                        <div className="text-xs text-muted-foreground">match</div>
                       </div>
                     </div>
                     
-                    <div>
-                      <h5 className="text-xs font-medium text-muted-foreground mb-2">ADDITIONAL SKILLS NEEDED</h5>
-                      <div className="flex flex-wrap gap-2">
-                        {role.additionalSkillsNeeded.map((skill: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                            {skill}
-                          </Badge>
-                        ))}
+                    <div className="mt-3">
+                      <Progress 
+                        value={role.similarityScore * 100} 
+                        className="h-1.5 bg-amber-100"
+                      />
+                    </div>
+                    
+                    <div className="mt-4 space-y-3">
+                      <div>
+                        <h5 className="text-sm font-medium mb-1 flex items-center gap-1">
+                          <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                          Skill Overlap
+                        </h5>
+                        <div className="flex flex-wrap gap-1.5">
+                          {role.keySkillOverlap.map((skill: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="bg-green-50 text-green-600 text-xs">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
+                      
+                      <div>
+                        <h5 className="text-sm font-medium mb-1 flex items-center gap-1">
+                          <Plus className="h-3.5 w-3.5 text-amber-500" />
+                          Additional Skills Needed
+                        </h5>
+                        <div className="flex flex-wrap gap-1.5">
+                          {role.additionalSkillsNeeded.map((skill: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="bg-amber-50 text-amber-600 text-xs">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 text-sm">
+                      <p>{role.summary}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -1793,78 +1678,90 @@ export function StructuredCareerAnalysisResults({
         </div>
       )}
       
-      <Card className="border-l-4 border-l-emerald-500 overflow-hidden">
+      <Card className="border-l-4 border-l-yellow-500 overflow-hidden">
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Quick Tips", 
-            "Actionable tips and industry insights that you can implement immediately to make progress toward your goal.",
-            <Lightbulb className="h-5 w-5 text-emerald-500" />
+            "Actionable tips and insights to help you make immediate progress toward your career goals.",
+            <Lightbulb className="h-5 w-5 text-yellow-500 fill-yellow-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
+            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
               <p>{quickTips.introduction}</p>
             </div>
             
             <motion.div 
-              variants={staggerChildren}
-              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+              variants={fadeInUp}
+              className="space-y-4"
             >
-              {quickTips.quickWins.map((tip: any, index: number) => (
-                <motion.div
-                  key={index}
-                  variants={listItem}
-                  className="bg-white border border-gray-200 shadow-sm rounded-lg p-4 relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-50 rounded-bl-full z-0"></div>
-                  
-                  <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-3">
-                      <Badge className={
-                        tip.impact === 'High' 
-                          ? 'bg-green-100 text-green-700' 
-                          : tip.impact === 'Medium'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-700'
-                      }>
-                        {tip.impact} Impact
-                      </Badge>
-                      <Badge variant="outline">
-                        {tip.timeframe}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm">{tip.tip}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-            
-            <div>
-              <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500" />
-                Industry Insights
+              <h4 className="text-lg font-semibold flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-yellow-500" />
+                Quick Wins
               </h4>
               
               <div className="space-y-3">
-                {quickTips.industryInsights.map((insight: string, index: number) => (
+                {quickTips.quickWins.map((tip: any, index: number) => (
                   <motion.div
                     key={index}
-                    variants={fadeInUp}
+                    variants={fadeInLeft}
                     custom={index * 0.1}
-                    className="bg-amber-50 border border-amber-100 rounded-lg p-4"
+                    className="bg-white border border-gray-200 shadow-sm rounded-lg p-4"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="bg-amber-100 text-amber-700 rounded-full h-6 w-6 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        {index + 1}
+                    <div className="flex justify-between items-start">
+                      <div className="font-medium">{tip.tip}</div>
+                      <div className="flex items-center gap-3">
+                        <Badge variant={
+                          tip.impact === 'High' 
+                            ? 'default' 
+                            : tip.impact === 'Medium' 
+                              ? 'secondary'
+                              : 'outline'
+                        } className={
+                          tip.impact === 'High'
+                            ? 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300'
+                            : ''
+                        }>
+                          {tip.impact} Impact
+                        </Badge>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          {tip.timeframe}
+                        </Badge>
                       </div>
-                      <p>{insight}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
+            
+            <motion.div 
+              variants={fadeInUp}
+              className="space-y-4"
+            >
+              <h4 className="text-lg font-semibold flex items-center gap-2">
+                <LineChartIcon className="h-4 w-4 text-yellow-600" />
+                Industry Insights
+              </h4>
+              
+              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-4 border border-yellow-100">
+                <ul className="space-y-3">
+                  {quickTips.industryInsights.map((insight: string, index: number) => (
+                    <motion.li
+                      key={index}
+                      variants={fadeInRight}
+                      custom={index * 0.1}
+                      className="flex items-start gap-3"
+                    >
+                      <div className="bg-yellow-200 text-yellow-800 h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </div>
+                      <p>{insight}</p>
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
           </div>
         </CardContent>
       </Card>
@@ -1898,82 +1795,146 @@ export function StructuredCareerAnalysisResults({
         </div>
       )}
       
-      <Card className="border-l-4 border-l-blue-500 overflow-hidden">
+      <Card className="border-l-4 border-l-teal-500 overflow-hidden">
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Growth Trajectory", 
-            "A long-term vision of your career trajectory, including potential roles, responsibilities, and salary expectations.",
-            <TrendingUp className="h-5 w-5 text-blue-500" />
+            "A long-term view of your potential career progression, showing how your career might evolve over time.",
+            <TrendingUp className="h-5 w-5 text-teal-500" />
           )}
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <div className="bg-teal-50 rounded-lg p-4 border border-teal-100">
               <p>{growthTrajectory.introduction}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { label: "Short Term (1-2 years)", data: growthTrajectory.shortTerm, color: "green" },
-                { label: "Medium Term (3-5 years)", data: growthTrajectory.mediumTerm, color: "blue" },
-                { label: "Long Term (5+ years)", data: growthTrajectory.longTerm, color: "indigo" }
-              ].map((stage, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  custom={index * 0.2}
-                  className={`bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden border-t-4 border-t-${stage.color}-500`}
-                >
-                  <div className={`p-3 bg-${stage.color}-50 border-b border-${stage.color}-100`}>
-                    <h4 className="font-semibold">{stage.label}</h4>
+              <motion.div 
+                variants={fadeInLeft}
+                className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-blue-500 to-blue-400 p-3 text-white">
+                  <h4 className="font-semibold">Short Term</h4>
+                  <div className="text-sm text-blue-100">{growthTrajectory.shortTerm.timeline}</div>
+                </div>
+                
+                <div className="p-4 space-y-4">
+                  <div>
+                    <div className="text-2xl font-bold">{growthTrajectory.shortTerm.role}</div>
+                    <div className="text-lg font-medium text-muted-foreground mt-1">
+                      {growthTrajectory.shortTerm.salary.currency}{growthTrajectory.shortTerm.salary.min.toLocaleString()} - {growthTrajectory.shortTerm.salary.currency}{growthTrajectory.shortTerm.salary.max.toLocaleString()}
+                    </div>
                   </div>
                   
-                  <div className="p-4">
-                    <div className="mb-3">
-                      <h5 className="text-xs font-medium text-muted-foreground">POTENTIAL ROLE</h5>
-                      <p className="font-medium text-lg">{stage.data.role}</p>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <h5 className="text-xs font-medium text-muted-foreground">TIMELINE</h5>
-                      <p>{stage.data.timeline}</p>
-                    </div>
-                    
-                    {stage.data.salary && (
-                      <div className="mb-3">
-                        <h5 className="text-xs font-medium text-muted-foreground">SALARY RANGE</h5>
-                        <p className="font-medium">
-                          {stage.data.salary.currency}{stage.data.salary.min.toLocaleString()} - 
-                          {stage.data.salary.currency}{stage.data.salary.max.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="mb-3">
-                      <h5 className="text-xs font-medium text-muted-foreground">KEY RESPONSIBILITIES</h5>
-                      <ul className="mt-1 space-y-1">
-                        {stage.data.responsibilities.map((resp: string, idx: number) => (
-                          <li key={idx} className="text-sm flex items-start gap-2">
-                            <ChevronRight className={`h-4 w-4 text-${stage.color}-500 flex-shrink-0 mt-0.5`} />
-                            {resp}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h5 className="text-xs font-medium text-muted-foreground">REQUIRED SKILLS</h5>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {stage.data.skillsRequired.map((skill: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className={`bg-${stage.color}-50 text-${stage.color}-700 border-${stage.color}-200`}>
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Responsibilities:</h5>
+                    <ul className="space-y-1">
+                      {growthTrajectory.shortTerm.responsibilities.map((responsibility: string, idx: number) => (
+                        <li key={idx} className="text-sm flex items-start gap-2">
+                          <Check className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                          <span>{responsibility}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Key Skills:</h5>
+                    <div className="flex flex-wrap gap-1.5">
+                      {growthTrajectory.shortTerm.skillsRequired.map((skill: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="bg-blue-50 text-blue-600 text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                </motion.div>
-              ))}
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                variants={fadeInUp}
+                className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-teal-500 to-teal-400 p-3 text-white">
+                  <h4 className="font-semibold">Medium Term</h4>
+                  <div className="text-sm text-teal-100">{growthTrajectory.mediumTerm.timeline}</div>
+                </div>
+                
+                <div className="p-4 space-y-4">
+                  <div>
+                    <div className="text-2xl font-bold">{growthTrajectory.mediumTerm.role}</div>
+                    <div className="text-lg font-medium text-muted-foreground mt-1">
+                      {growthTrajectory.mediumTerm.salary.currency}{growthTrajectory.mediumTerm.salary.min.toLocaleString()} - {growthTrajectory.mediumTerm.salary.currency}{growthTrajectory.mediumTerm.salary.max.toLocaleString()}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Responsibilities:</h5>
+                    <ul className="space-y-1">
+                      {growthTrajectory.mediumTerm.responsibilities.map((responsibility: string, idx: number) => (
+                        <li key={idx} className="text-sm flex items-start gap-2">
+                          <Check className="h-4 w-4 text-teal-500 flex-shrink-0 mt-0.5" />
+                          <span>{responsibility}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Key Skills:</h5>
+                    <div className="flex flex-wrap gap-1.5">
+                      {growthTrajectory.mediumTerm.skillsRequired.map((skill: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="bg-teal-50 text-teal-600 text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                variants={fadeInRight}
+                className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-indigo-500 to-indigo-400 p-3 text-white">
+                  <h4 className="font-semibold">Long Term</h4>
+                  <div className="text-sm text-indigo-100">{growthTrajectory.longTerm.timeline}</div>
+                </div>
+                
+                <div className="p-4 space-y-4">
+                  <div>
+                    <div className="text-2xl font-bold">{growthTrajectory.longTerm.role}</div>
+                    <div className="text-lg font-medium text-muted-foreground mt-1">
+                      {growthTrajectory.longTerm.salary.currency}{growthTrajectory.longTerm.salary.min.toLocaleString()} - {growthTrajectory.longTerm.salary.currency}{growthTrajectory.longTerm.salary.max.toLocaleString()}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Responsibilities:</h5>
+                    <ul className="space-y-1">
+                      {growthTrajectory.longTerm.responsibilities.map((responsibility: string, idx: number) => (
+                        <li key={idx} className="text-sm flex items-start gap-2">
+                          <Check className="h-4 w-4 text-indigo-500 flex-shrink-0 mt-0.5" />
+                          <span>{responsibility}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h5 className="font-medium text-sm mb-2">Key Skills:</h5>
+                    <div className="flex flex-wrap gap-1.5">
+                      {growthTrajectory.longTerm.skillsRequired.map((skill: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="bg-indigo-50 text-indigo-600 text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </CardContent>
@@ -2012,8 +1973,8 @@ export function StructuredCareerAnalysisResults({
         <CardHeader className="pb-2 pt-4">
           {renderSectionTitle(
             "Learning Path Roadmap", 
-            "A visual representation of your career trajectory with key milestones and skills to acquire at each stage.",
-            <Zap className="h-5 w-5 text-pink-500" />
+            "A visual roadmap of your career progression, showing key stages, roles, and skills to acquire along the way.",
+            <Star className="h-5 w-5 text-pink-500" />
           )}
         </CardHeader>
         <CardContent>
@@ -2022,61 +1983,65 @@ export function StructuredCareerAnalysisResults({
               <p>{learningPathRoadmap.overview}</p>
             </div>
             
-            <div className="relative space-y-6 after:content-[''] after:absolute after:top-0 after:left-6 after:h-full after:w-0.5 after:bg-gradient-to-b after:from-pink-500 after:to-indigo-500 after:z-0">
-              {learningPathRoadmap.careerTrajectory.map((item: any, index: number) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInLeft}
-                  custom={index * 0.2}
-                  className="relative z-10 flex gap-4"
-                >
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-lg">
-                    {index + 1}
-                  </div>
-                  
-                  <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-4 flex-1">
-                    <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
-                      <h4 className="font-semibold text-lg">{item.stage}</h4>
-                      <Badge className="bg-pink-100 text-pink-700">
-                        {item.timeframe}
-                      </Badge>
-                    </div>
+            <ScrollArea className="h-[450px] pr-4 -mr-4">
+              <div className="pb-4">
+                {learningPathRoadmap.careerTrajectory.map((stage: any, index: number) => (
+                  <motion.div
+                    key={index}
+                    variants={fadeInUp}
+                    custom={index * 0.15}
+                    className="relative mb-12 last:mb-0"
+                  >
+                    {index < learningPathRoadmap.careerTrajectory.length - 1 && (
+                      <div className="absolute top-16 bottom-[-1rem] left-[5.5rem] border-l-2 border-dashed border-pink-300 z-0"></div>
+                    )}
                     
-                    <div className="mb-3">
-                      <h5 className="text-xs font-medium text-muted-foreground">TARGET ROLE</h5>
-                      <p className="font-medium">{item.role}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h5 className="text-xs font-medium text-muted-foreground mb-2">FOCUS SKILLS</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {item.skills.map((skill: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="bg-gradient-to-r from-pink-50 to-indigo-50 border-pink-200">
-                              {skill}
-                            </Badge>
-                          ))}
-                        </div>
+                    <div className="flex items-start gap-4">
+                      <div className="bg-gradient-to-br from-pink-500 to-purple-500 h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 relative z-10">
+                        {index + 1}
                       </div>
                       
-                      <div>
-                        <h5 className="text-xs font-medium text-muted-foreground mb-2">KEY MILESTONES</h5>
-                        <ul className="space-y-1">
-                          {item.milestones.map((milestone: string, idx: number) => (
-                            <li key={idx} className="text-sm flex items-start gap-2">
-                              <div className="rounded-full bg-gradient-to-r from-pink-100 to-indigo-100 h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-medium text-pink-700">
-                                {idx + 1}
-                              </div>
-                              {milestone}
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 pb-6 w-full relative">
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-3 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-pink-100 border-r-[10px] border-r-transparent"></div>
+                        
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h4 className="text-lg font-semibold">{stage.stage}</h4>
+                            <div className="text-sm text-muted-foreground">{stage.timeframe}</div>
+                          </div>
+                          <Badge className="bg-pink-100 text-pink-700">{stage.role}</Badge>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="text-sm font-medium mb-2">Key Skills:</h5>
+                            <div className="flex flex-wrap gap-1.5">
+                              {stage.skills.map((skill: string, idx: number) => (
+                                <Badge key={idx} variant="outline" className="bg-pink-50 text-pink-600 text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h5 className="text-sm font-medium mb-2">Key Milestones:</h5>
+                            <ul className="space-y-1">
+                              {stage.milestones.map((milestone: string, idx: number) => (
+                                <li key={idx} className="text-sm flex items-start gap-2">
+                                  <CheckCircle className="h-4 w-4 text-pink-500 flex-shrink-0 mt-0.5" />
+                                  <span>{milestone}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                  </motion.div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </CardContent>
       </Card>
@@ -2086,107 +2051,119 @@ export function StructuredCareerAnalysisResults({
   /**
    * Render section selector buttons
    */
-  const renderSectionSelectors = () => (
-    <div className="flex flex-col space-y-2">
-      <Button
-        variant={activeSection === 'executiveSummary' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('executiveSummary')}
-      >
-        <Trophy className="mr-2 h-4 w-4" />
-        Executive Summary
-        {completedSections.executiveSummary && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'skillMapping' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('skillMapping')}
-      >
-        <BarChart className="mr-2 h-4 w-4" />
-        Skill Mapping
-        {completedSections.skillMapping && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'skillGapAnalysis' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('skillGapAnalysis')}
-      >
-        <LineChart className="mr-2 h-4 w-4" />
-        Skill Gap Analysis
-        {completedSections.skillGapAnalysis && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'careerPathwayOptions' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('careerPathwayOptions')}
-      >
-        <Rocket className="mr-2 h-4 w-4" />
-        Career Pathway Options
-        {completedSections.careerPathwayOptions && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'developmentPlan' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('developmentPlan')}
-      >
-        <ListChecks className="mr-2 h-4 w-4" />
-        Development Plan
-        {completedSections.developmentPlan && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'educationalPrograms' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('educationalPrograms')}
-      >
-        <School className="mr-2 h-4 w-4" />
-        Educational Programs
-        {completedSections.educationalPrograms && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'learningRoadmap' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('learningRoadmap')}
-      >
-        <BookOpen className="mr-2 h-4 w-4" />
-        Learning Roadmap
-        {completedSections.learningRoadmap && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'similarRoles' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('similarRoles')}
-      >
-        <User className="mr-2 h-4 w-4" />
-        Similar Roles
-        {completedSections.similarRoles && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'quickTips' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('quickTips')}
-      >
-        <Lightbulb className="mr-2 h-4 w-4" />
-        Quick Tips
-        {completedSections.quickTips && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'growthTrajectory' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('growthTrajectory')}
-      >
-        <TrendingUp className="mr-2 h-4 w-4" />
-        Growth Trajectory
-        {completedSections.growthTrajectory && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
-      <Button
-        variant={activeSection === 'learningPathRoadmap' ? 'default' : 'outline'}
-        className="justify-start"
-        onClick={() => setActiveSection('learningPathRoadmap')}
-      >
-        <Zap className="mr-2 h-4 w-4" />
-        Learning Path Roadmap
-        {completedSections.learningPathRoadmap && <CheckCircle className="ml-2 h-4 w-4 text-green-500" />}
-      </Button>
+  const renderSectionSelector = () => (
+    <div className="mb-6 overflow-auto pb-2">
+      <div className="inline-flex gap-2 items-center w-auto">
+        <Button
+          variant={activeSection === 'executiveSummary' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('executiveSummary')}
+          className="whitespace-nowrap"
+        >
+          <FileText className="mr-1 h-4 w-4" />
+          Executive Summary
+        </Button>
+        
+        <Button
+          variant={activeSection === 'skillMapping' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('skillMapping')}
+          className="whitespace-nowrap"
+        >
+          <BarChart3 className="mr-1 h-4 w-4" />
+          Skill Mapping
+        </Button>
+        
+        <Button
+          variant={activeSection === 'skillGapAnalysis' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('skillGapAnalysis')}
+          className="whitespace-nowrap"
+        >
+          <LineChart className="mr-1 h-4 w-4" />
+          Skill Gap Analysis
+        </Button>
+        
+        <Button
+          variant={activeSection === 'careerPathwayOptions' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('careerPathwayOptions')}
+          className="whitespace-nowrap"
+        >
+          <ArrowRight className="mr-1 h-4 w-4" />
+          Pathway Options
+        </Button>
+        
+        <Button
+          variant={activeSection === 'developmentPlan' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('developmentPlan')}
+          className="whitespace-nowrap"
+        >
+          <ListChecks className="mr-1 h-4 w-4" />
+          Development Plan
+        </Button>
+        
+        <Button
+          variant={activeSection === 'educationalPrograms' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('educationalPrograms')}
+          className="whitespace-nowrap"
+        >
+          <GraduationCap className="mr-1 h-4 w-4" />
+          Educational Programs
+        </Button>
+        
+        <Button
+          variant={activeSection === 'learningRoadmap' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('learningRoadmap')}
+          className="whitespace-nowrap"
+        >
+          <MapPin className="mr-1 h-4 w-4" />
+          Learning Roadmap
+        </Button>
+        
+        <Button
+          variant={activeSection === 'similarRoles' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('similarRoles')}
+          className="whitespace-nowrap"
+        >
+          <Asterisk className="mr-1 h-4 w-4" />
+          Similar Roles
+        </Button>
+        
+        <Button
+          variant={activeSection === 'quickTips' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('quickTips')}
+          className="whitespace-nowrap"
+        >
+          <Lightbulb className="mr-1 h-4 w-4" />
+          Quick Tips
+        </Button>
+        
+        <Button
+          variant={activeSection === 'growthTrajectory' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('growthTrajectory')}
+          className="whitespace-nowrap"
+        >
+          <TrendingUp className="mr-1 h-4 w-4" />
+          Growth Trajectory
+        </Button>
+        
+        <Button
+          variant={activeSection === 'learningPathRoadmap' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveSection('learningPathRoadmap')}
+          className="whitespace-nowrap"
+        >
+          <Star className="mr-1 h-4 w-4" />
+          Learning Path Roadmap
+        </Button>
+      </div>
     </div>
   );
   
@@ -2223,129 +2200,85 @@ export function StructuredCareerAnalysisResults({
   };
   
   return (
-    <div className="bg-slate-50 min-h-screen pt-4 pb-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={onRestart}
-            className="gap-1"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            New Analysis
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleDebugMode}
-              className={debugMode ? 'border-red-500 text-red-500 hover:bg-red-50' : ''}
-            >
-              {debugMode ? 'Debug Mode: ON' : 'Debug Mode: OFF'}
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={saveAnalysis}
-              disabled={!user || savedToAccount || isSaving}
-              className="gap-1"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : savedToAccount ? (
-                <>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Saved
-                </>
-              ) : (
-                <>
-                  <UserCheck className="h-4 w-4" />
-                  Save to Account
-                </>
-              )}
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadReport}
-              disabled={isDownloading}
-              className="gap-1"
-            >
-              {isDownloading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <FileDown className="h-4 w-4" />
-                  Download Report
-                </>
-              )}
-            </Button>
-          </div>
+    <div id="report-container" className="py-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-3xl font-bold">Structured Career Analysis</h2>
+          <p className="text-muted-foreground">
+            Generated for {formData?.desiredRole || skillGapAnalysis.targetRole} career path on {format(new Date(results.timestamp), 'MMMM d, yyyy')}
+          </p>
         </div>
         
-        <motion.div 
-          className="bg-white rounded-xl overflow-hidden shadow-lg border"
-          variants={fadeIn}
-          initial="hidden"
-          animate="visible"
-        >
-          <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-            <div className="relative z-10">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold">{executiveSummary.careerGoal}</h1>
-                  <p className="text-white/80 mt-2">Career Pathway Analysis</p>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
-                    <div className="text-3xl font-bold">{executiveSummary.fitScore.score}/{executiveSummary.fitScore.outOf}</div>
-                    <div className="text-sm text-white/80">Fit Score</div>
-                  </div>
-                  
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
-                    <div className="text-3xl font-bold">
-                      {Object.values(completedSections).filter(Boolean).length}/11
-                    </div>
-                    <div className="text-sm text-white/80">Sections Complete</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-4">
-                <p className="text-lg">{executiveSummary.summary}</p>
-              </div>
-            </div>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={onRestart}
+            className="flex items-center gap-1.5"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Start New Analysis
+          </Button>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-0">
-            <div className="bg-white p-4 border-r border-b lg:border-b-0">
-              <h3 className="text-xl font-bold mb-4">Report Sections</h3>
-              {renderSectionSelectors()}
-            </div>
-            
-            <div className="lg:col-span-3 p-4 lg:p-6" id="report-content">
-              {renderActiveSection()}
-            </div>
-          </div>
-        </motion.div>
+          <Button
+            variant="outline"
+            onClick={handleSaveToAccount}
+            disabled={saveInProgress}
+            className="flex items-center gap-1.5"
+          >
+            {saveInProgress ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Save to Account
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="default"
+            onClick={handleDownloadReport}
+            disabled={downloadInProgress}
+            className="flex items-center gap-1.5"
+          >
+            {downloadInProgress ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Download Report
+              </>
+            )}
+          </Button>
+          
+          {process.env.NODE_ENV === 'development' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDebugMode}
+              className="ml-2"
+              title="Toggle Debug Mode"
+            >
+              <Bug className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
+      
+      {renderSectionSelector()}
+      {renderActiveSection()}
     </div>
   );
 }
 
-function Clock({ className }: { className?: string }) {
+// For development only
+function Plus({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -2357,8 +2290,43 @@ function Clock({ className }: { className?: string }) {
       strokeLinejoin="round"
       className={className}
     >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function ArrowLeft({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m12 19-7-7 7-7M5 12h14" />
+    </svg>
+  );
+}
+
+function Bug({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
+      <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
+      <path d="M12 20v-9M8.5 10l-5 3M15.5 10l5 3M9 16a9 9 0 0 1 6 0M9 12a9 9 0 0 0 6 0" />
     </svg>
   );
 }
