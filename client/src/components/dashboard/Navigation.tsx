@@ -12,7 +12,8 @@ import {
   User,
   History,
   FileJson,
-  Sparkles
+  Sparkles,
+  Save
 } from "lucide-react";
 
 export function Navigation() {
@@ -59,6 +60,11 @@ export function Navigation() {
       name: "Saved Resources",
       path: "/saved-resources",
       icon: <Bookmark className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "Saved Analyses",
+      path: "/saved-analyses",
+      icon: <Save className="h-5 w-5 mr-2" />,
     },
   ];
 

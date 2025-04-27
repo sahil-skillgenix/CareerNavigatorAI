@@ -17,6 +17,7 @@ import StructuredPathwayPage from "@/pages/structured-pathway-page";
 import CareerAnalysisPage from "@/pages/career-analysis-page";
 import LearningResourcesPage from "@/pages/learning-resources-page";
 import SavedResourcesPage from "@/pages/saved-resources-page";
+import SavedAnalysesPage from "@/pages/saved-analyses-page";
 import OrganizationPathwayPage from "@/pages/organization-pathway-page";
 import SkillDetailPage from "@/pages/skill-detail-page";
 import SkillsPage from "@/pages/skills-page";
@@ -62,6 +63,7 @@ function Router() {
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
+      <ProtectedRoute path="/saved-analyses" component={SavedAnalysesPage} />
       <ProtectedRoute path="/history" component={HistoryPage} />
       <ProtectedRoute path="/organization-pathway" component={OrganizationPathwayPage} />
       

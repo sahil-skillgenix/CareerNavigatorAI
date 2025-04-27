@@ -248,16 +248,17 @@ export function StructuredCareerAnalysisResults({
   };
   
   /**
-   * Handle downloading the report as HTML or full PDF
+   * Handle downloading the report as a complete HTML document
    */
   const handleDownloadReport = async () => {
     setDownloadInProgress(true);
     
     try {
-      // Create a full HTML report instead of a simple PDF
+      // Create a full HTML report with all sections and visualizations
       const reportTitle = `Skillgenix Career Analysis - ${formData?.desiredRole || skillGapAnalysis.targetRole}`;
       
-      // Create an HTML document with styling
+      // Convert any data objects to HTML strings for complete representation
+      // Create an HTML document with styling and all 11 sections fully represented
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="en">
