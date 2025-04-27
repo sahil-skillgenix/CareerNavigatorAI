@@ -15,26 +15,40 @@ export interface PathwayStep {
 }
 
 export interface CareerPathwayStepsDisplayProps {
-  steps: PathwayStep[];
-  currentRole: string;
-  targetRole: string;
-  timeframe: string;
+  results?: any; // Career analysis results 
+  steps?: PathwayStep[];
+  currentRole?: string;
+  targetRole?: string;
+  timeframe?: string;
 }
 
 export function CareerPathwayStepsDisplay({
+  results,
   steps,
   currentRole = 'Current Role', 
   targetRole = 'Target Role',
   timeframe = 'Total Timeframe'
 }: CareerPathwayStepsDisplayProps) {
+  // Extract data from results if direct props aren't provided
+  const pathwaySteps = steps || 
+    results?.careerPathway?.withDegree?.map((step: any) => ({
+      step: step.role || step.title || step.name || 'Step',
+      timeframe: step.timeframe || step.duration || '3-6 months',
+      description: step.description || `Key skills: ${(step.keySkillsNeeded || []).join(', ')}`
+    })) || 
+    [];
+  
+  const pathwayCurrentRole = currentRole || results?.userInfo?.currentRole || 'Current Role';
+  const pathwayTargetRole = targetRole || results?.userInfo?.targetRole || 'Target Role';
+  const pathwayTimeframe = timeframe || results?.careerPathway?.timeframe || 'Total Timeframe';
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <Badge variant="outline" className="bg-primary/10 text-primary">
-          {currentRole} → {targetRole}
+          {pathwayCurrentRole} → {pathwayTargetRole}
         </Badge>
         <Badge variant="outline" className="bg-primary/10 text-primary">
-          {timeframe}
+          {pathwayTimeframe}
         </Badge>
       </div>
       
@@ -47,7 +61,7 @@ export function CareerPathwayStepsDisplay({
         {/* Vertical connection line */}
         <div className="absolute top-8 bottom-0 left-6 border-l-2 border-dashed border-primary/30 z-0"></div>
         
-        {steps.map((step, index) => (
+        {pathwaySteps.map((step, index) => (
           <motion.div 
             key={index}
             variants={fadeInUp}

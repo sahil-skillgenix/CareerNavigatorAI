@@ -32,7 +32,7 @@ export function SkillRadarChart({
   colorSecondary = 'rgba(28, 59, 130, 0.6)'
 }: SkillRadarChartProps) {
   // Extract skills data from results if no direct data is provided
-  const chartData = data || 
+  let skillData = data || 
     (results?.skillMapping?.sfia9?.slice(0, 6)?.map((skill: any) => ({
       name: typeof skill === 'string' ? skill : skill.skill || skill.name || 'Skill',
       value: typeof skill === 'string' ? 3 : parseInt(skill.proficiency || skill.level || '3', 10),
@@ -44,9 +44,9 @@ export function SkillRadarChart({
       fullMark: maxLevel
     })) || []);
 
-  // Ensure chartData has at least some data
-  if (!chartData || chartData.length === 0) {
-    chartData = [
+  // Ensure skillData has at least some data
+  if (!skillData || skillData.length === 0) {
+    skillData = [
       { name: "Technical Skills", value: 3, fullMark: maxLevel },
       { name: "Communication", value: 4, fullMark: maxLevel },
       { name: "Leadership", value: 2, fullMark: maxLevel },
@@ -56,7 +56,7 @@ export function SkillRadarChart({
   }
   
   // Create adjusted data to ensure all skills show on the radar
-  const adjustedData = chartData.map(item => ({
+  const adjustedData = skillData.map(item => ({
     ...item,
     // Add a tiny amount to zero values to ensure they appear on the chart
     value: item.value === 0 ? 0.1 : item.value,
