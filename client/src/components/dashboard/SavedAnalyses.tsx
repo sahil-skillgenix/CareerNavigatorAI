@@ -78,13 +78,7 @@ export function SavedAnalyses() {
     localStorage.setItem('sectionDebug', JSON.stringify(sectionDebug));
   }, [sectionDebug]);
   
-  // Function to toggle debug state for specific section
-  const toggleSectionDebug = (section: string) => {
-    setSectionDebug(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  // Function to toggle debug state for specific section has been merged with the general toggleSectionDebug function
 
   // Fetch saved career analyses
   const { data: dashboardData, isLoading, error, refetch } = useQuery({
@@ -148,6 +142,16 @@ export function SavedAnalyses() {
     } else {
       setExpandedAnalysis(id);
     }
+  };
+  
+  // Helper function to toggle a section's debug state
+  const toggleSectionDebug = (sectionKey: string) => {
+    const newState = { 
+      ...sectionDebug, 
+      [sectionKey]: !sectionDebug[sectionKey] 
+    };
+    setSectionDebug(newState);
+    localStorage.setItem('sectionDebug', JSON.stringify(newState));
   };
 
   // Helper function to format date
@@ -349,6 +353,58 @@ export function SavedAnalyses() {
                             </span>
                           )}
                         </Button>
+                        
+                        {/* Section-specific debug toggles */}
+                        {showDebugPanel && (
+                          <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+                            <span className="text-xs font-medium text-muted-foreground">Debug Sections:</span>
+                            
+                            <Button 
+                              size="sm" 
+                              variant={sectionDebug['executiveSummary'] ? "default" : "outline"}
+                              className="text-xs h-7 px-2 py-0" 
+                              onClick={() => toggleSectionDebug('executiveSummary')}
+                            >
+                              Executive Summary
+                            </Button>
+                            
+                            <Button 
+                              size="sm" 
+                              variant={sectionDebug['skillMapping'] ? "default" : "outline"}
+                              className="text-xs h-7 px-2 py-0" 
+                              onClick={() => toggleSectionDebug('skillMapping')}
+                            >
+                              Skill Mapping
+                            </Button>
+                            
+                            <Button 
+                              size="sm" 
+                              variant={sectionDebug['gapAnalysis'] ? "default" : "outline"}
+                              className="text-xs h-7 px-2 py-0" 
+                              onClick={() => toggleSectionDebug('gapAnalysis')}
+                            >
+                              Gap Analysis
+                            </Button>
+                            
+                            <Button 
+                              size="sm" 
+                              variant={sectionDebug['pathwayOptions'] ? "default" : "outline"}
+                              className="text-xs h-7 px-2 py-0" 
+                              onClick={() => toggleSectionDebug('pathwayOptions')}
+                            >
+                              Pathway Options
+                            </Button>
+                            
+                            <Button 
+                              size="sm" 
+                              variant={sectionDebug['similarRoles'] ? "default" : "outline"}
+                              className="text-xs h-7 px-2 py-0" 
+                              onClick={() => toggleSectionDebug('similarRoles')}
+                            >
+                              Similar Roles
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <Separator className="mt-4" />
