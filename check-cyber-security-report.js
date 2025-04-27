@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { MongoClient } from 'mongodb';
 
 async function main() {
-  const uri = process.env.DATABASE_URL;
+  const uri = "mongodb+srv://sahil:L12So8uUyN7TyNZy@skillgenix.4lthw6g.mongodb.net/careerpathAI?retryWrites=true&w=majority";
   const client = new MongoClient(uri);
 
   try {
