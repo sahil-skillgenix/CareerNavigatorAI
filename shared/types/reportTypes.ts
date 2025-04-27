@@ -2,21 +2,9 @@
  * Type definitions for the X-Gen AI Career Analysis Report
  */
 
-export interface CareerAnalysisReport {
-  [key: string]: any; // Allow dynamic access while maintaining specific properties
-  executiveSummary: ExecutiveSummary;
-  skillMapping: SkillMapping;
-  skillGapAnalysis: SkillGapAnalysis;
-  careerPathwayOptions: CareerPathwayOptions;
-  developmentPlan: DevelopmentPlan;
-  educationalPrograms: EducationalPrograms;
-  learningRoadmap: LearningRoadmap;
-  similarRoles: SimilarRoles;
-  quickTips: QuickTips;
-  growthTrajectory: GrowthTrajectory;
-  learningPathRoadmap: LearningPathRoadmap;
-}
-
+/**
+ * Executive Summary Section
+ */
 export interface ExecutiveSummary {
   summary: string;
   careerGoal: string;
@@ -28,6 +16,9 @@ export interface ExecutiveSummary {
   keyFindings: string[];
 }
 
+/**
+ * Skill Mapping Section
+ */
 export interface SkillMapping {
   skillsAnalysis: string;
   sfiaSkills: {
@@ -47,6 +38,9 @@ export interface SkillMapping {
   }[];
 }
 
+/**
+ * Skill Gap Analysis Section
+ */
 export interface SkillGapAnalysis {
   targetRole: string;
   aiAnalysis: string;
@@ -74,6 +68,9 @@ export interface SkillGapAnalysis {
   }[];
 }
 
+/**
+ * Career Pathway Options Section
+ */
 export interface CareerPathwayOptions {
   pathwayDescription: string;
   currentRole: string;
@@ -99,6 +96,9 @@ export interface CareerPathwayOptions {
   aiInsights: string;
 }
 
+/**
+ * Development Plan Section
+ */
 export interface DevelopmentPlan {
   overview: string;
   technicalSkills: {
@@ -123,6 +123,9 @@ export interface DevelopmentPlan {
   }[];
 }
 
+/**
+ * Educational Programs Section
+ */
 export interface EducationalPrograms {
   introduction: string;
   recommendedPrograms: {
@@ -142,6 +145,9 @@ export interface EducationalPrograms {
   }[];
 }
 
+/**
+ * Learning Roadmap Section
+ */
 export interface LearningRoadmap {
   roadmapOverview: string;
   learningPhases: {
@@ -160,6 +166,9 @@ export interface LearningRoadmap {
   }[];
 }
 
+/**
+ * Similar Roles Section
+ */
 export interface SimilarRoles {
   introduction: string;
   roles: {
@@ -176,12 +185,18 @@ export interface SimilarRoles {
   }[];
 }
 
+/**
+ * Quick Tips Section
+ */
 export interface QuickTips {
   dailyLearningTips: string[];
   interviewPreparationTips: string[];
   networkingRecommendations: string[];
 }
 
+/**
+ * Growth Trajectory Section
+ */
 export interface GrowthTrajectory {
   shortTermGoals: {
     timeframe: string;
@@ -205,6 +220,9 @@ export interface GrowthTrajectory {
   }[];
 }
 
+/**
+ * Learning Path Roadmap Section
+ */
 export interface LearningPathRoadmap {
   timelineData: {
     milestone: string;
@@ -222,7 +240,27 @@ export interface LearningPathRoadmap {
   }[];
 }
 
-// Request and response types for API integration
+/**
+ * Complete Career Analysis Report
+ */
+export interface CareerAnalysisReport {
+  [key: string]: any; // Allow dynamic access while maintaining specific properties
+  executiveSummary: ExecutiveSummary;
+  skillMapping: SkillMapping;
+  skillGapAnalysis: SkillGapAnalysis;
+  careerPathwayOptions: CareerPathwayOptions;
+  developmentPlan: DevelopmentPlan;
+  educationalPrograms: EducationalPrograms;
+  learningRoadmap: LearningRoadmap;
+  similarRoles: SimilarRoles;
+  quickTips: QuickTips;
+  growthTrajectory: GrowthTrajectory;
+  learningPathRoadmap: LearningPathRoadmap;
+}
+
+/**
+ * Career Analysis Request Data
+ */
 export interface CareerAnalysisRequestData {
   professionalLevel: string;
   currentSkills: string;
@@ -233,6 +271,9 @@ export interface CareerAnalysisRequestData {
   country: string;
 }
 
+/**
+ * Saved Career Analysis Document (MongoDB)
+ */
 export interface SavedCareerAnalysis {
   _id?: string; 
   userId: string;

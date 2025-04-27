@@ -66,6 +66,10 @@ app.get("/api/health", (_req, res) => {
       await mongoDBStorage.initialize();
       console.log("MongoDB storage initialized");
       
+      // Initialize MongoDB config for direct access in routes
+      const { initMongoDB } = await import('./config/mongodb');
+      await initMongoDB();
+      
       // Register all routes with MongoDB storage
       await registerRoutes(app, mongoDBStorage);
       // Register structured routes for improved report format
