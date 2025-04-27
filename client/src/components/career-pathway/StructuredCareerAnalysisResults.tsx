@@ -2706,7 +2706,7 @@ export function StructuredCareerAnalysisResults({
         <div>
           <h2 className="text-3xl font-bold">Structured Career Analysis</h2>
           <p className="text-muted-foreground">
-            Generated for {formData?.desiredRole || skillGapAnalysis.targetRole} career path on {format(new Date(results.timestamp), 'MMMM d, yyyy')}
+            Generated for {formData?.desiredRole || skillGapAnalysis.targetRole} career path on {format(new Date(parseInt(results.timestamp)), 'MMMM d, yyyy')}
           </p>
         </div>
         
