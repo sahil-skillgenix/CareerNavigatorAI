@@ -13,6 +13,7 @@ import AuthPage from "@/pages/auth-page";
 import MyDetailsPage from "@/pages/my-details-page";
 import DashboardPage from "@/pages/dashboard-page";
 import CareerPathwayPage from "@/pages/career-pathway-page";
+import StructuredPathwayPage from "@/pages/structured-pathway-page";
 import CareerAnalysisPage from "@/pages/career-analysis-page";
 import LearningResourcesPage from "@/pages/learning-resources-page";
 import SavedResourcesPage from "@/pages/saved-resources-page";
