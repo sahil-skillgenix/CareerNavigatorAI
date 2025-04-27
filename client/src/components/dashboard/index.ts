@@ -10,7 +10,7 @@ export * from './RecommendedCourses';
 export * from './CareerProgressTracker';
 export * from './DashboardHeader';
 export * from './Navigation';
-export * from './SavedAnalyses';
+export { SavedAnalyses } from './SavedAnalysesFixed';
 export * from './BadgeCard';
 export * from './SkillJourneyTracker';
 export { default as UserCareerAnalyses } from './UserCareerAnalyses';
