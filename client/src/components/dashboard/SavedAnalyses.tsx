@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
   Loader2, ChevronDown, ChevronUp, BarChart3, Download, Clock, RefreshCw, 
-  History, CheckCircle, Eye, EyeOff, ScrollText, Gauge
+  History, CheckCircle, Eye, EyeOff, ScrollText, Gauge, Bug
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -27,11 +27,64 @@ interface SavedAnalysis {
   result?: any;
 }
 
+// Define an interface for section debug state
+interface SectionDebugState {
+  [key: string]: boolean;
+}
+
 export function SavedAnalyses() {
   const [expandedAnalysis, setExpandedAnalysis] = useState<string | null>(null);
   const [showDebugPanel, setShowDebugPanel] = useState<boolean>(false);
+  const [sectionDebug, setSectionDebug] = useState<SectionDebugState>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Initialize from localStorage on component mount
+  useEffect(() => {
+    const savedExpandedAnalysis = localStorage.getItem('expandedAnalysis');
+    if (savedExpandedAnalysis) {
+      setExpandedAnalysis(savedExpandedAnalysis);
+    }
+    
+    const savedDebugPanel = localStorage.getItem('showDebugPanel');
+    if (savedDebugPanel) {
+      setShowDebugPanel(savedDebugPanel === 'true');
+    }
+    
+    const savedSectionDebug = localStorage.getItem('sectionDebug');
+    if (savedSectionDebug) {
+      try {
+        setSectionDebug(JSON.parse(savedSectionDebug));
+      } catch (e) {
+        console.error("Failed to parse section debug state from localStorage", e);
+      }
+    }
+  }, []);
+  
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    if (expandedAnalysis) {
+      localStorage.setItem('expandedAnalysis', expandedAnalysis);
+    } else {
+      localStorage.removeItem('expandedAnalysis');
+    }
+  }, [expandedAnalysis]);
+  
+  useEffect(() => {
+    localStorage.setItem('showDebugPanel', showDebugPanel.toString());
+  }, [showDebugPanel]);
+  
+  useEffect(() => {
+    localStorage.setItem('sectionDebug', JSON.stringify(sectionDebug));
+  }, [sectionDebug]);
+  
+  // Function to toggle debug state for specific section
+  const toggleSectionDebug = (section: string) => {
+    setSectionDebug(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   // Fetch saved career analyses
   const { data: dashboardData, isLoading, error, refetch } = useQuery({
