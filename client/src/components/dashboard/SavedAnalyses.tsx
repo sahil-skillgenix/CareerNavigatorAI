@@ -495,7 +495,83 @@ export function SavedAnalyses() {
                     </div>
                   </section>
                   
-                  {/* Debug Panel */}
+                  {/* Section Debug Panels */}
+                  {sectionDebug['similarRoles'] && (
+                    <div className="mt-6 border rounded-lg p-4 bg-green-50/20 dark:bg-green-900/10">
+                      <h3 className="text-sm font-medium mb-2 flex items-center text-primary">
+                        <Bug className="h-4 w-4 mr-1.5" />
+                        Similar Roles Debug
+                      </h3>
+                      <pre className="text-xs overflow-auto max-h-[200px] p-4 bg-muted/30 rounded-md">
+                        {JSON.stringify(latestAnalysis.result.similarRoles, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  {sectionDebug['executiveSummary'] && (
+                    <div className="mt-6 border rounded-lg p-4 bg-yellow-50/20 dark:bg-yellow-900/10">
+                      <h3 className="text-sm font-medium mb-2 flex items-center text-primary">
+                        <Bug className="h-4 w-4 mr-1.5" />
+                        Executive Summary Debug
+                      </h3>
+                      <pre className="text-xs overflow-auto max-h-[200px] p-4 bg-muted/30 rounded-md">
+                        {JSON.stringify(latestAnalysis.result.executiveSummary, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  {sectionDebug['skillMapping'] && (
+                    <div className="mt-6 border rounded-lg p-4 bg-blue-50/20 dark:bg-blue-900/10">
+                      <h3 className="text-sm font-medium mb-2 flex items-center text-primary">
+                        <Bug className="h-4 w-4 mr-1.5" />
+                        Skill Mapping Debug
+                      </h3>
+                      {/* Display top-level object keys to help debug */}
+                      <div className="mb-2 px-3 py-2 bg-black/5 rounded text-xs">
+                        <strong>Available sections:</strong> {Object.keys(latestAnalysis.result || {}).join(', ')}
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-xs font-semibold mb-1">SFIA 9 Framework</h4>
+                          <pre className="text-xs overflow-auto max-h-[150px] p-3 bg-muted/30 rounded-md">
+                            {JSON.stringify(latestAnalysis.result.skillMapping?.sfia9, null, 2)}
+                          </pre>
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-semibold mb-1">DigComp 2.2 Framework</h4>
+                          <pre className="text-xs overflow-auto max-h-[150px] p-3 bg-muted/30 rounded-md">
+                            {JSON.stringify(latestAnalysis.result.skillMapping?.digcomp22, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {sectionDebug['gapAnalysis'] && (
+                    <div className="mt-6 border rounded-lg p-4 bg-purple-50/20 dark:bg-purple-900/10">
+                      <h3 className="text-sm font-medium mb-2 flex items-center text-primary">
+                        <Bug className="h-4 w-4 mr-1.5" />
+                        Skill Gap Analysis Debug
+                      </h3>
+                      <pre className="text-xs overflow-auto max-h-[200px] p-4 bg-muted/30 rounded-md">
+                        {JSON.stringify(latestAnalysis.result.gapAnalysis, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  {sectionDebug['pathwayOptions'] && (
+                    <div className="mt-6 border rounded-lg p-4 bg-amber-50/20 dark:bg-amber-900/10">
+                      <h3 className="text-sm font-medium mb-2 flex items-center text-primary">
+                        <Bug className="h-4 w-4 mr-1.5" />
+                        Career Pathway Options Debug
+                      </h3>
+                      <pre className="text-xs overflow-auto max-h-[200px] p-4 bg-muted/30 rounded-md">
+                        {JSON.stringify(latestAnalysis.result.pathwayOptions, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  {/* Global Debug Panel */}
                   {showDebugPanel && (
                     <div className="mt-8 border rounded-lg p-4 bg-muted/10">
                       <h3 className="text-sm font-medium mb-2 flex items-center">
