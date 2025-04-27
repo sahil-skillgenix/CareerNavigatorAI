@@ -161,8 +161,9 @@ export default function SavedAnalysesPage() {
     try {
       // Create HTML content for the report
       const reportTitle = `Skillgenix Career Analysis - ${analysis.metadata.targetRole}`;
+      const report = analysis.report;
       
-      // Create HTML content similar to the download function in StructuredCareerAnalysisResults.tsx
+      // Create comprehensive HTML report with all 11 sections
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="en">
@@ -196,7 +197,200 @@ export default function SavedAnalysesPage() {
               margin: 10px 0 0;
               opacity: 0.9;
             }
-            /* Additional styling would be included here */
+            .section {
+              background: white;
+              border-radius: 8px;
+              padding: 25px;
+              margin-bottom: 30px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+              border-left: 5px solid #ddd;
+            }
+            .section-title {
+              display: flex;
+              align-items: center;
+              margin-bottom: 20px;
+              font-size: 24px;
+              color: rgb(28, 59, 130);
+            }
+            .section-icon {
+              width: 32px;
+              height: 32px;
+              margin-right: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              background-color: rgb(28, 59, 130);
+              border-radius: 50%;
+            }
+            .executive-summary {
+              border-left-color: rgb(28, 59, 130);
+            }
+            .skill-mapping {
+              border-left-color: rgb(56, 128, 255);
+            }
+            .gap-analysis {
+              border-left-color: rgb(255, 153, 0);
+            }
+            .career-pathway {
+              border-left-color: rgb(79, 70, 229);
+            }
+            .development-plan {
+              border-left-color: rgb(34, 197, 94);
+            }
+            .educational-programs {
+              border-left-color: rgb(56, 128, 255);
+            }
+            .learning-roadmap {
+              border-left-color: rgb(168, 85, 247);
+            }
+            .similar-roles {
+              border-left-color: rgb(245, 158, 11);
+            }
+            .quick-tips {
+              border-left-color: rgb(250, 204, 21);
+            }
+            .growth-trajectory {
+              border-left-color: rgb(20, 184, 166);
+            }
+            .learning-path {
+              border-left-color: rgb(236, 72, 153);
+            }
+            .summary-box {
+              background-color: rgba(28, 59, 130, 0.05);
+              padding: 20px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .info-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+              gap: 20px;
+              margin-bottom: 20px;
+            }
+            .info-card {
+              background: white;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 15px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+            .info-card-title {
+              font-size: 14px;
+              color: #6b7280;
+              margin-bottom: 8px;
+            }
+            .info-card-content {
+              font-size: 18px;
+              font-weight: 600;
+              color: rgb(28, 59, 130);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+            .badge {
+              display: inline-block;
+              padding: 5px 10px;
+              border-radius: 9999px;
+              font-size: 12px;
+              font-weight: 500;
+              background-color: rgba(28, 59, 130, 0.1);
+              color: rgb(28, 59, 130);
+              margin-right: 5px;
+              margin-bottom: 5px;
+            }
+            .findings-list {
+              padding-left: 24px;
+            }
+            .findings-list li {
+              margin-bottom: 8px;
+              position: relative;
+            }
+            .findings-list li::before {
+              content: "✓";
+              color: rgb(34, 197, 94);
+              font-weight: bold;
+              display: inline-block;
+              position: absolute;
+              left: -20px;
+            }
+            .step-container {
+              position: relative;
+              padding-left: 30px;
+              margin-bottom: 25px;
+            }
+            .step-number {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 24px;
+              height: 24px;
+              background-color: rgb(79, 70, 229);
+              color: white;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              font-size: 14px;
+            }
+            .step-content {
+              background: rgba(79, 70, 229, 0.05);
+              border-radius: 8px;
+              padding: 15px;
+            }
+            .step-title {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+            }
+            .step-name {
+              font-weight: 600;
+            }
+            .step-time {
+              font-size: 12px;
+              background: white;
+              padding: 3px 8px;
+              border-radius: 9999px;
+              color: rgb(79, 70, 229);
+              border: 1px solid rgba(79, 70, 229, 0.3);
+            }
+            .chart-container {
+              margin: 25px 0;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              padding: 15px;
+              background: white;
+            }
+            .chart-placeholder {
+              height: 300px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #f8fafc;
+              border-radius: 4px;
+              color: #94a3b8;
+              font-style: italic;
+            }
+            .footer {
+              text-align: center;
+              padding: 20px;
+              margin-top: 50px;
+              border-top: 1px solid #e2e8f0;
+              color: #6b7280;
+              font-size: 14px;
+            }
+            .two-columns {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+            }
+            @media (max-width: 768px) {
+              .two-columns {
+                grid-template-columns: 1fr;
+              }
+            }
           </style>
         </head>
         <body>
@@ -205,7 +399,134 @@ export default function SavedAnalysesPage() {
             <p>Generated on ${format(new Date(analysis.metadata.dateCreated), 'MMMM d, yyyy')} for ${analysis.metadata.professionalLevel} professional</p>
           </div>
           
-          <!-- Full report content would be generated here -->
+          <!-- Executive Summary -->
+          ${report.executiveSummary ? `
+          <div class="section executive-summary">
+            <div class="section-title">
+              <div class="section-icon">1</div>
+              Executive Summary
+            </div>
+            <div class="summary-box">
+              <p>${report.executiveSummary.summary}</p>
+            </div>
+            <div class="info-grid">
+              <div class="info-card">
+                <div class="info-card-title">Career Goal</div>
+                <div class="info-card-content">
+                  <span>${report.executiveSummary.careerGoal}</span>
+                </div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-title">Fit Score</div>
+                <div class="info-card-content">
+                  <span>${report.executiveSummary.fitScore.score}/${report.executiveSummary.fitScore.outOf}</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3>Key Findings</h3>
+              <ul class="findings-list">
+                ${report.executiveSummary.keyFindings ? report.executiveSummary.keyFindings.map((finding: string) => 
+                  `<li>${finding}</li>`
+                ).join('') : ''}
+              </ul>
+            </div>
+          </div>
+          ` : ''}
+          
+          <!-- Skill Mapping -->
+          ${report.skillMapping ? `
+          <div class="section skill-mapping">
+            <div class="section-title">
+              <div class="section-icon">2</div>
+              Skill Mapping
+            </div>
+            <div class="summary-box">
+              <p>${report.skillMapping.skillsAnalysis}</p>
+            </div>
+            ${report.skillMapping.sfiaSkills ? `
+            <div>
+              <h3>SFIA Skills</h3>
+              <div>
+                ${report.skillMapping.sfiaSkills.map((skill: any) => 
+                  `<div class="info-card" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="font-weight: 600;">${skill.skill}</div>
+                      <div class="badge">${skill.proficiency}/7</div>
+                    </div>
+                    <div style="margin-top: 5px; color: #6b7280; font-size: 14px;">${skill.description}</div>
+                  </div>`
+                ).join('')}
+              </div>
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Skill Gap Analysis -->
+          ${report.skillGapAnalysis ? `
+          <div class="section gap-analysis">
+            <div class="section-title">
+              <div class="section-icon">3</div>
+              Skill Gap Analysis
+            </div>
+            <div class="summary-box">
+              <p>${report.skillGapAnalysis.aiAnalysis || 'Analysis of your current skill gaps compared to requirements for your target role.'}</p>
+            </div>
+            ${report.skillGapAnalysis.keyGaps ? `
+            <h3>Key Gaps</h3>
+            <div class="info-grid">
+              ${report.skillGapAnalysis.keyGaps.map((gap: any) => `
+                <div class="info-card">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 600;">${gap.skill}</div>
+                    <div class="badge" style="background-color: rgba(239, 68, 68, 0.1); color: rgb(239, 68, 68);">
+                      Gap: ${gap.gap}
+                    </div>
+                  </div>
+                  <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 14px;">
+                    <div>Current: ${gap.currentLevel}</div>
+                    <div>Required: ${gap.requiredLevel}</div>
+                  </div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${gap.improvementSuggestion}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Career Pathway Options -->
+          ${report.careerPathwayOptions ? `
+          <div class="section career-pathway">
+            <div class="section-title">
+              <div class="section-icon">4</div>
+              Career Pathway Options
+            </div>
+            <div class="summary-box">
+              <p>${report.careerPathwayOptions.pathwayDescription}</p>
+            </div>
+            ${report.careerPathwayOptions.pathwaySteps ? `
+            <h3>Pathway Steps</h3>
+            ${report.careerPathwayOptions.pathwaySteps.map((step: any, index: number) => `
+              <div class="step-container">
+                <div class="step-number">${index + 1}</div>
+                <div class="step-content">
+                  <div class="step-title">
+                    <div class="step-name">${step.step}</div>
+                    <div class="step-time">${step.timeframe}</div>
+                  </div>
+                  <div>${step.description}</div>
+                </div>
+              </div>
+            `).join('')}
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          <!-- Additional sections would be generated based on available data -->
           
           <div class="footer">
             <p>Generated by Skillgenix - The Career Pathway Platform</p>
@@ -232,7 +553,7 @@ export default function SavedAnalysesPage() {
       
       toast({
         title: 'Success',
-        description: 'Report downloaded successfully',
+        description: 'Comprehensive report downloaded successfully',
         variant: 'default',
       });
     } catch (error) {

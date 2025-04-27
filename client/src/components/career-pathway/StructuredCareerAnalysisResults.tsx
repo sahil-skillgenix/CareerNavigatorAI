@@ -232,7 +232,7 @@ export function StructuredCareerAnalysisResults({
       
       toast({
         title: "Career Analysis Saved",
-        description: "Your analysis has been saved successfully. You can access it from your dashboard.",
+        description: "Your analysis has been saved successfully. You can access it from the Saved Analyses menu.",
         variant: "default"
       });
     } catch (error) {
