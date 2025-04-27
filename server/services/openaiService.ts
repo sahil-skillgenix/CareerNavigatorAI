@@ -1,123 +1,148 @@
 /**
- * OpenAI Integration Service
+ * OpenAI Service
  * 
- * This service handles all interactions with OpenAI's API for the X-Gen Career Analysis feature.
- * It uses GPT-4o to generate comprehensive, structured career analysis reports.
+ * This service provides the interface for interacting with the OpenAI API
+ * to generate career analysis reports.
  */
 import OpenAI from "openai";
 import { CareerAnalysisReport, CareerAnalysisRequestData } from "../../shared/types/reportTypes";
+import { formatReport } from "./reportStructureService";
 import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
 
-// Initialize the OpenAI API client
+// Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 /**
- * Generates a comprehensive career analysis report using OpenAI's GPT-4o model
- * @param requestData User input data for career analysis
+ * Generate a comprehensive career analysis report using OpenAI
+ * 
+ * @param requestData User's career information and goals
  * @returns A structured career analysis report
  */
-export async function generateCareerAnalysis(
-  requestData: CareerAnalysisRequestData
-): Promise<CareerAnalysisReport> {
+export async function generateCareerAnalysis(requestData: CareerAnalysisRequestData): Promise<CareerAnalysisReport> {
   try {
-    // Create a detailed prompt that specifies the exact structure we need
-    const systemPrompt = `You are an AI Career Analyst that specializes in creating comprehensive career pathway analyses.
-    You will create a detailed career analysis report based on the user's professional level, skills, education, history, and desired role.
-    Your analysis must follow this EXACT structure and include all required sections with proper subsections:
+    console.log("Generating career analysis with OpenAI...");
+    
+    // Create a detailed prompt for OpenAI
+    const prompt = `
+You are an expert career counselor and pathway advisor with extensive knowledge of skills frameworks including SFIA 9 and DigComp 2.2.
 
-    1. Executive Summary: Provide a concise overview with career goal, fit score (1-10), and key findings
-    2. Skill Mapping: Map current skills to SFIA 9 and DigComp 2.2 frameworks with proficiency levels (1-5)
-    3. Skill Gap Analysis: Identify key gaps between current and required skills with visual data
-    4. Career Pathway Options: Outline both university and vocational pathways with specific steps
-    5. Development Plan: Detail technical and soft skills to develop with timeframes
-    6. Educational Programs: Recommend specific programs and projects to build skills
-    7. Learning Roadmap: Create phased learning plan with skill progression milestones
-    8. Similar Roles: Analyze alternative careers with similarity scores and pros/cons
-    9. Quick Tips: Provide actionable micro-learning tips and interview preparation advice
-    10. Growth Trajectory: Map short, medium, and long-term goals with salary progression
-    11. Learning Path Roadmap: Create a timeline with key milestones and skill focus areas
+Analyze the following career information and provide a detailed career pathway analysis with actionable recommendations:
 
-    Your response must be a valid JSON object matching the expected schema with all required sections and subsections.
-    All lists should have at least 3-5 items where applicable.
-    Be realistic, specific, and actionable in all recommendations.`;
+Professional Level: ${requestData.professionalLevel}
+Current Skills: ${requestData.currentSkills}
+Educational Background: ${requestData.educationalBackground}
+Career History: ${requestData.careerHistory}
+Desired Role: ${requestData.desiredRole}
+State/Province: ${requestData.state}
+Country: ${requestData.country}
 
-    // Create the user prompt with the specific user data
-    const userPrompt = `
-    Please analyze the following career information and generate a comprehensive career pathway analysis:
+Please provide a comprehensive, structured analysis in JSON format with the following components:
 
-    Professional Level: ${requestData.professionalLevel}
-    Current Skills: ${requestData.currentSkills}
-    Educational Background: ${requestData.educationalBackground}
-    Career History: ${requestData.careerHistory}
-    Desired Role: ${requestData.desiredRole}
-    Location: ${requestData.state}, ${requestData.country}
+1. Executive Summary:
+   - summary: A concise overview of the career analysis
+   - careerGoal: Clear statement of the career objective
+   - keyFindings: Array of key insights from the analysis (3-5 points)
+   - fitScore: Object with score (0-10), outOf (10), and description of the fit
 
-    Please provide a detailed, structured analysis with all 11 required sections, including real comparisons to SFIA 9 and DigComp 2.2 frameworks.
-    Ensure the pathway options include both university and vocational paths.
-    Be realistic, specific, and actionable in all recommendations.
-    Format your response as a valid JSON object.`;
+2. Skill Mapping:
+   - skillsAnalysis: Overview of current skill profile
+   - sfiaSkills: Array of SFIA framework skills with [skill, proficiency (0-7), description]
+   - digCompSkills: Array of DigComp 2.2 framework skills with [skill, proficiency (0-8), description]
+   - otherSkills: Array of additional relevant skills with [skill, proficiency (0-10), description]
 
-    // Make the API call to OpenAI
-    // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+3. Skill Gap Analysis:
+   - targetRole: The desired role being analyzed
+   - aiAnalysis: AI's assessment of skill gaps
+   - keyGaps: Array of skill gaps with [skill, currentLevel, requiredLevel, gap, priority, improvementSuggestion]
+   - keyStrengths: Array of strengths with [skill, currentLevel, requiredLevel, advantage, leverageSuggestion]
+   - visualizationData: Data for radar/bar charts {currentSkills: [{skill, value}], requiredSkills: [{skill, value}]}
+
+4. Career Pathway Options:
+   - currentRole: Starting position
+   - targetRole: Goal position
+   - timeframe: Estimated time to reach goal
+   - pathwayDescription: Overview of recommended pathway
+   - pathwaySteps: Array of steps with [step, timeframe, description]
+   - universityPathway: Array of education options with [degree, duration, institutions, outcomes]
+   - vocationalPathway: Array of certification options with [degree, duration, institutions, outcomes]
+   - aiInsights: Additional AI insights on career transition
+
+5. Development Plan:
+   - overview: Summary of development approach
+   - technicalSkills: Array of technical skills to develop with [skill, currentLevel, targetLevel, timeframe, resources]
+   - softSkills: Array of soft skills to develop with [skill, currentLevel, targetLevel, timeframe, resources]
+   - skillsToAcquire: Array of new skills to acquire with [skill, timeframe, reason, resources]
+
+6. Educational Programs:
+   - introduction: Overview of educational recommendations
+   - recommendedPrograms: Array of programs with [name, provider, format, duration, description, skillsCovered]
+   - suggestedProjects: Array of projects with [title, difficultyLevel, completionTime, description, skillsDeveloped]
+
+7. Learning Roadmap:
+   - roadmapOverview: Overview of learning approach
+   - learningPhases: Array of phases with [phase, focusAreas, keyResources]
+   - skillsProgression: Array of skill progressions with [skill, startLevel, targetLevel, milestones[level, achievements]]
+
+8. Similar Roles:
+   - introduction: Overview of alternative career paths
+   - roles: Array of similar roles with [title, similarityScore, keyResponsibilities, requiredSkills, averageSalary, growthPotential, prosAndCons]
+
+9. Quick Tips:
+   - dailyLearningTips: Array of daily learning tips
+   - interviewPreparationTips: Array of interview preparation tips
+   - networkingRecommendations: Array of networking recommendations
+
+10. Growth Trajectory:
+    - shortTermGoals: {timeframe, goals, metrics}
+    - mediumTermGoals: {timeframe, goals, metrics}
+    - longTermGoals: {timeframe, goals, metrics}
+    - potentialSalaryProgression: Array of salary progression with [stage, timeframe, salary]
+
+11. Learning Path Roadmap:
+    - timelineData: Array of timeline milestones with [milestone, timeframe, description]
+    - skillFocus: Array of skill focus areas with [skill, priority, resources[{name, type, url}]]
+
+Ensure all sections and subsections are included and properly formatted as a valid JSON object.
+`;
+
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        {
+          role: "system",
+          content: "You are an expert career counselor using advanced frameworks (SFIA 9 and DigComp 2.2) to provide detailed, personalized career pathway analyses. Format responses in valid JSON exactly as requested."
+        },
+        { role: "user", content: prompt }
       ],
       temperature: 0.7,
       max_tokens: 4000,
       response_format: { type: "json_object" }
     });
 
-    // Parse the response into our expected structure
-    const result = JSON.parse(response.choices[0].message.content || "{}") as CareerAnalysisReport;
+    // Extract and parse the completion
+    const completion = response.choices[0].message.content;
     
-    // Validate the response to ensure it has all required sections
-    validateReportStructure(result);
+    if (!completion) {
+      throw new Error("Failed to receive a valid response from OpenAI");
+    }
     
-    return result;
-  } catch (error) {
-    console.error("Error generating career analysis with OpenAI:", error);
-    throw new Error(
-      "Failed to generate career analysis. Please try again later or contact support."
-    );
-  }
-}
-
-/**
- * Validates that the report contains all required sections
- * @param report The career analysis report to validate
- */
-function validateReportStructure(report: CareerAnalysisReport): void {
-  // Define all required sections
-  const requiredSections = [
-    "executiveSummary",
-    "skillMapping",
-    "skillGapAnalysis",
-    "careerPathwayOptions",
-    "developmentPlan",
-    "educationalPrograms",
-    "learningRoadmap",
-    "similarRoles",
-    "quickTips",
-    "growthTrajectory",
-    "learningPathRoadmap"
-  ];
-
-  // Check if any section is missing
-  const missingSections = requiredSections.filter(
-    section => !report[section]
-  );
-
-  if (missingSections.length > 0) {
-    throw new Error(
-      `Generated report is missing the following sections: ${missingSections.join(", ")}`
-    );
+    // Parse the JSON response
+    const rawReport = JSON.parse(completion);
+    
+    // Format the report into our required structure
+    const structuredReport = formatReport(rawReport);
+    
+    console.log("Career analysis generated successfully");
+    
+    return structuredReport;
+  } catch (error: any) {
+    console.error("Error generating career analysis:", error);
+    throw new Error(`Failed to generate career analysis: ${error.message || "Unknown error"}`);
   }
 }

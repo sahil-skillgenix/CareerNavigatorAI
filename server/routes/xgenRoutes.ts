@@ -85,7 +85,7 @@ router.post("/save", async (req: Request, res: Response) => {
     
     // Create a document to save
     const careerAnalysis: SavedCareerAnalysis = {
-      userId: req.user.id || req.user._id,
+      userId: req.user.id || (req.user._id ? req.user._id.toString() : ''),
       report,
       requestData,
       dateCreated: new Date(),
@@ -128,7 +128,7 @@ router.get("/analyses", async (req: Request, res: Response) => {
     // Query the database for analyses belonging to the current user
     const analyses = await collection
       .find({ 
-        userId: req.user.id || req.user._id
+        userId: req.user.id || (req.user._id ? req.user._id.toString() : '')
       })
       .sort({ dateCreated: -1 }) // Sort by date, newest first
       .project({
@@ -174,7 +174,7 @@ router.get("/analyses/:id", async (req: Request, res: Response) => {
     // Query the database for the specific analysis
     const analysis = await collection.findOne({
       _id: new ObjectId(analysisId),
-      userId: req.user.id || req.user._id, // Ensure user only accesses their own analyses
+      userId: req.user.id || (req.user._id ? req.user._id.toString() : ''), // Ensure user only accesses their own analyses
     });
     
     if (!analysis) {
@@ -216,7 +216,7 @@ router.delete("/analyses/:id", async (req: Request, res: Response) => {
     // Delete the analysis from the database
     const result = await collection.deleteOne({
       _id: new ObjectId(analysisId),
-      userId: req.user.id || req.user._id, // Ensure user only deletes their own analyses
+      userId: req.user.id || (req.user._id ? req.user._id.toString() : ''), // Ensure user only deletes their own analyses
     });
     
     if (result.deletedCount === 0) {

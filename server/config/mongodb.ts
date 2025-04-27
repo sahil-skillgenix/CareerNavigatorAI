@@ -1,61 +1,51 @@
 /**
- * MongoDB Configuration Utility
+ * MongoDB Configuration
  * 
- * This file provides access to the MongoDB connection and database instance
- * for use in API routes and services.
+ * This file provides centralized access to the MongoDB connection
+ * and utility functions for the MongoDB database.
  */
-import { MongoClient, Db, ObjectId } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
+import { storage } from '../storage';
 import { MongoDBStorage } from '../mongodb-storage';
 
-let client: MongoClient | null = null;
-let db: Db | null = null;
-let storage: MongoDBStorage | null = null;
+// Export ObjectId for use in routes
+export { ObjectId };
 
 /**
  * Get the MongoDB storage instance
- * @returns MongoDB storage instance
+ * Used to access the MongoDB client and database
+ * 
+ * @returns The MongoDB storage instance
  */
 export function getStorage(): MongoDBStorage {
-  if (!storage) {
-    throw new Error('MongoDB storage not initialized');
-  }
-  return storage;
+  // Cast the storage to MongoDBStorage to access MongoDB-specific properties
+  return storage as MongoDBStorage;
 }
 
 /**
- * Initialize the MongoDB connection and storage
+ * Create a new ObjectId instance
+ * Utility function to create MongoDB ObjectId from string
+ * 
+ * @param id String ID to convert to ObjectId
+ * @returns MongoDB ObjectId
  */
-export async function initMongoDB(): Promise<void> {
-  if (storage) return; // Already initialized
-  
+export function createObjectId(id: string): ObjectId {
   try {
-    // Create and initialize MongoDB storage
-    storage = new MongoDBStorage();
-    await storage.initialize();
-    
-    // Store references for direct access if needed
-    client = storage.client;
-    db = storage.db;
-    
-    console.log('MongoDB initialized successfully');
+    return new ObjectId(id);
   } catch (error) {
-    console.error('Error initializing MongoDB:', error);
-    throw error;
+    console.error(`Invalid ObjectId format: ${id}`);
+    throw new Error(`Invalid ObjectId format: ${id}`);
   }
 }
 
 /**
- * Get the MongoDB database instance
- * @returns MongoDB database instance
+ * Ensure user has access to a resource
+ * Utility function to verify ownership of a resource
+ * 
+ * @param userId User ID from request
+ * @param resourceUserId User ID from resource
+ * @returns Boolean indicating if user has access
  */
-export function getDb(): Db {
-  if (!db) {
-    throw new Error('MongoDB database not initialized');
-  }
-  return db;
+export function hasAccess(userId: string, resourceUserId: string): boolean {
+  return userId === resourceUserId;
 }
-
-/**
- * Export ObjectId for use in routes
- */
-export { ObjectId };

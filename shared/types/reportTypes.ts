@@ -1,159 +1,146 @@
 /**
- * Type definitions for the X-Gen AI Career Analysis Report
+ * Career Analysis Report Types
+ * 
+ * This file defines all the type structures used for the X-Gen AI Career Analysis feature.
+ * It includes types for both the request data sent to OpenAI and the structured response.
  */
 
 /**
- * Executive Summary Section
+ * Career Analysis Request Data
+ * User input data sent to the API for career analysis
  */
+export interface CareerAnalysisRequestData {
+  professionalLevel: string;
+  currentSkills: string;
+  educationalBackground: string;
+  careerHistory: string;
+  desiredRole: string;
+  state: string;
+  country: string;
+}
+
+/**
+ * Career Analysis Report
+ * Full structured report returned from OpenAI
+ */
+export interface CareerAnalysisReport {
+  executiveSummary: ExecutiveSummary;
+  skillMapping: SkillMapping;
+  skillGapAnalysis: SkillGapAnalysis;
+  careerPathwayOptions: CareerPathwayOptions;
+  developmentPlan: DevelopmentPlan;
+  educationalPrograms: EducationalPrograms;
+  learningRoadmap: LearningRoadmap;
+  similarRoles: SimilarRoles;
+  quickTips: QuickTips;
+  growthTrajectory: GrowthTrajectory;
+  learningPathRoadmap: LearningPathRoadmap;
+}
+
+/**
+ * Saved Career Analysis
+ * Model for storing career analyses in the database
+ */
+export interface SavedCareerAnalysis {
+  userId: string;
+  report: CareerAnalysisReport;
+  requestData: CareerAnalysisRequestData;
+  dateCreated: string;
+}
+
+// Section 1: Executive Summary
 export interface ExecutiveSummary {
   summary: string;
   careerGoal: string;
+  keyFindings: string[];
   fitScore: {
     score: number;
     outOf: number;
     description: string;
   };
-  keyFindings: string[];
 }
 
-/**
- * Skill Mapping Section
- */
+// Section 2: Skill Mapping
 export interface SkillMapping {
   skillsAnalysis: string;
-  sfiaSkills: {
-    skill: string;
-    proficiency: number;
-    description: string;
-  }[];
-  digCompSkills: {
-    skill: string;
-    proficiency: number;
-    description: string;
-  }[];
-  otherSkills: {
-    skill: string;
-    proficiency: number;
-    description: string;
-  }[];
+  sfiaSkills: [string, number, string][];
+  digCompSkills: [string, number, string][];
+  otherSkills: [string, number, string][];
 }
 
-/**
- * Skill Gap Analysis Section
- */
+// Section 3: Skill Gap Analysis
 export interface SkillGapAnalysis {
   targetRole: string;
   aiAnalysis: string;
+  keyGaps: [string, number, number, number, string, string][];
+  keyStrengths: [string, number, number, number, string][];
   visualizationData: {
-    currentSkills: {
-      skill: string;
-      value: number;
-    }[];
-    requiredSkills: {
-      skill: string;
-      value: number;
-    }[];
+    currentSkills: { skill: string; value: number }[];
+    requiredSkills: { skill: string; value: number }[];
   };
-  keyGaps: {
-    skill: string;
-    currentLevel: number;
-    requiredLevel: number;
-    priority: 'High' | 'Medium' | 'Low';
-    improvementSuggestion: string;
-  }[];
-  keyStrengths: {
-    skill: string;
-    advantage: number;
-    leverageSuggestion: string;
-  }[];
 }
 
-/**
- * Career Pathway Options Section
- */
+// Section 4: Career Pathway Options
 export interface CareerPathwayOptions {
-  pathwayDescription: string;
   currentRole: string;
   targetRole: string;
   timeframe: string;
-  pathwaySteps: {
-    step: string;
-    timeframe: string;
-    description: string;
-  }[];
+  pathwayDescription: string;
+  pathwaySteps: [string, string, string][];
   universityPathway: {
     degree: string;
-    institutions: string[];
     duration: string;
+    institutions: string[];
     outcomes: string[];
   }[];
   vocationalPathway: {
-    degree: string;
-    institutions: string[];
+    certification: string;
     duration: string;
+    providers: string[];
     outcomes: string[];
   }[];
   aiInsights: string;
 }
 
-/**
- * Development Plan Section
- */
+// Section 5: Development Plan
 export interface DevelopmentPlan {
   overview: string;
-  technicalSkills: {
-    skill: string;
-    currentLevel: number;
-    targetLevel: number;
-    timeframe: string;
-    resources: string[];
-  }[];
-  softSkills: {
-    skill: string;
-    currentLevel: number;
-    targetLevel: number;
-    timeframe: string;
-    resources: string[];
-  }[];
-  skillsToAcquire: {
-    skill: string;
-    reason: string;
-    timeframe: string;
-    resources: string[];
-  }[];
+  technicalSkills: [string, number, number, string, string[]][];
+  softSkills: [string, number, number, string, string[]][];
+  skillsToAcquire: [string, string, string, string[]][];
 }
 
-/**
- * Educational Programs Section
- */
+// Section 6: Educational Programs
 export interface EducationalPrograms {
   introduction: string;
   recommendedPrograms: {
     name: string;
     provider: string;
-    duration: string;
     format: string;
-    skillsCovered: string[];
+    duration: string;
     description: string;
+    skillsCovered: string[];
   }[];
   suggestedProjects: {
     title: string;
-    description: string;
-    skillsDeveloped: string[];
     difficultyLevel: string;
     completionTime: string;
+    description: string;
+    skillsDeveloped: string[];
   }[];
 }
 
-/**
- * Learning Roadmap Section
- */
+// Section 7: Learning Roadmap
 export interface LearningRoadmap {
   roadmapOverview: string;
   learningPhases: {
     phase: string;
     focusAreas: string[];
-    keyResources: string[];
+    keyResources: {
+      name: string;
+      type: string;
+      url?: string;
+    }[];
   }[];
   skillsProgression: {
     skill: string;
@@ -166,9 +153,7 @@ export interface LearningRoadmap {
   }[];
 }
 
-/**
- * Similar Roles Section
- */
+// Section 8: Similar Roles
 export interface SimilarRoles {
   introduction: string;
   roles: {
@@ -178,25 +163,19 @@ export interface SimilarRoles {
     requiredSkills: string[];
     averageSalary: string;
     growthPotential: string;
-    prosAndCons: {
-      pros: string[];
-      cons: string[];
-    };
+    pros: string[];
+    cons: string[];
   }[];
 }
 
-/**
- * Quick Tips Section
- */
+// Section 9: Quick Tips
 export interface QuickTips {
   dailyLearningTips: string[];
   interviewPreparationTips: string[];
   networkingRecommendations: string[];
 }
 
-/**
- * Growth Trajectory Section
- */
+// Section 10: Growth Trajectory
 export interface GrowthTrajectory {
   shortTermGoals: {
     timeframe: string;
@@ -215,14 +194,12 @@ export interface GrowthTrajectory {
   };
   potentialSalaryProgression: {
     stage: string;
-    salary: string;
     timeframe: string;
+    salary: string;
   }[];
 }
 
-/**
- * Learning Path Roadmap Section
- */
+// Section 11: Learning Path Roadmap
 export interface LearningPathRoadmap {
   timelineData: {
     milestone: string;
@@ -231,53 +208,11 @@ export interface LearningPathRoadmap {
   }[];
   skillFocus: {
     skill: string;
-    priority: 'High' | 'Medium' | 'Low';
+    priority: string;
     resources: {
-      type: string;
       name: string;
-      url: string;
+      type: string;
+      url?: string;
     }[];
   }[];
-}
-
-/**
- * Complete Career Analysis Report
- */
-export interface CareerAnalysisReport {
-  [key: string]: any; // Allow dynamic access while maintaining specific properties
-  executiveSummary: ExecutiveSummary;
-  skillMapping: SkillMapping;
-  skillGapAnalysis: SkillGapAnalysis;
-  careerPathwayOptions: CareerPathwayOptions;
-  developmentPlan: DevelopmentPlan;
-  educationalPrograms: EducationalPrograms;
-  learningRoadmap: LearningRoadmap;
-  similarRoles: SimilarRoles;
-  quickTips: QuickTips;
-  growthTrajectory: GrowthTrajectory;
-  learningPathRoadmap: LearningPathRoadmap;
-}
-
-/**
- * Career Analysis Request Data
- */
-export interface CareerAnalysisRequestData {
-  professionalLevel: string;
-  currentSkills: string;
-  educationalBackground: string;
-  careerHistory: string;
-  desiredRole: string;
-  state: string;
-  country: string;
-}
-
-/**
- * Saved Career Analysis Document (MongoDB)
- */
-export interface SavedCareerAnalysis {
-  _id?: string; 
-  userId: string;
-  report: CareerAnalysisReport;
-  requestData: CareerAnalysisRequestData;
-  dateCreated: Date;
 }

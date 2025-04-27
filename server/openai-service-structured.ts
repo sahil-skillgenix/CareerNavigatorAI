@@ -2,15 +2,12 @@
  * Structured OpenAI Service
  * 
  * Provides an interface to OpenAI for generating career pathway analyses
- * using the structured report format defined in reportSchema.ts.
+ * using the structured report format defined in reportTypes.ts.
  */
 
 import OpenAI from "openai";
-import { 
-  createStructuredPrompt, 
-  ensureReportStructure 
-} from "./services/reportStructureService";
-import { CareerAnalysisReport } from "../shared/reportSchema";
+import { formatReport } from "./services/reportStructureService";
+import { CareerAnalysisReport, CareerAnalysisRequestData } from "../shared/types/reportTypes";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -69,10 +66,7 @@ Please provide a comprehensive, structured analysis with the following component
 11. Learning Path Roadmap
 `;
 
-    // Apply the structured format to ensure consistent report structure
-    const structuredPrompt = createStructuredPrompt(basePrompt);
-    
-    // Call OpenAI with the structured prompt
+    // Call OpenAI with the prompt
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
@@ -80,7 +74,7 @@ Please provide a comprehensive, structured analysis with the following component
           role: "system", 
           content: "You are an expert career counselor using advanced frameworks (SFIA 9 and DigComp 2.2) to provide detailed, personalized career pathway analyses. Format responses in valid JSON exactly as requested." 
         },
-        { role: "user", content: structuredPrompt }
+        { role: "user", content: basePrompt }
       ],
       temperature: 0.7,
       max_tokens: 4000,
@@ -99,7 +93,7 @@ Please provide a comprehensive, structured analysis with the following component
       const reportData = JSON.parse(completion);
       
       // Ensure the report structure is complete and valid
-      const structuredReport = ensureReportStructure(reportData);
+      const structuredReport = formatReport(reportData);
       
       console.log("Structured career analysis generated successfully");
       
