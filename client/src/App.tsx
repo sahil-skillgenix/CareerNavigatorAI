@@ -14,6 +14,7 @@ import MyDetailsPage from "@/pages/my-details-page";
 import DashboardPage from "@/pages/dashboard-page";
 import CareerPathwayPage from "@/pages/career-pathway-page";
 import StructuredPathwayPage from "@/pages/structured-pathway-page";
+import XGenPathwayPage from "@/pages/xgen-pathway-page";
 import CareerAnalysisPage from "@/pages/career-analysis-page";
 import LearningResourcesPage from "@/pages/learning-resources-page";
 import SavedResourcesPage from "@/pages/saved-resources-page";
@@ -60,6 +61,7 @@ function Router() {
       <ProtectedRoute path="/my-details" component={MyDetailsPage} />
       <ProtectedRoute path="/career-pathway" component={CareerPathwayPage} />
       <ProtectedRoute path="/structured-pathway" component={StructuredPathwayPage} />
+      <ProtectedRoute path="/xgen-pathway" component={XGenPathwayPage} />
       <ProtectedRoute path="/career-analysis/:id" component={CareerAnalysisPage} />
       <ProtectedRoute path="/learning-resources" component={LearningResourcesPage} />
       <ProtectedRoute path="/saved-resources" component={SavedResourcesPage} />
