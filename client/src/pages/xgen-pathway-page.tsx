@@ -5,7 +5,7 @@
  * using advanced X-Gen AI technology with the standardized 11-section format.
  */
 import { motion } from 'framer-motion';
-import { StructuredCareerPathwayForm } from '@/components/career-pathway/StructuredCareerPathwayForm';
+import { XGenPathwayForm } from '@/components/x-gen/XGenPathwayForm';
 import { AuthenticatedLayout } from '@/components/layouts/AuthenticatedLayout';
 import { fadeIn } from '@/lib/animations';
 
@@ -68,7 +68,7 @@ export default function XGenPathwayPage() {
           </div>
         </div>
         
-        <StructuredCareerPathwayForm />
+        <XGenPathwayForm />
       </motion.div>
     </AuthenticatedLayout>
   );
