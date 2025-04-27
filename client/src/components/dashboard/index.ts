@@ -15,3 +15,4 @@ export * from './BadgeCard';
 export * from './SkillJourneyTracker';
 export { default as UserCareerAnalyses } from './UserCareerAnalyses';
 export { default as UserActivityHistory } from './UserActivityHistory';
+export { LatestCareerAnalysis } from './LatestCareerAnalysis';

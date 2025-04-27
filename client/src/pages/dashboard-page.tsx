@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import {
   RecommendedCourses,
   CareerProgressTracker,
-  SavedAnalyses,
+  LatestCareerAnalysis,
   BadgeCard,
   SkillJourneyTracker
 } from "@/components/dashboard";
@@ -57,7 +57,7 @@ export default function DashboardPage() {
         </div>
       </motion.section>
       
-      {/* Career History Section */}
+      {/* Latest Career Analysis Section */}
       <motion.section 
         className="mb-16"
         initial={{ opacity: 0 }}
@@ -66,10 +66,10 @@ export default function DashboardPage() {
       >
         <h2 className="text-2xl font-semibold mb-8 text-center flex items-center justify-center">
           <BarChart3 className="mr-2 h-6 w-6 text-primary" />
-          Your Career Analyses
+          Your Career Analysis
         </h2>
         <div className="max-w-7xl mx-auto">
-          <SavedAnalyses />
+          <LatestCareerAnalysis />
         </div>
       </motion.section>
       
