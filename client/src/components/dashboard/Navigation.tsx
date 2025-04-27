@@ -42,6 +42,11 @@ export function Navigation() {
       icon: <Sparkles className="h-5 w-5 mr-2" />,
     },
     {
+      name: "X-Gen AI Career Analysis",
+      path: "/xgen-pathway",
+      icon: <Sparkles className="h-5 w-5 mr-2" />,
+    },
+    {
       name: "Saved Analyses",
       path: "/saved-analyses",
       icon: <Save className="h-5 w-5 mr-2" />,
