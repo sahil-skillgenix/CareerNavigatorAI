@@ -516,25 +516,25 @@ export default function SavedAnalysesPage() {
               Skill Gap Analysis
             </div>
             <div class="summary-box">
-              <p>${report.skillGapAnalysis.aiAnalysis || 'Analysis of your current skill gaps compared to requirements for your target role.'}</p>
+              <p>${report.skillGapAnalysis.aiAnalysis || report.skillGapAnalysis.overview || 'Analysis of your current skill gaps compared to requirements for your target role.'}</p>
             </div>
-            ${report.skillGapAnalysis.keyGaps ? `
+            ${report.skillGapAnalysis.keyGaps && report.skillGapAnalysis.keyGaps.length > 0 ? `
             <h3>Key Gaps</h3>
             <div class="info-grid">
               ${report.skillGapAnalysis.keyGaps.map((gap: any) => `
                 <div class="info-card">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-weight: 600;">${gap.skill}</div>
+                    <div style="font-weight: 600;">${gap.skill || 'Skill'}</div>
                     <div class="badge" style="background-color: rgba(239, 68, 68, 0.1); color: rgb(239, 68, 68);">
-                      Gap: ${gap.gap}
+                      ${gap.priority ? `${gap.priority} Priority` : gap.gap ? `Gap: ${gap.gap}` : 'Gap Identified'}
                     </div>
                   </div>
                   <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 14px;">
-                    <div>Current: ${gap.currentLevel}</div>
-                    <div>Required: ${gap.requiredLevel}</div>
+                    <div>Current: ${gap.currentLevel || '0'}</div>
+                    <div>Required: ${gap.requiredLevel || '0'}</div>
                   </div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${gap.improvementSuggestion}
+                    ${gap.improvementSuggestion || gap.description || 'Requires development to meet role requirements.'}
                   </div>
                 </div>
               `).join('')}
@@ -555,19 +555,19 @@ export default function SavedAnalysesPage() {
               Career Pathway Options
             </div>
             <div class="summary-box">
-              <p>${report.careerPathwayOptions.pathwayDescription}</p>
+              <p>${report.careerPathwayOptions.pathwayDescription || report.careerPathwayOptions.overview || 'Recommended career pathway options for your transition to the target role.'}</p>
             </div>
-            ${report.careerPathwayOptions.pathwaySteps ? `
+            ${report.careerPathwayOptions.pathwaySteps && report.careerPathwayOptions.pathwaySteps.length > 0 ? `
             <h3>Pathway Steps</h3>
             ${report.careerPathwayOptions.pathwaySteps.map((step: any, index: number) => `
               <div class="step-container">
                 <div class="step-number">${index + 1}</div>
                 <div class="step-content">
                   <div class="step-title">
-                    <div class="step-name">${step.step}</div>
-                    <div class="step-time">${step.timeframe}</div>
+                    <div class="step-name">${step.step || step.title || step.name || `Step ${index + 1}`}</div>
+                    <div class="step-time">${step.timeframe || step.duration || step.timeline || '3-6 months'}</div>
                   </div>
-                  <div>${step.description}</div>
+                  <div>${step.description || 'Move through this step to progress in your career pathway.'}</div>
                 </div>
               </div>
             `).join('')}
@@ -588,30 +588,30 @@ export default function SavedAnalysesPage() {
               Development Plan
             </div>
             <div class="summary-box">
-              <p>${report.developmentPlan.overview}</p>
+              <p>${report.developmentPlan.overview || 'A structured plan to develop the necessary skills and qualifications for your target role.'}</p>
             </div>
-            ${report.developmentPlan.recommendedDegrees ? `
+            ${report.developmentPlan.recommendedDegrees && report.developmentPlan.recommendedDegrees.length > 0 ? `
             <h3>Recommended Degrees</h3>
             <div class="info-grid">
               ${report.developmentPlan.recommendedDegrees.map((degree: any) => `
                 <div class="info-card">
-                  <div style="font-weight: 600;">${degree.degree}</div>
+                  <div style="font-weight: 600;">${degree.degree || degree.name || degree.title || 'Relevant Degree'}</div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${degree.description}
+                    ${degree.description || degree.details || 'This educational program will help you build relevant skills for your target role.'}
                   </div>
                 </div>
               `).join('')}
             </div>
             ` : ''}
             
-            ${report.developmentPlan.recommendedInstitutions ? `
+            ${report.developmentPlan.recommendedInstitutions && report.developmentPlan.recommendedInstitutions.length > 0 ? `
             <h3>Recommended Institutions</h3>
             <div class="info-grid">
               ${report.developmentPlan.recommendedInstitutions.map((institution: any) => `
                 <div class="info-card">
-                  <div style="font-weight: 600;">${institution.name}</div>
+                  <div style="font-weight: 600;">${institution.name || institution.institution || institution.title || 'Educational Institution'}</div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${institution.description}
+                    ${institution.description || institution.details || 'This institution offers relevant programs for your career development.'}
                   </div>
                 </div>
               `).join('')}
@@ -628,15 +628,30 @@ export default function SavedAnalysesPage() {
               Educational Programs
             </div>
             <div class="summary-box">
-              <p>${report.educationalPrograms.overview}</p>
+              <p>${report.educationalPrograms.overview || 'Recommended educational programs to support your career development journey.'}</p>
             </div>
-            ${report.educationalPrograms.learningOutcomes ? `
+            ${report.educationalPrograms.learningOutcomes && report.educationalPrograms.learningOutcomes.length > 0 ? `
             <h3>Learning Outcomes</h3>
             <div>
               ${report.educationalPrograms.learningOutcomes.map((outcome: any) => `
                 <div style="display: flex; margin-bottom: 10px;">
                   <div style="color: rgb(34, 197, 94); margin-right: 10px;">✓</div>
-                  <div>${outcome}</div>
+                  <div>${typeof outcome === 'string' ? outcome : outcome.outcome || outcome.description || 'Important learning outcome'}</div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            
+            ${report.educationalPrograms.recommendedCourses && report.educationalPrograms.recommendedCourses.length > 0 ? `
+            <h3>Recommended Courses</h3>
+            <div class="info-grid">
+              ${report.educationalPrograms.recommendedCourses.map((course: any) => `
+                <div class="info-card">
+                  <div style="font-weight: 600;">${course.title || course.name || course.course || 'Relevant Course'}</div>
+                  <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
+                    ${course.description || course.details || 'This course will help you develop important skills for your target role.'}
+                  </div>
+                  ${course.provider ? `<div style="margin-top: 5px; font-size: 12px; color: #6b7280;">Provider: ${course.provider}</div>` : ''}
                 </div>
               `).join('')}
             </div>
@@ -652,17 +667,18 @@ export default function SavedAnalysesPage() {
               Learning Roadmap
             </div>
             <div class="summary-box">
-              <p>${report.learningRoadmap.overview}</p>
+              <p>${report.learningRoadmap.overview || 'A structured learning roadmap to help you acquire the necessary skills for your target role.'}</p>
             </div>
-            ${report.learningRoadmap.keySkills ? `
+            ${report.learningRoadmap.keySkills && report.learningRoadmap.keySkills.length > 0 ? `
             <h3>Key Skills to Learn</h3>
             <div class="info-grid">
               ${report.learningRoadmap.keySkills.map((skill: any) => `
                 <div class="info-card">
-                  <div style="font-weight: 600;">${skill.skill}</div>
+                  <div style="font-weight: 600;">${skill.skill || skill.name || skill.title || 'Key Skill'}</div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${skill.description}
+                    ${skill.description || skill.details || 'This skill is crucial for success in your target role.'}
                   </div>
+                  ${skill.timeline ? `<div style="margin-top: 5px; font-size: 12px; color: #6b7280;">Timeline: ${skill.timeline}</div>` : ''}
                 </div>
               `).join('')}
             </div>
@@ -684,20 +700,20 @@ export default function SavedAnalysesPage() {
               Similar Roles
             </div>
             <div class="summary-box">
-              <p>${report.similarRoles.introduction}</p>
+              <p>${report.similarRoles.introduction || 'Other career paths similar to your target role that you might consider.'}</p>
             </div>
-            ${report.similarRoles.roles ? `
+            ${report.similarRoles.roles && report.similarRoles.roles.length > 0 ? `
             <h3>Related Roles to Consider</h3>
             <div class="info-grid">
               ${report.similarRoles.roles.map((role: any) => `
                 <div class="info-card">
-                  <div style="font-weight: 600;">${role.title}</div>
+                  <div style="font-weight: 600;">${role.title || role.name || role.role || 'Related Role'}</div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${role.description}
+                    ${role.description || role.overview || 'This role has similarities to your target role and may offer an alternative career path.'}
                   </div>
                   <div style="margin-top: 10px; display: flex; justify-content: space-between; font-size: 14px;">
-                    <div>Similarity: ${role.similarityScore}%</div>
-                    <div>Avg. Salary: ${role.averageSalary}</div>
+                    <div>Similarity: ${role.similarityScore ? `${role.similarityScore}%` : role.similarity ? `${role.similarity}%` : 'High'}</div>
+                    <div>Avg. Salary: ${role.averageSalary || role.salary || role.compensation || 'Competitive'}</div>
                   </div>
                 </div>
               `).join('')}
@@ -714,27 +730,39 @@ export default function SavedAnalysesPage() {
               Quick Tips
             </div>
             <div class="summary-box">
-              <p>${report.quickTips.introduction}</p>
+              <p>${report.quickTips.introduction || 'Practical advice to help you succeed in your career transition.'}</p>
             </div>
-            ${report.quickTips.resumeTips ? `
+            ${report.quickTips.resumeTips && report.quickTips.resumeTips.length > 0 ? `
             <h3>Resume Tips</h3>
             <div>
               ${report.quickTips.resumeTips.map((tip: any) => `
                 <div style="display: flex; margin-bottom: 10px;">
                   <div style="color: rgb(250, 204, 21); margin-right: 10px;">★</div>
-                  <div>${tip}</div>
+                  <div>${typeof tip === 'string' ? tip : tip.tip || tip.advice || 'Important resume tip'}</div>
                 </div>
               `).join('')}
             </div>
             ` : ''}
             
-            ${report.quickTips.interviewTips ? `
+            ${report.quickTips.interviewTips && report.quickTips.interviewTips.length > 0 ? `
             <h3>Interview Tips</h3>
             <div>
               ${report.quickTips.interviewTips.map((tip: any) => `
                 <div style="display: flex; margin-bottom: 10px;">
                   <div style="color: rgb(250, 204, 21); margin-right: 10px;">★</div>
-                  <div>${tip}</div>
+                  <div>${typeof tip === 'string' ? tip : tip.tip || tip.advice || 'Important interview tip'}</div>
+                </div>
+              `).join('')}
+            </div>
+            ` : ''}
+            
+            ${report.quickTips.networkingTips && report.quickTips.networkingTips.length > 0 ? `
+            <h3>Networking Tips</h3>
+            <div>
+              ${report.quickTips.networkingTips.map((tip: any) => `
+                <div style="display: flex; margin-bottom: 10px;">
+                  <div style="color: rgb(250, 204, 21); margin-right: 10px;">★</div>
+                  <div>${typeof tip === 'string' ? tip : tip.tip || tip.advice || 'Important networking tip'}</div>
                 </div>
               `).join('')}
             </div>
@@ -750,9 +778,9 @@ export default function SavedAnalysesPage() {
               Growth Trajectory
             </div>
             <div class="summary-box">
-              <p>${report.growthTrajectory.overview}</p>
+              <p>${report.growthTrajectory.overview || 'Long-term growth trajectory in your target role, including potential promotions and salary progression.'}</p>
             </div>
-            ${report.growthTrajectory.promotionTimeline ? `
+            ${report.growthTrajectory.promotionTimeline && report.growthTrajectory.promotionTimeline.length > 0 ? `
             <h3>Promotion Timeline</h3>
             <div>
               ${report.growthTrajectory.promotionTimeline.map((step: any, index: number) => `
@@ -760,27 +788,27 @@ export default function SavedAnalysesPage() {
                   <div class="step-number">${index + 1}</div>
                   <div class="step-content">
                     <div class="step-title">
-                      <div class="step-name">${step.role}</div>
-                      <div class="step-time">${step.timeframe}</div>
+                      <div class="step-name">${step.role || step.position || step.title || `Career Stage ${index + 1}`}</div>
+                      <div class="step-time">${step.timeframe || step.timeline || step.duration || '1-2 years'}</div>
                     </div>
-                    <div>${step.description}</div>
+                    <div>${step.description || step.details || 'This stage represents a progression point in your career journey.'}</div>
                   </div>
                 </div>
               `).join('')}
             </div>
             ` : ''}
             
-            ${report.growthTrajectory.salaryProgression ? `
+            ${report.growthTrajectory.salaryProgression && report.growthTrajectory.salaryProgression.length > 0 ? `
             <h3>Salary Progression</h3>
             <div class="info-grid">
               ${report.growthTrajectory.salaryProgression.map((item: any) => `
                 <div class="info-card">
-                  <div style="font-weight: 600;">${item.stage}</div>
+                  <div style="font-weight: 600;">${item.stage || item.level || item.title || 'Career Stage'}</div>
                   <div style="margin-top: 5px; font-weight: 700; color: rgb(20, 184, 166); font-size: 18px;">
-                    ${item.salary}
+                    ${item.salary || item.compensation || item.pay || '$Competitive'}
                   </div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${item.timeframe}
+                    ${item.timeframe || item.timeline || item.period || '1-2 years'}
                   </div>
                 </div>
               `).join('')}
@@ -797,9 +825,9 @@ export default function SavedAnalysesPage() {
               Learning Path Roadmap
             </div>
             <div class="summary-box">
-              <p>${report.learningPathRoadmap.introduction}</p>
+              <p>${report.learningPathRoadmap.introduction || report.learningPathRoadmap.overview || 'A comprehensive learning path roadmap to guide your professional development journey.'}</p>
             </div>
-            ${report.learningPathRoadmap.milestones ? `
+            ${report.learningPathRoadmap.milestones && report.learningPathRoadmap.milestones.length > 0 ? `
             <h3>Key Milestones</h3>
             <div>
               ${report.learningPathRoadmap.milestones.map((milestone: any, index: number) => `
@@ -807,27 +835,27 @@ export default function SavedAnalysesPage() {
                   <div class="step-number">${index + 1}</div>
                   <div class="step-content" style="background: rgba(236, 72, 153, 0.05);">
                     <div class="step-title">
-                      <div class="step-name">${milestone.milestone}</div>
-                      <div class="step-time" style="color: rgb(236, 72, 153); border-color: rgba(236, 72, 153, 0.3);">${milestone.timeframe}</div>
+                      <div class="step-name">${milestone.milestone || milestone.title || milestone.name || `Milestone ${index + 1}`}</div>
+                      <div class="step-time" style="color: rgb(236, 72, 153); border-color: rgba(236, 72, 153, 0.3);">${milestone.timeframe || milestone.timeline || milestone.duration || '3-6 months'}</div>
                     </div>
-                    <div>${milestone.description}</div>
+                    <div>${milestone.description || milestone.details || 'This is an important milestone in your learning journey.'}</div>
                   </div>
                 </div>
               `).join('')}
             </div>
             ` : ''}
             
-            ${report.learningPathRoadmap.resources ? `
+            ${report.learningPathRoadmap.resources && report.learningPathRoadmap.resources.length > 0 ? `
             <h3>Key Learning Resources</h3>
             <div class="info-grid">
               ${report.learningPathRoadmap.resources.map((resource: any) => `
                 <div class="info-card">
-                  <div style="font-weight: 600;">${resource.title}</div>
+                  <div style="font-weight: 600;">${resource.title || resource.name || resource.resource || 'Learning Resource'}</div>
                   <div style="margin-top: 5px; font-size: 14px; color: #6b7280;">
-                    ${resource.description}
+                    ${resource.description || resource.details || 'This resource will help you develop important skills for your career.'}
                   </div>
                   <div style="margin-top: 10px; font-size: 14px; color: rgb(236, 72, 153);">
-                    ${resource.type} • ${resource.duration}
+                    ${resource.type || resource.category || 'Resource'} • ${resource.duration || resource.length || resource.timeCommitment || 'Self-paced'}
                   </div>
                 </div>
               `).join('')}
