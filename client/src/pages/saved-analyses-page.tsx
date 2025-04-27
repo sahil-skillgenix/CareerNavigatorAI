@@ -336,8 +336,8 @@ export default function SavedAnalysesPage() {
             <line x1="50" y1="150" x2="350" y2="150" class="step-line" />
             
             <!-- Current & Target roles -->
-            <text x="50" y="130" class="current-role">Current: ${analysis.metadata.currentRole || 'Current Role'}</text>
-            <text x="350" y="130" class="target-role">Target: ${analysis.metadata.targetRole}</text>
+            <text x="50" y="130" class="current-role">Current: ${analysis.metadata.currentRole || analysis.metadata.careerHistory || 'Current Role'}</text>
+            <text x="350" y="130" class="target-role">Target: ${analysis.metadata.targetRole || 'Target Role'}</text>
             
             ${pathwaySteps.map((step, index) => {
               const stepCount = pathwaySteps.length;
