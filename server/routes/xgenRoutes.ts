@@ -1,164 +1,237 @@
 /**
- * X-Gen AI Career Analysis API Routes
+ * X-Gen AI Career Analysis Routes
  * 
- * This file handles all API routes for the X-Gen AI Career Analysis feature,
- * including generating and saving reports.
+ * These routes handle requests for generating and saving career analysis reports
+ * using the X-Gen AI system with OpenAI integration.
  */
-import express from 'express';
-import { generateCareerAnalysis } from '../services/openaiService';
-import { z } from 'zod';
-import { CareerAnalysisRequestData } from '../../shared/types/reportTypes';
-import { getStorage } from '../config/mongodb';
+import { Router, Request, Response } from "express";
+import { generateCareerAnalysis } from "../services/openaiService";
+import { CareerAnalysisRequestData, SavedCareerAnalysis } from "../../shared/types/reportTypes";
+import { getStorage, ObjectId } from "../config/mongodb";
 
-const router = express.Router();
-
-// Schema for validating incoming career analysis requests
-const careerAnalysisSchema = z.object({
-  professionalLevel: z.string().min(1, 'Professional level is required'),
-  currentSkills: z.string().min(1, 'Current skills are required'),
-  educationalBackground: z.string().min(1, 'Educational background is required'),
-  careerHistory: z.string().min(1, 'Career history is required'),
-  desiredRole: z.string().min(1, 'Desired role is required'),
-  state: z.string().min(1, 'State is required'),
-  country: z.string().min(1, 'Country is required'),
-});
+const router = Router();
 
 /**
+ * Generate a career analysis report
  * POST /api/xgen/analyze
- * Generate a career analysis report using OpenAI
  */
-router.post('/analyze', async (req, res) => {
+router.post("/analyze", async (req: Request, res: Response) => {
   try {
     // Validate request data
-    const result = careerAnalysisSchema.safeParse(req.body);
-    if (!result.success) {
+    const requestData: CareerAnalysisRequestData = {
+      professionalLevel: req.body.professionalLevel,
+      currentSkills: req.body.currentSkills,
+      educationalBackground: req.body.educationalBackground,
+      careerHistory: req.body.careerHistory,
+      desiredRole: req.body.desiredRole,
+      state: req.body.state,
+      country: req.body.country,
+    };
+    
+    // Check for missing required fields
+    const missingFields = Object.entries(requestData)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+      
+    if (missingFields.length > 0) {
       return res.status(400).json({
-        error: 'Invalid input data',
-        details: result.error.errors,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
-
-    const requestData: CareerAnalysisRequestData = result.data;
     
-    // Generate the career analysis report
+    // Generate the career analysis report using OpenAI
     const report = await generateCareerAnalysis(requestData);
     
-    return res.status(200).json({ report, requestData });
-  } catch (error) {
-    console.error('Error generating career analysis:', error);
-    return res.status(500).json({
-      error: 'Failed to generate career analysis',
-      message: (error as Error).message,
+    // Return the report and request data to the client
+    res.status(200).json({
+      message: "Career analysis completed successfully",
+      report,
+      requestData,
+    });
+  } catch (error: any) {
+    console.error("Error generating career analysis:", error);
+    res.status(500).json({
+      message: error.message || "Failed to generate career analysis",
     });
   }
 });
 
 /**
+ * Save a career analysis report to the database
  * POST /api/xgen/save
- * Save a generated career analysis report to MongoDB
  */
-router.post('/save', async (req, res) => {
+router.post("/save", async (req: Request, res: Response) => {
   try {
+    // Ensure user is authenticated
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({
+        message: "Authentication required to save career analysis",
+      });
     }
-
+    
     const { report, requestData } = req.body;
     
     if (!report || !requestData) {
-      return res.status(400).json({ error: 'Missing report or request data' });
+      return res.status(400).json({
+        message: "Missing report or request data",
+      });
     }
-
-    const userId = req.user.id;
-    const storage = getStorage();
-    const careerAnalysisCollection = storage.db.collection('skillgenix_careeranalysis');
     
-    // Save the career analysis to MongoDB
-    const result = await careerAnalysisCollection.insertOne({
-      userId,
+    // Get the MongoDB storage instance
+    const storage = getStorage();
+    
+    // Get the collection for storing career analyses
+    const collection = storage.db.collection("skillgenix_careeranalysis");
+    
+    // Create a document to save
+    const careerAnalysis: SavedCareerAnalysis = {
+      userId: req.user.id || req.user._id,
       report,
       requestData,
       dateCreated: new Date(),
-    });
+    };
     
-    return res.status(201).json({
-      message: 'Career analysis saved successfully',
+    // Save the career analysis to the database
+    const result = await collection.insertOne(careerAnalysis);
+    
+    res.status(201).json({
+      message: "Career analysis saved successfully",
       id: result.insertedId,
     });
-  } catch (error) {
-    console.error('Error saving career analysis:', error);
-    return res.status(500).json({
-      error: 'Failed to save career analysis',
-      message: (error as Error).message,
+  } catch (error: any) {
+    console.error("Error saving career analysis:", error);
+    res.status(500).json({
+      message: error.message || "Failed to save career analysis",
     });
   }
 });
 
 /**
- * GET /api/xgen/analyses
  * Get all saved career analyses for the authenticated user
+ * GET /api/xgen/analyses
  */
-router.get('/analyses', async (req, res) => {
+router.get("/analyses", async (req: Request, res: Response) => {
   try {
+    // Ensure user is authenticated
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({
+        message: "Authentication required to access saved analyses",
+      });
     }
-
-    const userId = req.user.id;
-    const storage = getStorage();
-    const careerAnalysisCollection = storage.db.collection('skillgenix_careeranalysis');
     
-    // Fetch all career analyses for the current user
-    const analyses = await careerAnalysisCollection
-      .find({ userId })
-      .sort({ dateCreated: -1 })
+    // Get the MongoDB storage instance
+    const storage = getStorage();
+    
+    // Get the collection for storing career analyses
+    const collection = storage.db.collection("skillgenix_careeranalysis");
+    
+    // Query the database for analyses belonging to the current user
+    const analyses = await collection
+      .find({ 
+        userId: req.user.id || req.user._id
+      })
+      .sort({ dateCreated: -1 }) // Sort by date, newest first
+      .project({
+        _id: 1,
+        dateCreated: 1,
+        "requestData.desiredRole": 1,
+        "requestData.professionalLevel": 1,
+        "requestData.state": 1,
+        "requestData.country": 1,
+      })
       .toArray();
     
-    return res.status(200).json(analyses);
-  } catch (error) {
-    console.error('Error fetching career analyses:', error);
-    return res.status(500).json({
-      error: 'Failed to fetch career analyses',
-      message: (error as Error).message,
+    res.status(200).json(analyses);
+  } catch (error: any) {
+    console.error("Error retrieving saved analyses:", error);
+    res.status(500).json({
+      message: error.message || "Failed to retrieve saved analyses",
     });
   }
 });
 
 /**
- * GET /api/xgen/analysis/:id
- * Get a specific career analysis by ID
+ * Get a specific saved career analysis by ID
+ * GET /api/xgen/analyses/:id
  */
-router.get('/analysis/:id', async (req, res) => {
+router.get("/analyses/:id", async (req: Request, res: Response) => {
   try {
+    // Ensure user is authenticated
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({
+        message: "Authentication required to access saved analysis",
+      });
     }
-
-    const userId = req.user.id;
+    
     const analysisId = req.params.id;
     
+    // Get the MongoDB storage instance
     const storage = getStorage();
-    const careerAnalysisCollection = storage.db.collection('skillgenix_careeranalysis');
     
-    // MongoDB's ObjectId is needed for queries by ID
-    const { ObjectId } = storage;
+    // Get the collection for storing career analyses
+    const collection = storage.db.collection("skillgenix_careeranalysis");
     
-    // Fetch the specific career analysis
-    const analysis = await careerAnalysisCollection.findOne({
+    // Query the database for the specific analysis
+    const analysis = await collection.findOne({
       _id: new ObjectId(analysisId),
-      userId, // Ensure the user can only access their own analyses
+      userId: req.user.id || req.user._id, // Ensure user only accesses their own analyses
     });
     
     if (!analysis) {
-      return res.status(404).json({ error: 'Career analysis not found' });
+      return res.status(404).json({
+        message: "Career analysis not found",
+      });
     }
     
-    return res.status(200).json(analysis);
-  } catch (error) {
-    console.error('Error fetching career analysis:', error);
-    return res.status(500).json({
-      error: 'Failed to fetch career analysis',
-      message: (error as Error).message,
+    res.status(200).json(analysis);
+  } catch (error: any) {
+    console.error("Error retrieving saved analysis:", error);
+    res.status(500).json({
+      message: error.message || "Failed to retrieve saved analysis",
+    });
+  }
+});
+
+/**
+ * Delete a saved career analysis by ID
+ * DELETE /api/xgen/analyses/:id
+ */
+router.delete("/analyses/:id", async (req: Request, res: Response) => {
+  try {
+    // Ensure user is authenticated
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        message: "Authentication required to delete saved analysis",
+      });
+    }
+    
+    const analysisId = req.params.id;
+    
+    // Get the MongoDB storage instance
+    const storage = getStorage();
+    
+    // Get the collection for storing career analyses
+    const collection = storage.db.collection("skillgenix_careeranalysis");
+    
+    // Delete the analysis from the database
+    const result = await collection.deleteOne({
+      _id: new ObjectId(analysisId),
+      userId: req.user.id || req.user._id, // Ensure user only deletes their own analyses
+    });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        message: "Career analysis not found or not authorized to delete",
+      });
+    }
+    
+    res.status(200).json({
+      message: "Career analysis deleted successfully",
+    });
+  } catch (error: any) {
+    console.error("Error deleting saved analysis:", error);
+    res.status(500).json({
+      message: error.message || "Failed to delete saved analysis",
     });
   }
 });

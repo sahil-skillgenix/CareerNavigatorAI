@@ -37,6 +37,8 @@ export async function hashPassword(password: string) {
 
 export class MongoDBStorage implements IStorage {
   sessionStore: session.Store;
+  client: any; // MongoDB client
+  db: any;    // MongoDB database instance
 
   constructor() {
     // Use a memory store initially - we'll connect to MongoDB later
@@ -47,10 +49,14 @@ export class MongoDBStorage implements IStorage {
     // Connect to MongoDB first
     await connectToDatabase();
     
+    // Set the client and db properties for direct access
+    this.client = mongoose.connection.getClient();
+    this.db = mongoose.connection.db;
+    
     // Now that MongoDB is connected, update the session store
     // Using the mongoose client directly
     this.sessionStore = MongoStore.create({
-      client: mongoose.connection.getClient(),
+      client: this.client,
       ttl: 14 * 24 * 60 * 60, // 14 days
       crypto: {
         secret: process.env.SESSION_SECRET || 'my-secret-key'
