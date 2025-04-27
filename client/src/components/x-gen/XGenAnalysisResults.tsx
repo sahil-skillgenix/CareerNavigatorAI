@@ -407,7 +407,7 @@ export function XGenAnalysisResults({
                     <div className="rounded-lg border p-4">
                       <h4 className="font-medium mb-4">SFIA Framework Skills</h4>
                       <div className="space-y-4">
-                        {report.skillMapping.sfiaSkills.map(skill => renderSkillProficiency(skill))}
+                        {report?.skillMapping?.sfiaSkills?.map(skill => renderSkillProficiency(skill)) || <div>No SFIA skills available</div>}
                       </div>
                     </div>
                   </TabsContent>
@@ -416,7 +416,7 @@ export function XGenAnalysisResults({
                     <div className="rounded-lg border p-4">
                       <h4 className="font-medium mb-4">DigComp Framework Skills</h4>
                       <div className="space-y-4">
-                        {report.skillMapping.digCompSkills.map(skill => renderSkillProficiency(skill))}
+                        {report?.skillMapping?.digCompSkills?.map(skill => renderSkillProficiency(skill)) || <div>No DigComp skills available</div>}
                       </div>
                     </div>
                   </TabsContent>
@@ -425,7 +425,7 @@ export function XGenAnalysisResults({
                     <div className="rounded-lg border p-4">
                       <h4 className="font-medium mb-4">Other Relevant Skills</h4>
                       <div className="space-y-4">
-                        {report.skillMapping.otherSkills.map(skill => renderSkillProficiency(skill))}
+                        {report?.skillMapping?.otherSkills?.map(skill => renderSkillProficiency(skill)) || <div>No other skills available</div>}
                       </div>
                     </div>
                   </TabsContent>
