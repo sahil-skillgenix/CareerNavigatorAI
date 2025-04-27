@@ -1,80 +1,91 @@
 /**
  * Skill Radar Chart Component
  * 
- * A specialized radar chart for displaying skill proficiency data
- * using Recharts library.
+ * Visualizes skill proficiency data in a radar chart format, ideal for
+ * displaying multiple skills with their proficiency levels.
  */
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-import React from 'react';
-import { 
-  Radar, 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  PolarRadiusAxis, 
-  ResponsiveContainer,
-  Tooltip
-} from 'recharts';
-
-interface ChartDataset {
-  label: string;
-  data: number[];
+export interface SkillRadarChartProps {
+  data: Array<{
+    name: string;
+    value: number;
+    fullMark: number;
+  }>;
+  title: string;
+  maxLevel?: number;
+  colorPrimary?: string;
+  colorSecondary?: string;
 }
 
-interface ChartData {
-  labels: string[];
-  datasets: ChartDataset[];
-}
+export function SkillRadarChart({
+  data,
+  title,
+  maxLevel = 7,
+  colorPrimary = 'rgb(28, 59, 130)',
+  colorSecondary = 'rgba(28, 59, 130, 0.6)'
+}: SkillRadarChartProps) {
+  // Create adjusted data to ensure all skills show on the radar
+  const adjustedData = data.map(item => ({
+    ...item,
+    // Add a tiny amount to zero values to ensure they appear on the chart
+    value: item.value === 0 ? 0.1 : item.value
+  }));
 
-interface SkillRadarChartProps {
-  data: ChartData;
-}
-
-export function SkillRadarChart({ data }: SkillRadarChartProps) {
-  // Transform the data from our schema format to Recharts format
-  const transformedData = data.labels.map((label, index) => {
-    const dataObject: Record<string, any> = { name: label };
-    
-    // Add each dataset's value for this label
-    data.datasets.forEach(dataset => {
-      dataObject[dataset.label] = dataset.data[index] || 0;
-    });
-    
-    return dataObject;
-  });
-  
-  // Generate a color for each dataset
-  const colors = [
-    '#1C3B82', // Primary color
-    '#A31D52', // Accent color
-    '#3B82F6', // Blue
-    '#10B981', // Green
-    '#F59E0B', // Amber
-  ];
-  
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <RadarChart 
-        outerRadius={90} 
-        data={transformedData}
-      >
-        <PolarGrid strokeDasharray="3 3" />
-        <PolarAngleAxis dataKey="name" />
-        <PolarRadiusAxis angle={30} domain={[0, 7]} tickCount={8} />
-        
-        {data.datasets.map((dataset, index) => (
-          <Radar
-            key={dataset.label}
-            name={dataset.label}
-            dataKey={dataset.label}
-            stroke={colors[index % colors.length]}
-            fill={colors[index % colors.length]}
-            fillOpacity={0.2}
-          />
-        ))}
-        
-        <Tooltip />
-      </RadarChart>
-    </ResponsiveContainer>
+    <Card className="w-full overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold flex items-center gap-1.5">
+            {title}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full p-0">
+                    <Info className="h-4 w-4" />
+                    <span className="sr-only">Chart Info</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This radar chart shows skill proficiency levels on a scale of 1-{maxLevel}.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="px-0 pb-0">
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={adjustedData}>
+              <PolarGrid stroke="rgba(0, 0, 0, 0.1)" />
+              <PolarAngleAxis dataKey="name" tick={{ fill: 'rgb(100, 116, 139)', fontSize: 12 }} />
+              <PolarRadiusAxis 
+                angle={30} 
+                domain={[0, maxLevel]}
+                tickCount={maxLevel + 1}
+                tick={{ fill: 'rgb(100, 116, 139)', fontSize: 10 }}
+              />
+              <Radar
+                name="Current Level"
+                dataKey="value"
+                stroke={colorPrimary}
+                fill={colorSecondary}
+                fillOpacity={0.5}
+                activeDot={{ r: 6, stroke: colorPrimary, strokeWidth: 2, fill: "white" }}
+              />
+              <RechartsTooltip 
+                formatter={(value: number) => [`Level ${value}`, 'Proficiency']}
+                contentStyle={{ backgroundColor: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,78 +1,76 @@
 /**
  * Career Pathway Steps Display Component
  * 
- * Visualizes the career pathway steps from current role to target role
- * in a timeline format.
+ * Visualizes a career pathway as a series of connected steps with timeframes
+ * and descriptions.
  */
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Goal, Milestone, Timer } from 'lucide-react';
+import { fadeInUp, staggerChildren } from '@/lib/animations';
 
-interface PathwayStep {
+export interface PathwayStep {
   step: string;
   timeframe: string;
   description: string;
 }
 
-interface CareerPathwayStepsDisplayProps {
+export interface CareerPathwayStepsDisplayProps {
+  steps: PathwayStep[];
   currentRole: string;
   targetRole: string;
-  steps: PathwayStep[];
   timeframe: string;
 }
 
 export function CareerPathwayStepsDisplay({
-  currentRole,
-  targetRole,
   steps,
-  timeframe
+  currentRole = 'Current Role', 
+  targetRole = 'Target Role',
+  timeframe = 'Total Timeframe'
 }: CareerPathwayStepsDisplayProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="space-y-1">
-          <div className="text-sm text-muted-foreground">Overall Transition</div>
-          <div className="flex items-center gap-2 text-lg font-medium">
-            <span>{currentRole}</span>
-            <ArrowRight className="h-4 w-4 text-primary" />
-            <span className="text-primary">{targetRole}</span>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Timer className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Estimated timeframe:</span>
-          <Badge variant="outline">{timeframe}</Badge>
-        </div>
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-4">
+        <Badge variant="outline" className="bg-primary/10 text-primary">
+          {currentRole} → {targetRole}
+        </Badge>
+        <Badge variant="outline" className="bg-primary/10 text-primary">
+          {timeframe}
+        </Badge>
       </div>
       
-      <div className="relative">
-        {/* Vertical line connecting steps */}
-        <div className="absolute left-3 top-5 bottom-5 w-0.5 bg-border" />
+      <motion.div 
+        className="relative"
+        variants={staggerChildren}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Vertical connection line */}
+        <div className="absolute top-8 bottom-0 left-6 border-l-2 border-dashed border-primary/30 z-0"></div>
         
-        <div className="space-y-4">
-          {steps.map((step, index) => (
-            <div key={index} className="relative pl-10">
-              {/* Step number circle */}
-              <div className="absolute left-0 top-1 flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                {index + 1}
-              </div>
-              
-              <Card>
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-medium">{step.step}</h3>
-                    <Badge variant="outline">{step.timeframe}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
-                </CardContent>
-              </Card>
+        {steps.map((step, index) => (
+          <motion.div 
+            key={index}
+            variants={fadeInUp}
+            custom={index * 0.1}
+            className="relative z-10 pl-14 pb-8 last:pb-0"
+          >
+            {/* Step number circle */}
+            <div className="absolute left-0 top-0 flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border-2 border-primary/20 text-primary font-bold text-lg">
+              {index + 1}
             </div>
-          ))}
-        </div>
-      </div>
+            
+            <div className="bg-gradient-to-r from-primary/5 to-transparent p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-lg">{step.step}</h3>
+                <Badge variant="outline" className="bg-white text-primary border-primary/20">
+                  {step.timeframe}
+                </Badge>
+              </div>
+              <p className="mt-2 text-muted-foreground">{step.description}</p>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
     </div>
   );
 }
