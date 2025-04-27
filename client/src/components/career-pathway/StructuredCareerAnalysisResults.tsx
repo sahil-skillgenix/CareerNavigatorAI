@@ -31,6 +31,7 @@ import {
   Lightbulb,
   LineChart,
   ListChecks,
+  Loader2,
   Rocket,
   School,
   Sparkles,
@@ -38,6 +39,10 @@ import {
   Trophy,
   User,
   UserCheck,
+  Info,
+  Zap,
+  GraduationCap,
+  Brain,
 } from 'lucide-react';
 import { CareerAnalysisReport } from '../../../shared/reportSchema';
 

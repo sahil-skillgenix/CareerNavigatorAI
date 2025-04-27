@@ -1,19 +1,19 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-// Interface for Career Analysis result
+// Interface for Career Analysis result - using the structured 11-section format
 interface CareerAnalysisResult {
-  executiveSummary: string;
+  executiveSummary: any;
   skillMapping: any;
   skillGapAnalysis: any;
-  careerPathway: any;
+  careerPathwayOptions: any;
   developmentPlan: any;
-  similarRoles: any[];
-  socialSkills: any; // Renamed from socialSkillsDevelopment for consistency
-  reviewNotes: any; // Renamed from qualityReview for consistency
-  // Additional fields for explicit chart data
-  chartData?: any;
-  radarChartData?: any;
-  barChartData?: any;
+  educationalPrograms: any;
+  learningRoadmap: any;
+  similarRoles: any;
+  quickTips: any;
+  growthTrajectory: any;
+  learningPathRoadmap: any;
+  timestamp: string;
 }
 
 // Interface for Career Analysis document
@@ -35,18 +35,18 @@ export interface CareerAnalysisDocument extends Document {
 
 // Schema for Career Analysis result
 const CareerAnalysisResultSchema = new Schema({
-  executiveSummary: { type: String },
+  executiveSummary: { type: Schema.Types.Mixed },
   skillMapping: { type: Schema.Types.Mixed },
   skillGapAnalysis: { type: Schema.Types.Mixed },
-  careerPathway: { type: Schema.Types.Mixed },
+  careerPathwayOptions: { type: Schema.Types.Mixed },
   developmentPlan: { type: Schema.Types.Mixed },
-  similarRoles: [{ type: Schema.Types.Mixed }],
-  socialSkills: { type: Schema.Types.Mixed }, // Renamed from socialSkillsDevelopment
-  reviewNotes: { type: Schema.Types.Mixed }, // Renamed from qualityReview
-  // Additional fields for chart data
-  chartData: { type: Schema.Types.Mixed },
-  radarChartData: { type: Schema.Types.Mixed },
-  barChartData: { type: Schema.Types.Mixed }
+  educationalPrograms: { type: Schema.Types.Mixed },
+  learningRoadmap: { type: Schema.Types.Mixed },
+  similarRoles: { type: Schema.Types.Mixed },
+  quickTips: { type: Schema.Types.Mixed },
+  growthTrajectory: { type: Schema.Types.Mixed },
+  learningPathRoadmap: { type: Schema.Types.Mixed },
+  timestamp: { type: String }
 });
 
 // Schema for Career Analysis
