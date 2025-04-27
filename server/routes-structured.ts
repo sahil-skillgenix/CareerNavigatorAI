@@ -1,31 +1,23 @@
+/**
+ * Structured Career Pathway Routes
+ * 
+ * This file contains the routes for career pathway analysis
+ * using the structured report format.
+ */
+
 import { Express, Request, Response } from "express";
-import multer from "multer";
-import jwt from "jsonwebtoken";
 import { createServer, Server } from "http";
 import { storage } from "./storage";
 import { analyzeCareerPathway, CareerAnalysisInput } from "./openai-service-structured";
 import { CareerAnalysisReport } from "../shared/reportSchema";
 
-// JWT secret for token generation and validation
-const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key';
-// JWT token expiration time (in seconds)
-const JWT_EXPIRES_IN = 7200; // 2 hours
-
-// Configure multer for file uploads
-const upload = multer({
-  dest: 'uploads/',
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max file size
-  },
-});
-
 /**
- * Register all API routes
+ * Register structured API routes for career pathway analysis
  * @param app Express application instance
  * @returns HTTP server instance
  */
 export function registerStructuredRoutes(app: Express): Server {
-  // Career Pathway Analysis endpoint - uses the structured report format
+  // Career Pathway Analysis endpoint with structured report format
   app.post('/api/career-pathway-analysis-structured', async (req: Request & { user?: any }, res: Response) => {
     console.log('Career analysis request received with structured output format');
     
@@ -42,18 +34,19 @@ export function registerStructuredRoutes(app: Express): Server {
       if (req.user) {
         try {
           const userId = req.user.id;
-          console.log(`Saving analysis for user: ${userId}`);
+          console.log(`Saving structured analysis for user: ${userId}`);
           
-          // Save the analysis using storage interface
+          // Save the analysis using storage interface with progress set to 100%
           await storage.saveCareerAnalysis({
             userId,
             ...input,
-            result
+            result,
+            progress: 100 // Analysis is complete
           });
           
-          console.log('Analysis saved successfully');
+          console.log('Structured analysis saved successfully');
         } catch (saveError) {
-          console.error('Error saving analysis:', saveError);
+          console.error('Error saving structured analysis:', saveError);
           // We don't want to fail the response if only the save failed
         }
       }
@@ -62,7 +55,7 @@ export function registerStructuredRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error generating structured career analysis:', error);
       return res.status(500).json({
-        error: 'Failed to generate career analysis',
+        error: 'Failed to generate structured career analysis',
         message: error instanceof Error ? error.message : 'An unknown error occurred'
       });
     }

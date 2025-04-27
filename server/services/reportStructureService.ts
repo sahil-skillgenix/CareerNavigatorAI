@@ -1,537 +1,386 @@
-import { CareerAnalysisReport } from '../../shared/reportSchema';
+/**
+ * Report Structure Service
+ * 
+ * This service ensures that the OpenAI response conforms to our
+ * structured report schema with all 11 sections in the correct order.
+ */
+
+import { CareerAnalysisReport } from "../../shared/reportSchema";
 
 /**
- * Service to ensure the data from OpenAI API conforms to our structured report format
+ * Creates a structured prompt to ensure OpenAI returns data in our required format
+ * @param basePrompt The core analysis prompt
+ * @returns Enhanced structured prompt
  */
-export class ReportStructureService {
-  
-  /**
-   * Process and structure raw response data from OpenAI to match the CareerAnalysisReport schema
-   * @param rawData - The raw data received from OpenAI API
-   * @returns A structured report conforming to CareerAnalysisReport schema
-   */
-  public structureOpenAIResponse(rawData: any): CareerAnalysisReport {
-    console.log("Structuring OpenAI response data to match report schema...");
-    
-    // Create a structured report with all required sections based on our schema
-    const structuredReport: CareerAnalysisReport = {
-      // Section 1: Executive Summary
-      executiveSummary: this.extractExecutiveSummary(rawData),
-      
-      // Section 2: Skill Mapping
-      skillMapping: this.extractSkillMapping(rawData),
-      
-      // Section 3: Framework-Based Skill Gap Analysis
-      gapAnalysis: this.extractGapAnalysis(rawData),
-      
-      // Section 4: Career Pathway Options
-      pathwayOptions: this.extractPathwayOptions(rawData),
-      
-      // Section 5: Comprehensive Development Plan
-      developmentPlan: this.extractDevelopmentPlan(rawData),
-      
-      // Section 6: Recommended Educational Programs
-      educationalPrograms: this.extractEducationalPrograms(rawData),
-      
-      // Section 7: AI-Enhanced Learning Roadmap
-      learningRoadmap: this.extractLearningRoadmap(rawData),
-      
-      // Section 8: Similar Roles To Consider
-      similarRoles: this.extractSimilarRoles(rawData),
-      
-      // Section 9: Micro-Learning Quick Tips
-      quickTips: this.extractQuickTips(rawData),
-      
-      // Section 10: Personalized Skill Growth Trajectory
-      growthTrajectory: this.extractGrowthTrajectory(rawData),
-      
-      // Section 11: Learning Path Roadmap
-      learningPathRoadmap: this.extractLearningPathRoadmap(rawData)
-    };
-    
-    return structuredReport;
-  }
-  
-  /**
-   * Extract executive summary data from raw response
-   */
-  private extractExecutiveSummary(rawData: any): CareerAnalysisReport['executiveSummary'] {
-    try {
-      // Try to extract the executive summary from the structured data
-      if (rawData.executiveSummary && typeof rawData.executiveSummary === 'object') {
-        return {
-          overview: rawData.executiveSummary.overview || this.extractOverviewFromString(rawData.executiveSummary),
-          keyPoints: Array.isArray(rawData.executiveSummary.keyPoints) 
-            ? rawData.executiveSummary.keyPoints 
-            : [],
-          recommendedNextSteps: Array.isArray(rawData.executiveSummary.recommendedNextSteps) 
-            ? rawData.executiveSummary.recommendedNextSteps 
-            : []
-        };
-      }
-      
-      // If the executive summary is just a string, convert it to our structured format
-      if (typeof rawData.executiveSummary === 'string') {
-        return {
-          overview: this.extractOverviewFromString(rawData.executiveSummary),
-          keyPoints: [],
-          recommendedNextSteps: []
-        };
-      }
-      
-      // Default structure if no data is available
-      return {
-        overview: "Executive summary not available",
-        keyPoints: [],
-        recommendedNextSteps: []
-      };
-    } catch (error) {
-      console.error("Error extracting executive summary:", error);
-      return {
-        overview: "Error extracting executive summary",
-        keyPoints: [],
-        recommendedNextSteps: []
-      };
+export function createStructuredPrompt(basePrompt: string): string {
+  // Build a structured prompt that specifies the exact format we need
+  const structuredPrompt = `
+${basePrompt}
+
+Please format your response as a JSON object that strictly adheres to this exact structure:
+
+{
+  "executiveSummary": {
+    "summary": "Overall career transition analysis summary",
+    "careerGoal": "Primary career goal based on input",
+    "keyFindings": ["Finding 1", "Finding 2", "Finding 3", "etc."],
+    "fitScore": {
+      "score": 8,
+      "outOf": 10,
+      "description": "Explanation of the fit score"
     }
-  }
-  
-  /**
-   * Extract skill mapping data from raw response
-   */
-  private extractSkillMapping(rawData: any): CareerAnalysisReport['skillMapping'] {
-    try {
-      const skillMapping: CareerAnalysisReport['skillMapping'] = {
-        sfia9: [],
-        digcomp22: []
-      };
-      
-      // Extract SFIA 9 Framework data
-      if (rawData.skillMapping?.sfia9 && Array.isArray(rawData.skillMapping.sfia9)) {
-        skillMapping.sfia9 = rawData.skillMapping.sfia9.map((skill: any) => ({
-          skill: skill.skill || 'Unknown Skill',
-          level: skill.level || 'Unknown Level',
-          description: skill.description || 'No description available'
-        }));
+  },
+  "skillMapping": {
+    "sfiaSkills": [
+      {
+        "skill": "SFIA skill name",
+        "proficiency": 4,
+        "description": "Description of proficiency level"
       }
-      
-      // Extract DigComp 2.2 Framework data
-      if (rawData.skillMapping?.digcomp22 && Array.isArray(rawData.skillMapping.digcomp22)) {
-        skillMapping.digcomp22 = rawData.skillMapping.digcomp22.map((skill: any) => ({
-          competence: skill.competence || skill.skill || 'Unknown Competence',
-          proficiencyLevel: skill.proficiencyLevel || skill.level || 'Unknown Level',
-          description: skill.description || 'No description available'
-        }));
+    ],
+    "digCompSkills": [
+      {
+        "skill": "DigComp skill name",
+        "proficiency": 3,
+        "description": "Description of proficiency level"
       }
-      
-      return skillMapping;
-    } catch (error) {
-      console.error("Error extracting skill mapping:", error);
-      return {
-        sfia9: [],
-        digcomp22: []
-      };
-    }
-  }
-  
-  /**
-   * Extract gap analysis data from raw response
-   */
-  private extractGapAnalysis(rawData: any): CareerAnalysisReport['gapAnalysis'] {
-    try {
-      const gapAnalysis: CareerAnalysisReport['gapAnalysis'] = {
-        radarChartData: [],
-        barChartData: [],
-        aiAnalysis: '',
-        skillGaps: [],
-        skillStrengths: []
-      };
-      
-      // Extract Radar Chart Data
-      if (rawData.gapAnalysis?.radarChartData && Array.isArray(rawData.gapAnalysis.radarChartData)) {
-        gapAnalysis.radarChartData = rawData.gapAnalysis.radarChartData.map((item: any) => ({
-          skill: item.skill || 'Unknown Skill',
-          currentLevel: typeof item.currentLevel === 'number' ? item.currentLevel : 1,
-          requiredLevel: typeof item.requiredLevel === 'number' ? item.requiredLevel : 3,
-          fullMark: typeof item.fullMark === 'number' ? item.fullMark : 5
-        }));
-      } else if (rawData.skillGapAnalysis?.radarChartData) {
-        // Alternative location in the data
-        gapAnalysis.radarChartData = rawData.skillGapAnalysis.radarChartData;
+    ],
+    "otherSkills": [
+      {
+        "skill": "Other skill name",
+        "proficiency": 5,
+        "category": "Technical/Soft/Domain"
       }
-      
-      // Extract Bar Chart Data
-      if (rawData.gapAnalysis?.barChartData && Array.isArray(rawData.gapAnalysis.barChartData)) {
-        gapAnalysis.barChartData = rawData.gapAnalysis.barChartData.map((item: any) => ({
-          name: item.name || item.skill || 'Unknown Skill',
-          currentLevel: typeof item.currentLevel === 'number' ? item.currentLevel : 1,
-          requiredLevel: typeof item.requiredLevel === 'number' ? item.requiredLevel : 3,
-          gap: typeof item.gap === 'number' ? item.gap : 2,
-          importance: item.importance || 'Medium'
-        }));
-      } else if (rawData.skillGapAnalysis?.barChartData) {
-        // Alternative location in the data
-        gapAnalysis.barChartData = rawData.skillGapAnalysis.barChartData;
-      }
-      
-      // Extract AI Analysis
-      gapAnalysis.aiAnalysis = rawData.gapAnalysis?.aiAnalysis || 
-                              rawData.skillGapAnalysis?.aiAnalysis || 
-                              'No AI-enhanced analysis available';
-      
-      // Extract Skill Gaps
-      if (rawData.gapAnalysis?.skillGaps && Array.isArray(rawData.gapAnalysis.skillGaps)) {
-        gapAnalysis.skillGaps = rawData.gapAnalysis.skillGaps;
-      } else if (rawData.skillGapAnalysis?.skillGaps) {
-        gapAnalysis.skillGaps = rawData.skillGapAnalysis.skillGaps;
-      }
-      
-      // Extract Skill Strengths
-      if (rawData.gapAnalysis?.skillStrengths && Array.isArray(rawData.gapAnalysis.skillStrengths)) {
-        gapAnalysis.skillStrengths = rawData.gapAnalysis.skillStrengths;
-      } else if (rawData.skillGapAnalysis?.skillStrengths) {
-        gapAnalysis.skillStrengths = rawData.skillGapAnalysis.skillStrengths;
-      }
-      
-      return gapAnalysis;
-    } catch (error) {
-      console.error("Error extracting gap analysis:", error);
-      return {
-        radarChartData: [],
-        barChartData: [],
-        aiAnalysis: 'Error extracting gap analysis',
-        skillGaps: [],
-        skillStrengths: []
-      };
-    }
-  }
-  
-  /**
-   * Extract pathway options data from raw response
-   */
-  private extractPathwayOptions(rawData: any): CareerAnalysisReport['pathwayOptions'] {
-    try {
-      const pathwayOptions: CareerAnalysisReport['pathwayOptions'] = {
-        transitionVisualization: {
-          currentRole: '',
-          targetRole: '',
-          transitionSteps: [],
-          estimatedTimeframe: ''
+    ],
+    "skillsAnalysis": "Overall analysis of the skill mapping"
+  },
+  "skillGapAnalysis": {
+    "targetRole": "Target role name",
+    "currentProficiencyData": {
+      "labels": ["Skill 1", "Skill 2", "Skill 3", "etc."],
+      "datasets": [
+        {
+          "label": "Current Skills",
+          "data": [4, 3, 5, 2, 4]
+        }
+      ]
+    },
+    "gapAnalysisData": {
+      "labels": ["Skill 1", "Skill 2", "Skill 3", "etc."],
+      "datasets": [
+        {
+          "label": "Current Skills",
+          "data": [4, 3, 5, 2, 4]
         },
-        universityPathway: {
-          recommendedDegrees: [],
-          institutions: [],
-          estimatedTimeframe: '',
-          expectedOutcomes: []
-        },
-        vocationalPathway: {
-          recommendedCertifications: [],
-          providers: [],
-          estimatedTimeframe: '',
-          expectedOutcomes: []
-        },
-        aiInsights: ''
-      };
-      
-      // Extract from pathwayOptions or careerPathwayOptions
-      const sourceData = rawData.pathwayOptions || rawData.careerPathwayOptions || {};
-      
-      // Extract Transition Visualization
-      if (sourceData.transitionVisualization) {
-        pathwayOptions.transitionVisualization = sourceData.transitionVisualization;
+        {
+          "label": "Required Skills",
+          "data": [5, 4, 5, 4, 5]
+        }
+      ]
+    },
+    "aiAnalysis": "AI analysis of skill gaps",
+    "keyGaps": [
+      {
+        "skill": "Skill name",
+        "currentLevel": 2,
+        "requiredLevel": 4,
+        "gap": 2,
+        "priority": "High",
+        "improvementSuggestion": "Suggestion to improve"
       }
-      
-      // Extract University Pathway
-      if (sourceData.universityPathway) {
-        pathwayOptions.universityPathway = sourceData.universityPathway;
+    ],
+    "keyStrengths": [
+      {
+        "skill": "Skill name",
+        "currentLevel": 5,
+        "requiredLevel": 4,
+        "advantage": 1,
+        "leverageSuggestion": "How to leverage this strength"
       }
-      
-      // Extract Vocational Pathway
-      if (sourceData.vocationalPathway) {
-        pathwayOptions.vocationalPathway = sourceData.vocationalPathway;
+    ]
+  },
+  "careerPathwayOptions": {
+    "currentRole": "Current role",
+    "targetRole": "Target role",
+    "transitionDifficulty": "Moderate",
+    "estimatedTimeframe": "1-2 years",
+    "universityPathway": {
+      "degrees": ["Degree 1", "Degree 2"],
+      "institutions": ["Institution 1", "Institution 2"],
+      "estimatedDuration": "2-4 years",
+      "outcomes": ["Outcome 1", "Outcome 2"]
+    },
+    "vocationalPathway": {
+      "certifications": ["Certification 1", "Certification 2"],
+      "providers": ["Provider 1", "Provider 2"],
+      "estimatedDuration": "6-12 months",
+      "outcomes": ["Outcome 1", "Outcome 2"]
+    },
+    "aiInsights": "AI insights on career pathway",
+    "pathwaySteps": [
+      {
+        "step": "Step description",
+        "timeframe": "Timeline",
+        "description": "Detailed description"
       }
-      
-      // Extract AI Insights
-      pathwayOptions.aiInsights = sourceData.aiInsights || 'No AI pathway insights available';
-      
-      return pathwayOptions;
-    } catch (error) {
-      console.error("Error extracting pathway options:", error);
-      return {
-        transitionVisualization: {
-          currentRole: 'Error',
-          targetRole: 'Error',
-          transitionSteps: [],
-          estimatedTimeframe: 'Unknown'
-        },
-        universityPathway: {
-          recommendedDegrees: [],
-          institutions: [],
-          estimatedTimeframe: '',
-          expectedOutcomes: []
-        },
-        vocationalPathway: {
-          recommendedCertifications: [],
-          providers: [],
-          estimatedTimeframe: '',
-          expectedOutcomes: []
-        },
-        aiInsights: 'Error extracting pathway options'
-      };
-    }
-  }
-  
-  /**
-   * Extract development plan data from raw response
-   */
-  private extractDevelopmentPlan(rawData: any): CareerAnalysisReport['developmentPlan'] {
-    try {
-      const developmentPlan: CareerAnalysisReport['developmentPlan'] = {
-        existingSkills: [],
-        skillsToDevelop: [],
-        softSkills: [],
-        skillPriorityDistribution: [],
-        skillsToAcquire: []
-      };
-      
-      // Extract from developmentPlan or comprehensiveDevelopmentPlan
-      const sourceData = rawData.developmentPlan || rawData.comprehensiveDevelopmentPlan || {};
-      
-      // Extract Existing Skills
-      if (sourceData.existingSkills && Array.isArray(sourceData.existingSkills)) {
-        developmentPlan.existingSkills = sourceData.existingSkills;
+    ]
+  },
+  "developmentPlan": {
+    "skillsAssessment": "Overall skills assessment",
+    "technicalSkills": [
+      {
+        "skill": "Skill name",
+        "currentLevel": 3,
+        "targetLevel": 5,
+        "developmentActions": ["Action 1", "Action 2"],
+        "resources": ["Resource 1", "Resource 2"],
+        "timeframe": "3-6 months"
       }
-      
-      // Extract Skills To Develop
-      if (sourceData.skillsToDevelop && Array.isArray(sourceData.skillsToDevelop)) {
-        developmentPlan.skillsToDevelop = sourceData.skillsToDevelop;
+    ],
+    "softSkills": [
+      {
+        "skill": "Skill name",
+        "currentLevel": 3,
+        "targetLevel": 5,
+        "developmentActions": ["Action 1", "Action 2"],
+        "resources": ["Resource 1", "Resource 2"],
+        "timeframe": "3-6 months"
       }
-      
-      // Extract Soft Skills
-      if (sourceData.softSkills && Array.isArray(sourceData.softSkills)) {
-        developmentPlan.softSkills = sourceData.softSkills;
+    ],
+    "skillsToAcquire": [
+      {
+        "skill": "Skill name",
+        "relevance": "Why this skill matters",
+        "developmentActions": ["Action 1", "Action 2"],
+        "resources": ["Resource 1", "Resource 2"],
+        "timeframe": "3-6 months"
       }
-      
-      // Extract Skill Priority Distribution
-      if (sourceData.skillPriorityDistribution && Array.isArray(sourceData.skillPriorityDistribution)) {
-        developmentPlan.skillPriorityDistribution = sourceData.skillPriorityDistribution;
+    ]
+  },
+  "educationalPrograms": {
+    "recommendedPrograms": [
+      {
+        "name": "Program name",
+        "provider": "Provider name",
+        "format": "Online/In-person/Hybrid",
+        "duration": "Duration",
+        "description": "Program description",
+        "skillsAddressed": ["Skill 1", "Skill 2"],
+        "cost": "Estimated cost"
       }
-      
-      // Extract Skills To Acquire
-      if (sourceData.skillsToAcquire && Array.isArray(sourceData.skillsToAcquire)) {
-        developmentPlan.skillsToAcquire = sourceData.skillsToAcquire;
+    ],
+    "suggestedProjects": [
+      {
+        "title": "Project title",
+        "description": "Project description",
+        "skillsDeveloped": ["Skill 1", "Skill 2"],
+        "difficulty": "Intermediate",
+        "estimatedTime": "Time estimate",
+        "resources": ["Resource 1", "Resource 2"]
       }
-      
-      return developmentPlan;
-    } catch (error) {
-      console.error("Error extracting development plan:", error);
-      return {
-        existingSkills: [],
-        skillsToDevelop: [],
-        softSkills: [],
-        skillPriorityDistribution: [],
-        skillsToAcquire: []
-      };
-    }
-  }
-  
-  /**
-   * Extract educational programs data from raw response
-   */
-  private extractEducationalPrograms(rawData: any): CareerAnalysisReport['educationalPrograms'] {
-    try {
-      const educationalPrograms: CareerAnalysisReport['educationalPrograms'] = {
+    ]
+  },
+  "learningRoadmap": {
+    "phases": [
+      {
+        "name": "Phase name",
+        "duration": "Duration",
+        "focus": "Main focus",
+        "activities": ["Activity 1", "Activity 2"],
+        "outcomes": ["Outcome 1", "Outcome 2"],
+        "resources": ["Resource 1", "Resource 2"]
+      }
+    ],
+    "roadmapOverview": "Overview of learning roadmap"
+  },
+  "similarRoles": {
+    "roles": [
+      {
+        "title": "Role title",
+        "description": "Role description",
+        "fitScore": 8,
+        "skillOverlap": ["Skill 1", "Skill 2"],
+        "additionalSkillsNeeded": ["Skill 1", "Skill 2"],
+        "transitionDifficulty": "Moderate",
+        "industry": "Industry name",
+        "salary": "Salary range"
+      }
+    ]
+  },
+  "quickTips": {
+    "quickWins": ["Tip 1", "Tip 2"],
+    "industryInsights": ["Insight 1", "Insight 2"],
+    "interviewTips": ["Tip 1", "Tip 2"]
+  },
+  "growthTrajectory": {
+    "shortTerm": {
+      "role": "Role title",
+      "timeframe": "0-2 years",
+      "keySkills": ["Skill 1", "Skill 2"],
+      "developmentFocus": "Development focus"
+    },
+    "mediumTerm": {
+      "role": "Role title",
+      "timeframe": "2-5 years",
+      "keySkills": ["Skill 1", "Skill 2"],
+      "developmentFocus": "Development focus"
+    },
+    "longTerm": {
+      "role": "Role title",
+      "timeframe": "5+ years",
+      "keySkills": ["Skill 1", "Skill 2"],
+      "developmentFocus": "Development focus"
+    },
+    "potentialSalaryProgression": [
+      {
+        "stage": "Stage name",
+        "range": "Salary range",
+        "notes": "Additional notes"
+      }
+    ]
+  },
+  "learningPathRoadmap": {
+    "careerTrajectory": [
+      {
+        "stage": "Stage name",
+        "role": "Role title",
+        "timeframe": "Timeframe",
+        "keyResponsibilities": ["Responsibility 1", "Responsibility 2"],
+        "requiredSkills": ["Skill 1", "Skill 2"]
+      }
+    ],
+    "milestones": [
+      {
+        "title": "Milestone title",
+        "achievement": "Achievement description",
+        "timeframe": "Timeframe",
+        "skillsUtilized": ["Skill 1", "Skill 2"]
+      }
+    ]
+  },
+  "timestamp": "Current date and time",
+  "version": "1.0"
+}
+
+All sections are required. Follow this exact structure with all fields populated with REAL content (not placeholders).
+Ensure 'currentProficiencyData' and 'gapAnalysisData' are properly formatted for radar charts.
+IMPORTANT: The response MUST be a valid, parseable JSON object that strictly follows this structure.
+`;
+
+  return structuredPrompt;
+}
+
+/**
+ * Validates and ensures a report conforms to the required structure
+ * @param reportData Raw report data from OpenAI
+ * @returns A properly structured report
+ */
+export function ensureReportStructure(reportData: any): CareerAnalysisReport {
+  // Create a base structure to ensure all required sections exist
+  const baseStructure: CareerAnalysisReport = {
+    executiveSummary: {
+      summary: reportData?.executiveSummary?.summary || "No summary provided",
+      careerGoal: reportData?.executiveSummary?.careerGoal || "No goal provided",
+      keyFindings: reportData?.executiveSummary?.keyFindings || [],
+      fitScore: reportData?.executiveSummary?.fitScore || {
+        score: 0,
+        outOf: 10,
+        description: "Score unavailable"
+      }
+    },
+    skillMapping: {
+      sfiaSkills: reportData?.skillMapping?.sfiaSkills || [],
+      digCompSkills: reportData?.skillMapping?.digCompSkills || [],
+      otherSkills: reportData?.skillMapping?.otherSkills || [],
+      skillsAnalysis: reportData?.skillMapping?.skillsAnalysis || "No skill analysis provided"
+    },
+    skillGapAnalysis: {
+      targetRole: reportData?.skillGapAnalysis?.targetRole || "Unknown target role",
+      currentProficiencyData: reportData?.skillGapAnalysis?.currentProficiencyData || {
+        labels: [],
+        datasets: [{ label: "Current Skills", data: [] }]
+      },
+      gapAnalysisData: reportData?.skillGapAnalysis?.gapAnalysisData || {
+        labels: [],
+        datasets: [
+          { label: "Current Skills", data: [] },
+          { label: "Required Skills", data: [] }
+        ]
+      },
+      aiAnalysis: reportData?.skillGapAnalysis?.aiAnalysis || "No analysis available",
+      keyGaps: reportData?.skillGapAnalysis?.keyGaps || [],
+      keyStrengths: reportData?.skillGapAnalysis?.keyStrengths || []
+    },
+    careerPathwayOptions: {
+      currentRole: reportData?.careerPathwayOptions?.currentRole || "Current role not specified",
+      targetRole: reportData?.careerPathwayOptions?.targetRole || "Target role not specified",
+      transitionDifficulty: reportData?.careerPathwayOptions?.transitionDifficulty || "Moderate",
+      estimatedTimeframe: reportData?.careerPathwayOptions?.estimatedTimeframe || "Not specified",
+      universityPathway: reportData?.careerPathwayOptions?.universityPathway || {
+        degrees: [],
         institutions: [],
-        onlineCourses: [],
-        suggestedProjects: []
-      };
-      
-      // Extract from educationalPrograms or recommendedEducationalPrograms
-      const sourceData = rawData.educationalPrograms || rawData.recommendedEducationalPrograms || {};
-      
-      // Extract Institutions
-      if (sourceData.institutions && Array.isArray(sourceData.institutions)) {
-        educationalPrograms.institutions = sourceData.institutions;
-      }
-      
-      // Extract Online Courses
-      if (sourceData.onlineCourses && Array.isArray(sourceData.onlineCourses)) {
-        educationalPrograms.onlineCourses = sourceData.onlineCourses;
-      }
-      
-      // Extract Suggested Projects
-      if (sourceData.suggestedProjects && Array.isArray(sourceData.suggestedProjects)) {
-        educationalPrograms.suggestedProjects = sourceData.suggestedProjects;
-      }
-      
-      return educationalPrograms;
-    } catch (error) {
-      console.error("Error extracting educational programs:", error);
-      return {
-        institutions: [],
-        onlineCourses: [],
-        suggestedProjects: []
-      };
-    }
-  }
-  
-  /**
-   * Extract learning roadmap data from raw response
-   */
-  private extractLearningRoadmap(rawData: any): CareerAnalysisReport['learningRoadmap'] {
-    try {
-      const learningRoadmap: CareerAnalysisReport['learningRoadmap'] = {
-        phases: [],
-        aiGeneratedInsights: ''
-      };
-      
-      // Extract from learningRoadmap or aiEnhancedLearningRoadmap
-      const sourceData = rawData.learningRoadmap || rawData.aiEnhancedLearningRoadmap || {};
-      
-      // Extract Phases
-      if (sourceData.phases && Array.isArray(sourceData.phases)) {
-        learningRoadmap.phases = sourceData.phases;
-      }
-      
-      // Extract AI Generated Insights
-      learningRoadmap.aiGeneratedInsights = sourceData.aiGeneratedInsights || 'No AI-generated insights available';
-      
-      return learningRoadmap;
-    } catch (error) {
-      console.error("Error extracting learning roadmap:", error);
-      return {
-        phases: [],
-        aiGeneratedInsights: 'Error extracting learning roadmap'
-      };
-    }
-  }
-  
-  /**
-   * Extract similar roles data from raw response
-   */
-  private extractSimilarRoles(rawData: any): CareerAnalysisReport['similarRoles'] {
-    try {
-      // Extract Similar Roles
-      if (rawData.similarRoles && Array.isArray(rawData.similarRoles)) {
-        return rawData.similarRoles.map((role: any) => ({
-          role: role.role || 'Unknown Role',
-          description: role.description || 'No description available',
-          skillOverlap: typeof role.skillOverlap === 'number' ? role.skillOverlap : 0,
-          averageSalary: role.averageSalary || undefined,
-          growthPotential: role.growthPotential || 'Medium',
-          transitionDifficulty: role.transitionDifficulty || 'Moderate'
-        }));
-      }
-      
-      return [];
-    } catch (error) {
-      console.error("Error extracting similar roles:", error);
-      return [];
-    }
-  }
-  
-  /**
-   * Extract quick tips data from raw response
-   */
-  private extractQuickTips(rawData: any): CareerAnalysisReport['quickTips'] {
-    try {
-      // Extract from quickTips or microLearningQuickTips
-      const sourceData = rawData.quickTips || rawData.microLearningQuickTips || [];
-      
-      if (Array.isArray(sourceData)) {
-        return sourceData;
-      }
-      
-      return [];
-    } catch (error) {
-      console.error("Error extracting quick tips:", error);
-      return [];
-    }
-  }
-  
-  /**
-   * Extract growth trajectory data from raw response
-   */
-  private extractGrowthTrajectory(rawData: any): CareerAnalysisReport['growthTrajectory'] {
-    try {
-      const growthTrajectory: CareerAnalysisReport['growthTrajectory'] = {
-        shortTerm: [],
-        mediumTerm: [],
-        longTerm: [],
-        potentialRoles: []
-      };
-      
-      // Extract from growthTrajectory or personalizedSkillGrowthTrajectory
-      const sourceData = rawData.growthTrajectory || rawData.personalizedSkillGrowthTrajectory || {};
-      
-      // Extract Short Term
-      if (sourceData.shortTerm && Array.isArray(sourceData.shortTerm)) {
-        growthTrajectory.shortTerm = sourceData.shortTerm;
-      }
-      
-      // Extract Medium Term
-      if (sourceData.mediumTerm && Array.isArray(sourceData.mediumTerm)) {
-        growthTrajectory.mediumTerm = sourceData.mediumTerm;
-      }
-      
-      // Extract Long Term
-      if (sourceData.longTerm && Array.isArray(sourceData.longTerm)) {
-        growthTrajectory.longTerm = sourceData.longTerm;
-      }
-      
-      // Extract Potential Roles
-      if (sourceData.potentialRoles && Array.isArray(sourceData.potentialRoles)) {
-        growthTrajectory.potentialRoles = sourceData.potentialRoles;
-      }
-      
-      return growthTrajectory;
-    } catch (error) {
-      console.error("Error extracting growth trajectory:", error);
-      return {
-        shortTerm: [],
-        mediumTerm: [],
-        longTerm: [],
-        potentialRoles: []
-      };
-    }
-  }
-  
-  /**
-   * Extract learning path roadmap data from raw response
-   */
-  private extractLearningPathRoadmap(rawData: any): CareerAnalysisReport['learningPathRoadmap'] {
-    try {
-      const learningPathRoadmap: CareerAnalysisReport['learningPathRoadmap'] = {
-        timeline: []
-      };
-      
-      // Extract from learningPathRoadmap
-      const sourceData = rawData.learningPathRoadmap || {};
-      
-      // Extract Timeline
-      if (sourceData.timeline && Array.isArray(sourceData.timeline)) {
-        learningPathRoadmap.timeline = sourceData.timeline;
-      }
-      
-      return learningPathRoadmap;
-    } catch (error) {
-      console.error("Error extracting learning path roadmap:", error);
-      return {
-        timeline: []
-      };
-    }
-  }
-  
-  /**
-   * Extract overview from a string (for cases where executive summary is just a string)
-   */
-  private extractOverviewFromString(text: string): string {
-    if (!text) return '';
-    
-    // If the text is longer than 1000 characters, truncate it
-    if (text.length > 1000) {
-      return text.substring(0, 997) + '...';
-    }
-    
-    return text;
-  }
+        estimatedDuration: "Not specified",
+        outcomes: []
+      },
+      vocationalPathway: reportData?.careerPathwayOptions?.vocationalPathway || {
+        certifications: [],
+        providers: [],
+        estimatedDuration: "Not specified",
+        outcomes: []
+      },
+      aiInsights: reportData?.careerPathwayOptions?.aiInsights || "No insights available",
+      pathwaySteps: reportData?.careerPathwayOptions?.pathwaySteps || []
+    },
+    developmentPlan: {
+      skillsAssessment: reportData?.developmentPlan?.skillsAssessment || "No assessment available",
+      technicalSkills: reportData?.developmentPlan?.technicalSkills || [],
+      softSkills: reportData?.developmentPlan?.softSkills || [],
+      skillsToAcquire: reportData?.developmentPlan?.skillsToAcquire || []
+    },
+    educationalPrograms: {
+      recommendedPrograms: reportData?.educationalPrograms?.recommendedPrograms || [],
+      suggestedProjects: reportData?.educationalPrograms?.suggestedProjects || []
+    },
+    learningRoadmap: {
+      phases: reportData?.learningRoadmap?.phases || [],
+      roadmapOverview: reportData?.learningRoadmap?.roadmapOverview || "No roadmap overview available"
+    },
+    similarRoles: {
+      roles: reportData?.similarRoles?.roles || []
+    },
+    quickTips: {
+      quickWins: reportData?.quickTips?.quickWins || [],
+      industryInsights: reportData?.quickTips?.industryInsights || [],
+      interviewTips: reportData?.quickTips?.interviewTips || []
+    },
+    growthTrajectory: {
+      shortTerm: reportData?.growthTrajectory?.shortTerm || {
+        role: "Not specified",
+        timeframe: "0-2 years",
+        keySkills: [],
+        developmentFocus: "Not specified"
+      },
+      mediumTerm: reportData?.growthTrajectory?.mediumTerm || {
+        role: "Not specified",
+        timeframe: "2-5 years",
+        keySkills: [],
+        developmentFocus: "Not specified"
+      },
+      longTerm: reportData?.growthTrajectory?.longTerm || {
+        role: "Not specified",
+        timeframe: "5+ years",
+        keySkills: [],
+        developmentFocus: "Not specified"
+      },
+      potentialSalaryProgression: reportData?.growthTrajectory?.potentialSalaryProgression || []
+    },
+    learningPathRoadmap: {
+      careerTrajectory: reportData?.learningPathRoadmap?.careerTrajectory || [],
+      milestones: reportData?.learningPathRoadmap?.milestones || []
+    },
+    timestamp: reportData?.timestamp || new Date().toISOString(),
+    version: reportData?.version || "1.0"
+  };
+
+  return baseStructure;
 }

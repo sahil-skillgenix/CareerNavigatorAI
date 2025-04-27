@@ -10,7 +10,9 @@ import {
   Bookmark,
   Building,
   User,
-  History
+  History,
+  FileJson,
+  Sparkles
 } from "lucide-react";
 
 export function Navigation() {
@@ -31,6 +33,11 @@ export function Navigation() {
       name: "Personal Career Pathway",
       path: "/career-pathway",
       icon: <GraduationCap className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "Structured Pathway",
+      path: "/structured-pathway",
+      icon: <Sparkles className="h-5 w-5 mr-2" />,
     },
     {
       name: "History",
