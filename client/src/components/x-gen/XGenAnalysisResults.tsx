@@ -371,12 +371,12 @@ export function XGenAnalysisResults({
                 <div>
                   <h3 className="text-lg font-medium mb-2">Key Findings</h3>
                   <ul className="space-y-2">
-                    {report.executiveSummary.keyFindings.map((finding, idx) => (
+                    {report?.executiveSummary?.keyFindings?.map((finding, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                         <span>{finding}</span>
                       </li>
-                    ))}
+                    )) || <li>No key findings available</li>}
                   </ul>
                 </div>
               </CardContent>

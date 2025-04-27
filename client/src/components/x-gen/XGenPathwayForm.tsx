@@ -714,6 +714,11 @@ export function XGenPathwayForm() {
       // Generate a sample report to simulate the API response
       const generatedReport = generateSampleReport();
       
+      // Validate the report to ensure no undefined/null properties
+      if (!generatedReport || !generatedReport.executiveSummary) {
+        throw new Error("Failed to generate a valid report");
+      }
+      
       setReport(generatedReport);
       setStep('result');
 
