@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { CareerAnalysisReport } from '@shared/reportSchema';
+import { CareerAnalysisReport } from '../../../shared/reportSchema';
 import { StructuredCareerAnalysisResults } from './StructuredCareerAnalysisResults';
 import { fadeIn, fadeInUp, staggerChildren } from '@/lib/animations';
 
