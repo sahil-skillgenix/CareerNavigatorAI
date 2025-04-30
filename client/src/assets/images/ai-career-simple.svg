@@ -1,0 +1,84 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="600" rx="16" fill="#F8FAFC" />
+  
+  <!-- Central AI Circle -->
+  <circle cx="400" cy="300" r="80" fill="#E0EFFF" stroke="#1c3b82" stroke-width="3" />
+  
+  <!-- AI Brain Label -->
+  <rect x="330" y="220" width="140" height="40" rx="20" fill="#1c3b82" />
+  <text x="400" y="247" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle" fill="white">AI GUIDANCE</text>
+  
+  <!-- Simplified AI Network -->
+  <circle cx="375" cy="300" r="10" fill="#1c3b82" />
+  <circle cx="425" cy="300" r="10" fill="#a31d52" />
+  <circle cx="400" cy="275" r="10" fill="#1c3b82" />
+  <circle cx="400" cy="325" r="10" fill="#a31d52" />
+  
+  <line x1="375" y1="300" x2="425" y2="300" stroke="#1c3b82" stroke-width="2" />
+  <line x1="400" y1="275" x2="400" y2="325" stroke="#a31d52" stroke-width="2" />
+  <line x1="375" y1="300" x2="400" y2="275" stroke="#1c3b82" stroke-width="2" />
+  <line x1="400" y1="275" x2="425" y2="300" stroke="#a31d52" stroke-width="2" />
+  <line x1="425" y1="300" x2="400" y2="325" stroke="#1c3b82" stroke-width="2" />
+  <line x1="400" y1="325" x2="375" y2="300" stroke="#a31d52" stroke-width="2" />
+  
+  <!-- Career Paths (Simplified) -->
+  <!-- Technical Path -->
+  <path d="M 460 260 L 700 160" stroke="#1c3b82" stroke-width="4" />
+  <circle cx="700" cy="160" r="25" fill="white" stroke="#1c3b82" stroke-width="2" />
+  <text x="700" y="165" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#1c3b82">TECH</text>
+  
+  <!-- Management Path -->
+  <path d="M 460 300 L 700 300" stroke="#a31d52" stroke-width="4" />
+  <circle cx="700" cy="300" r="25" fill="white" stroke="#a31d52" stroke-width="2" />
+  <text x="700" y="305" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#a31d52">MGMT</text>
+  
+  <!-- Creative Path -->
+  <path d="M 460 340 L 700 440" stroke="#1c3b82" stroke-width="4" />
+  <circle cx="700" cy="440" r="25" fill="white" stroke="#1c3b82" stroke-width="2" />
+  <text x="700" y="445" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#1c3b82">CREATE</text>
+  
+  <!-- Skills Path -->
+  <path d="M 340 260 L 100 160" stroke="#a31d52" stroke-width="4" />
+  <circle cx="100" cy="160" r="25" fill="white" stroke="#a31d52" stroke-width="2" />
+  <text x="100" y="165" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#a31d52">SKILLS</text>
+  
+  <!-- Education Path -->
+  <path d="M 340 300 L 100 300" stroke="#1c3b82" stroke-width="4" />
+  <circle cx="100" cy="300" r="25" fill="white" stroke="#1c3b82" stroke-width="2" />
+  <text x="100" y="305" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#1c3b82">LEARN</text>
+  
+  <!-- Growth Path -->
+  <path d="M 340 340 L 100 440" stroke="#a31d52" stroke-width="4" />
+  <circle cx="100" cy="440" r="25" fill="white" stroke="#a31d52" stroke-width="2" />
+  <text x="100" y="445" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#a31d52">GROW</text>
+  
+  <!-- Simple Analysis Process at Bottom -->
+  <rect x="200" y="520" width="400" height="50" rx="25" fill="white" stroke="#1c3b82" stroke-width="2" />
+  
+  <!-- Process Steps -->
+  <circle cx="250" cy="545" r="15" fill="#1c3b82" />
+  <text x="250" y="550" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">1</text>
+  <text x="250" y="575" font-family="Arial" font-size="10" text-anchor="middle" fill="#1c3b82">Assess</text>
+  
+  <circle cx="350" cy="545" r="15" fill="#a31d52" />
+  <text x="350" y="550" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">2</text>
+  <text x="350" y="575" font-family="Arial" font-size="10" text-anchor="middle" fill="#a31d52">Analyze</text>
+  
+  <circle cx="450" cy="545" r="15" fill="#1c3b82" />
+  <text x="450" y="550" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">3</text>
+  <text x="450" y="575" font-family="Arial" font-size="10" text-anchor="middle" fill="#1c3b82">Guide</text>
+  
+  <circle cx="550" cy="545" r="15" fill="#a31d52" />
+  <text x="550" y="550" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">4</text>
+  <text x="550" y="575" font-family="Arial" font-size="10" text-anchor="middle" fill="#a31d52">Track</text>
+  
+  <!-- Process Flow Arrows -->
+  <line x1="265" y1="545" x2="335" y2="545" stroke="#1c3b82" stroke-width="2" />
+  <line x1="365" y1="545" x2="435" y2="545" stroke="#a31d52" stroke-width="2" />
+  <line x1="465" y1="545" x2="535" y2="545" stroke="#1c3b82" stroke-width="2" />
+  
+  <!-- Pulse Rings Around AI (Simplified) -->
+  <circle cx="400" cy="300" r="100" fill="none" stroke="#1c3b82" stroke-width="1" opacity="0.6" />
+  <circle cx="400" cy="300" r="120" fill="none" stroke="#1c3b82" stroke-width="1" opacity="0.3" />
+</svg>
