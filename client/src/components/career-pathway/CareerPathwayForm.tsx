@@ -8,7 +8,7 @@
  * Last modified: April 26, 2025
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -537,6 +537,14 @@ function CareerAnalysisResults({
   const pathwayRef = useRef<HTMLDivElement>(null);
   const developmentRef = useRef<HTMLDivElement>(null);
   
+  // Automatically scroll to top when results are displayed
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [results]);
+  
   // Helper functions for skill evaluations
   const skillValidated = (skillName: string, results: CareerAnalysisResult): number => {
     if (!results.skillGapAnalysis.strengths) return 0;
@@ -678,12 +686,13 @@ function CareerAnalysisResults({
   };
   
   return (
-    <div className="container mx-auto max-w-4xl py-8">
+    <div className="container mx-auto max-w-4xl py-8 mb-0">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
         id="career-analysis-results"
+        className="pb-2"
       >
         <div className="bg-primary/5 rounded-lg p-6 mb-8">
           <h1 className="text-3xl font-bold mb-4">Your Career Pathway Analysis</h1>
@@ -2768,7 +2777,7 @@ function CareerAnalysisResults({
         </div> */}
         
         <motion.div 
-          className="flex flex-col items-center gap-6 mt-16"
+          className="flex flex-col items-center gap-6 mt-8 mb-0"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
