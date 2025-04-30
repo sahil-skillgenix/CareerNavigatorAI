@@ -40,7 +40,7 @@ import { fadeInLeft, fadeInRight } from "@/lib/animations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-
+import careerGrowthAiSvg from "@/assets/images/ai-career-guidance.svg";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -572,10 +572,19 @@ export default function AuthPage() {
           <div className="absolute inset-0 flex items-center justify-center p-12">
             <div className="max-w-lg">
               <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-4">AI Career Guidance</h2>
+                <h2 className="text-3xl font-bold mb-4">AI-Powered Career Guidance</h2>
                 <p className="text-muted-foreground text-lg">
-                  Discover your ideal career path with AI assistance.
+                  Skillgenix's intelligent AI analyzes your skills and aspirations to provide personalized career guidance. 
+                  Discover multiple career paths, identify skill gaps, and receive tailored recommendations to accelerate your professional growth.
                 </p>
+              </div>
+              
+              <div className="rounded-xl overflow-hidden border bg-white shadow-lg">
+                <img 
+                  src={careerGrowthAiSvg} 
+                  alt="AI-Powered Career Growth Paths" 
+                  className="w-full h-auto"
+                />
               </div>
             </div>
           </div>
