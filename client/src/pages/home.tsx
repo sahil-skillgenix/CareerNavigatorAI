@@ -4,7 +4,6 @@ import ProfessionalJourneySection from '@/components/professional-journey-sectio
 import ProfessionalSearchSection from '@/components/professional-search-section';
 import ProfessionalFeaturesSection from '@/components/professional-features-section';
 import TestimonialsSection from '@/components/testimonials-section';
-import CtaSection from '@/components/cta-section';
 import Footer from '@/components/footer';
 import { useEffect } from 'react';
 
@@ -23,7 +22,6 @@ export default function Home() {
         <ProfessionalJourneySection />
         <ProfessionalSearchSection />
         <TestimonialsSection />
-        <CtaSection />
       </main>
       <Footer />
     </div>
