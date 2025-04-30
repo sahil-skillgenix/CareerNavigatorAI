@@ -40,7 +40,7 @@ import { fadeInLeft, fadeInRight } from "@/lib/animations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import careerGrowthAiSvg from "@/assets/images/career-growth-ai.svg";
+import careerGrowthAiSvg from "@/assets/images/career-pathway-map.svg";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -572,10 +572,10 @@ export default function AuthPage() {
           <div className="absolute inset-0 flex items-center justify-center p-12">
             <div className="max-w-lg">
               <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-4">Plan Your Career Growth With AI</h2>
+                <h2 className="text-3xl font-bold mb-4">Map Your Career Path to Success</h2>
                 <p className="text-muted-foreground text-lg">
-                  Skillgenix uses advanced AI to help you visualize and navigate your professional journey, 
-                  identify skill gaps, and achieve your career aspirations.
+                  Skillgenix creates personalized career maps that show you multiple pathways to reach your professional goals. 
+                  Our AI technology identifies critical skill gaps and provides detailed growth plans to accelerate your career advancement.
                 </p>
               </div>
               
