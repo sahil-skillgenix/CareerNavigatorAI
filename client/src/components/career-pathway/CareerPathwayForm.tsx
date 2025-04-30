@@ -2775,9 +2775,15 @@ function CareerAnalysisResults({
         >
           {/* Save to Dashboard and PDF Download buttons */}
           <div className="flex justify-center w-full gap-6">
-            {/* HTML Report Button */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-0.5 rounded-lg">
-              <PdfDownloader results={results} userName={user?.fullName || 'User'} />
+            {/* HTML Report Button with Coming Soon Overlay */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-0.5 rounded-lg relative">
+              {/* Blurred overlay */}
+              <div className="absolute inset-0 backdrop-blur-sm bg-slate-800/60 z-10 rounded-lg flex items-center justify-center">
+                <span className="text-white font-medium text-lg">Download Coming Soon</span>
+              </div>
+              <div className="pointer-events-none">
+                <PdfDownloader results={results} userName={user?.fullName || 'User'} />
+              </div>
             </div>
           </div>
           
