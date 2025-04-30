@@ -40,7 +40,7 @@ import { fadeInLeft, fadeInRight } from "@/lib/animations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import careerGrowthAiSvg from "@/assets/images/ai-career-guidance.svg";
+// AI career guidance information is now displayed as text
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -571,20 +571,30 @@ export default function AuthPage() {
         >
           <div className="absolute inset-0 flex items-center justify-center p-12">
             <div className="max-w-lg">
-              <div className="mb-8">
+              <div>
                 <h2 className="text-3xl font-bold mb-4">AI-Powered Career Guidance</h2>
-                <p className="text-muted-foreground text-lg">
+                <p className="text-muted-foreground text-lg mb-4">
                   Skillgenix's intelligent AI analyzes your skills and aspirations to provide personalized career guidance. 
                   Discover multiple career paths, identify skill gaps, and receive tailored recommendations to accelerate your professional growth.
                 </p>
-              </div>
-              
-              <div className="rounded-xl overflow-hidden border bg-white shadow-lg">
-                <img 
-                  src={careerGrowthAiSvg} 
-                  alt="AI-Powered Career Growth Paths" 
-                  className="w-full h-auto"
-                />
+                <div className="space-y-4 text-lg">
+                  <div className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-white mr-3 flex-shrink-0 mt-1">1</div>
+                    <p>Advanced skill assessment to evaluate your current professional capabilities</p>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-white mr-3 flex-shrink-0 mt-1">2</div>
+                    <p>Intelligent career path recommendations based on your unique profile</p>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-white mr-3 flex-shrink-0 mt-1">3</div>
+                    <p>Personalized learning resources to help you bridge skill gaps</p>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-white mr-3 flex-shrink-0 mt-1">4</div>
+                    <p>Ongoing progress tracking to visualize your professional growth</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
