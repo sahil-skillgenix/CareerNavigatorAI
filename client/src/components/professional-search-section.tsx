@@ -148,7 +148,9 @@ export default function ProfessionalSearchSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute inset-0 backdrop-blur-md bg-white/50 z-10 rounded-lg"></div>
+          <div className="absolute inset-0 flex items-center justify-center backdrop-blur-md bg-white/50 z-10 rounded-lg">
+            <p className="text-2xl font-bold text-[#1c3b82]">Something Awesome coming soon!</p>
+          </div>
           <h2 className="font-semibold text-3xl mb-4 text-[#1c3b82]">
             Explore Career Possibilities
           </h2>
@@ -164,7 +166,9 @@ export default function ProfessionalSearchSection() {
           transition={{ duration: 0.6 }}
           className="bg-white rounded-lg shadow-sm border border-[#e4e9f2] max-w-5xl mx-auto overflow-hidden relative"
         >
-          <div className="absolute inset-0 backdrop-blur-md bg-white/50 z-10 rounded-lg"></div>
+          <div className="absolute inset-0 flex items-center justify-center backdrop-blur-md bg-white/50 z-10 rounded-lg">
+            <p className="text-2xl font-bold text-[#1c3b82]">Something Awesome coming soon!</p>
+          </div>
           <div className="p-6">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
