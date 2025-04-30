@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,34 @@ import {
   History,
   FileJson,
   Sparkles,
-  Save
+  Save,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export function Navigation() {
   const [location] = useLocation();
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
 
-  const navigationItems = [
+  const primaryNavItems = [
+    {
+      name: "Personal Career Pathway",
+      path: "/career-pathway",
+      icon: <GraduationCap className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "Demo - Structured Pathway",
+      path: "/structured-pathway",
+      icon: <Sparkles className="h-5 w-5 mr-2" />,
+    },
+  ];
+
+  const comingSoonItems = [
     {
       name: "Dashboard",
       path: "/dashboard",
@@ -31,16 +52,6 @@ export function Navigation() {
       icon: <User className="h-5 w-5 mr-2" />,
     },
     {
-      name: "Personal Career Pathway",
-      path: "/career-pathway",
-      icon: <GraduationCap className="h-5 w-5 mr-2" />,
-    },
-    {
-      name: "Structured Pathway",
-      path: "/structured-pathway",
-      icon: <Sparkles className="h-5 w-5 mr-2" />,
-    },
-    {
       name: "History",
       path: "/history",
       icon: <History className="h-5 w-5 mr-2" />,
@@ -49,7 +60,6 @@ export function Navigation() {
       name: "Organization Pathway",
       path: "/organization-pathway",
       icon: <Building className="h-5 w-5 mr-2" />,
-      disabled: true,
     },
     {
       name: "Learning Resources",
@@ -71,27 +81,58 @@ export function Navigation() {
   return (
     <Card className="p-4 mb-8">
       <div className="flex flex-wrap justify-center gap-2">
-        {navigationItems.map((item) => (
+        {/* Primary Navigation Items */}
+        {primaryNavItems.map((item) => (
           <Button
             key={item.path}
             variant={location === item.path ? "default" : "outline"}
             className="flex items-center"
-            asChild={!item.disabled}
-            disabled={item.disabled}
+            asChild
           >
-            {!item.disabled ? (
-              <Link href={item.path}>
-                {item.icon}
-                {item.name}
-              </Link>
-            ) : (
-              <span className="flex items-center">
-                {item.icon}
-                {item.name}
-              </span>
-            )}
+            <Link href={item.path}>
+              {item.icon}
+              {item.name}
+            </Link>
           </Button>
         ))}
+        
+        {/* Coming Soon Section */}
+        <Collapsible
+          open={isComingSoonOpen}
+          onOpenChange={setIsComingSoonOpen}
+          className="w-full max-w-[300px] mx-auto mt-4"
+        >
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="flex items-center justify-between w-full"
+            >
+              <div className="flex items-center">
+                <Route className="h-5 w-5 mr-2" />
+                Coming Soon
+              </div>
+              {isComingSoonOpen ? (
+                <ChevronUp className="h-4 w-4 ml-2" />
+              ) : (
+                <ChevronDown className="h-4 w-4 ml-2" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="mt-2 space-y-2">
+            {comingSoonItems.map((item) => (
+              <Button
+                key={item.path}
+                variant="ghost"
+                className="flex items-center w-full justify-start"
+                disabled={true}
+              >
+                {item.icon}
+                {item.name}
+              </Button>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </Card>
   );
