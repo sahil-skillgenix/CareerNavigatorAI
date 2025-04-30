@@ -37,10 +37,10 @@ function Router() {
   console.log("App Router - User:", user);
   console.log("Current Path:", window.location.pathname);
   
-  // If the user is a superadmin or admin, redirect to /admin from dashboard or root
+  // If the user is a superadmin or admin, redirect to /admin from career-pathway or root
   React.useEffect(() => {
     if (user && (user.role === 'superadmin' || user.role === 'admin')) {
-      if (window.location.pathname === '/dashboard' || window.location.pathname === '/') {
+      if (window.location.pathname === '/career-pathway' || window.location.pathname === '/') {
         console.log(`Redirecting admin/superadmin: ${user.role} to /admin`);
         window.location.href = '/admin';
       }
@@ -93,12 +93,17 @@ function Router() {
       <Route path="/industries/:id/profile" component={IndustryDetailPage} />
       <Route path="/industries/:id" component={IndustryDetailPage} />
       
-      {/* Home route - redirect superadmin/admin to admin dashboard */}
+      {/* Home route - redirect superadmin/admin to admin dashboard, regular logged in users to personal career pathway */}
       <Route path="/">
         {() => {
-          if (user && (user.role === 'superadmin' || user.role === 'admin')) {
-            window.location.href = '/admin';
-            return <div>Redirecting to admin dashboard...</div>;
+          if (user) {
+            if (user.role === 'superadmin' || user.role === 'admin') {
+              window.location.href = '/admin';
+              return <div>Redirecting to admin dashboard...</div>;
+            } else {
+              window.location.href = '/career-pathway';
+              return <div>Redirecting to Personal Career Pathway...</div>;
+            }
           }
           return <Home />;
         }}

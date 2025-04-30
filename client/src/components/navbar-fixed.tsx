@@ -165,10 +165,10 @@ export default function Navbar() {
                       <div className="text-sm text-muted-foreground">
                         Welcome, <span className="font-medium">{user.fullName}</span>
                       </div>
-                      <Link href="/dashboard">
+                      <Link href="/career-pathway">
                         <Button className="w-full justify-start" variant="outline">
-                          <User className="mr-2 h-4 w-4" />
-                          Dashboard
+                          <GraduationCap className="mr-2 h-4 w-4" />
+                          Personal Career Pathway
                         </Button>
                       </Link>
                       <Link href="/settings">

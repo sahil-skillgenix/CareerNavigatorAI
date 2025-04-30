@@ -248,7 +248,7 @@ export default function AuthPage() {
 
   // Now safe to redirect after all hook calls
   if (shouldRedirect) {
-    return <Redirect to="/dashboard" />;
+    return <Redirect to="/career-pathway" />;
   }
   
   return (
