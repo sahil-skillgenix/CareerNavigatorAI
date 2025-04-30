@@ -11,7 +11,8 @@ import {
   Lock, 
   Mail, 
   Shield,
-  History
+  History,
+  GraduationCap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -83,10 +84,10 @@ export default function Navbar() {
                 <div className="hidden md:block text-sm text-muted-foreground">
                   Welcome, <span className="font-medium">{user.fullName}</span>
                 </div>
-                <Link href="/dashboard">
+                <Link href="/career-pathway">
                   <Button variant="outline" size="sm" className="hidden md:inline-flex">
-                    <User className="mr-2 h-4 w-4" />
-                    Dashboard
+                    <GraduationCap className="mr-2 h-4 w-4" />
+                    Personal Career Pathway
                   </Button>
                 </Link>
                 <Link href="/my-details">
@@ -131,6 +132,13 @@ export default function Navbar() {
                     <DropdownMenuSeparator />
                     
                     <DropdownMenuGroup>
+                      <DropdownMenuItem asChild>
+                        <Link href="/career-pathway">
+                          <GraduationCap className="mr-2 h-4 w-4" />
+                          <span>Personal Career Pathway</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      
                       <DropdownMenuItem asChild>
                         <Link href="/my-details">
                           <User className="mr-2 h-4 w-4" />
@@ -252,10 +260,10 @@ export default function Navbar() {
                       <div className="text-sm text-muted-foreground">
                         Welcome, <span className="font-medium">{user.fullName}</span>
                       </div>
-                      <Link href="/dashboard" className="w-full">
+                      <Link href="/career-pathway" className="w-full">
                         <Button className="w-full justify-start" variant="outline">
-                          <User className="mr-2 h-4 w-4" />
-                          Dashboard
+                          <GraduationCap className="mr-2 h-4 w-4" />
+                          Personal Career Pathway
                         </Button>
                       </Link>
                       <Link href="/my-details" className="w-full">

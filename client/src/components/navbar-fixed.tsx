@@ -11,7 +11,8 @@ import {
   Lock, 
   Mail, 
   Shield,
-  Briefcase
+  Briefcase,
+  GraduationCap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -101,10 +102,10 @@ export default function Navbar() {
                       <DropdownMenuSeparator />
                       
                       <DropdownMenuGroup>
-                        <Link href="/dashboard">
+                        <Link href="/career-pathway">
                           <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
-                            <span>Dashboard</span>
+                            <GraduationCap className="mr-2 h-4 w-4" />
+                            <span>Personal Career Pathway</span>
                           </DropdownMenuItem>
                         </Link>
                         <Link href="/settings">
