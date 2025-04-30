@@ -40,7 +40,7 @@ import { fadeInLeft, fadeInRight } from "@/lib/animations";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import careerGrowthAiSvg from "@/assets/images/ai-career-simple.svg";
+import careerGrowthAiSvg from "@/assets/images/ai-career-minimal.svg";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -572,10 +572,9 @@ export default function AuthPage() {
           <div className="absolute inset-0 flex items-center justify-center p-12">
             <div className="max-w-lg">
               <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-4">Simple AI Career Guidance</h2>
+                <h2 className="text-3xl font-bold mb-4">AI Career Guidance</h2>
                 <p className="text-muted-foreground text-lg">
-                  AI-powered career planning that shows clear pathways for your professional journey.
-                  Find your ideal career path and develop the skills you need to succeed.
+                  Discover your ideal career path with AI assistance.
                 </p>
               </div>
               
