@@ -2720,43 +2720,21 @@ export function StructuredCareerAnalysisResults({
             Start New Analysis
           </Button>
           
-          <Button
-            variant="outline"
-            onClick={handleSaveToAccount}
-            disabled={saveInProgress}
-            className="flex items-center gap-1.5"
-          >
-            {saveInProgress ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save to Account
-              </>
-            )}
-          </Button>
-          
-          <Button
-            variant="default"
-            onClick={handleDownloadReport}
-            disabled={downloadInProgress}
-            className="flex items-center gap-1.5"
-          >
-            {downloadInProgress ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Download Report
-              </>
-            )}
-          </Button>
+          <div className="relative">
+            <Button
+              variant="default"
+              disabled={true}
+              className="flex items-center gap-1.5 opacity-70"
+            >
+              <Download className="h-4 w-4" />
+              Download Report
+            </Button>
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px] flex items-center justify-center rounded-md">
+              <div className="bg-white/90 px-2 py-1 rounded text-xs font-medium shadow-sm">
+                Download Coming Soon
+              </div>
+            </div>
+          </div>
           
           {process.env.NODE_ENV === 'development' && (
             <Button
