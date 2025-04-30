@@ -61,15 +61,6 @@ export default function ProfessionalHeroSection() {
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/auth">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-6 py-5 text-base border-[#1c3b82] text-[#1c3b82] hover:bg-[#f5f7fa] font-medium"
-                >
-                  Learn More
-                </Button>
-              </Link>
             </motion.div>
             
             <motion.div 
