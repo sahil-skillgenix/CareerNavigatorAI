@@ -83,9 +83,6 @@ export default function Navbar() {
                 <div className="hidden md:block text-sm text-muted-foreground">
                   Welcome, <span className="font-medium">{user.fullName}</span>
                 </div>
-                <Button variant="ghost" size="sm" className="hidden md:inline-flex" disabled>
-                  Search - Coming Soon
-                </Button>
                 <Link href="/dashboard">
                   <Button variant="outline" size="sm" className="hidden md:inline-flex">
                     <User className="mr-2 h-4 w-4" />
@@ -215,9 +212,6 @@ export default function Navbar() {
             ) : (
               <>
                 {/* Logged out state */}
-                <Button variant="ghost" size="sm" className="hidden md:inline-flex" disabled>
-                  Search - Coming Soon
-                </Button>
                 <Link href="/auth" className="hidden md:block">
                   <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
@@ -258,9 +252,6 @@ export default function Navbar() {
                       <div className="text-sm text-muted-foreground">
                         Welcome, <span className="font-medium">{user.fullName}</span>
                       </div>
-                      <Button className="w-full justify-start" variant="ghost" disabled>
-                        Search - Coming Soon
-                      </Button>
                       <Link href="/dashboard" className="w-full">
                         <Button className="w-full justify-start" variant="outline">
                           <User className="mr-2 h-4 w-4" />
@@ -310,9 +301,6 @@ export default function Navbar() {
                   ) : (
                     <>
                       {/* Logged out mobile menu */}
-                      <Button className="w-full justify-start" variant="ghost" disabled>
-                        Search - Coming Soon
-                      </Button>
                       <Link href="/auth" className="w-full">
                         <Button variant="outline" className="w-full">Sign In</Button>
                       </Link>
