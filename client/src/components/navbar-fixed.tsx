@@ -78,11 +78,9 @@ export default function Navbar() {
                     Welcome, <span className="font-medium">{user.fullName}</span>
                   </div>
                 ) : (
-                  <Link href="/search">
-                    <Button variant="ghost" size="sm">
-                      Search
-                    </Button>
-                  </Link>
+                  <div className="hidden md:block text-sm text-muted-foreground">
+                    Welcome, <span className="font-medium">{user.fullName}</span>
+                  </div>
                 )}
 
                 {/* Profile dropdown menu */}
@@ -132,11 +130,6 @@ export default function Navbar() {
             ) : (
               <>
                 {/* Logged out state */}
-                <Link href="/search">
-                  <Button variant="ghost" size="sm">
-                    Search
-                  </Button>
-                </Link>
                 <Link href="/auth">
                   <ButtonHighlighted variant="default" size="default">
                     Get Started
@@ -171,11 +164,6 @@ export default function Navbar() {
                       <div className="text-sm text-muted-foreground">
                         Welcome, <span className="font-medium">{user.fullName}</span>
                       </div>
-                      <Link href="/search">
-                        <Button className="w-full justify-start" variant="ghost">
-                          Search
-                        </Button>
-                      </Link>
                       <Link href="/dashboard">
                         <Button className="w-full justify-start" variant="outline">
                           <User className="mr-2 h-4 w-4" />
@@ -201,11 +189,6 @@ export default function Navbar() {
                   ) : (
                     <>
                       {/* Logged out mobile menu */}
-                      <Link href="/search">
-                        <Button className="w-full justify-start" variant="ghost">
-                          Search
-                        </Button>
-                      </Link>
                       <Link href="/auth">
                         <ButtonHighlighted variant="default" size="lg" className="w-full">
                           Get Started
